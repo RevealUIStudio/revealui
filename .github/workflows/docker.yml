@@ -252,24 +252,32 @@ jobs:
     needs: [changes, build-and-push, review-controller-image]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Evaluate build matrix result
         env:
-          CHANGES_RESULT: ${{ needs.changes.result }}
-          BUILD_RESULT: ${{ needs.build-and-push.result }}
+          CHECK: docker
+          RESULT: ${{ needs.build-and-push.result }}
           CONTROLLER_RESULT: ${{ needs.review-controller-image.result }}
         run: |
-          if [ "$CHANGES_RESULT" != "success" ]; then
-            echo "changes result: $CHANGES_RESULT"
-            exit 1
-          fi
-          case "$BUILD_RESULT" in
-            success) echo "image builds green" ;;
-            skipped) echo "image-irrelevant diff, builds skipped" ;;
-            *)
-              echo "build-and-push result: $BUILD_RESULT"
-              exit 1
-              ;;
-          esac
+          set -euo pipefail
           case "$CONTROLLER_RESULT" in
             success) echo "review controller image build green" ;;
             skipped) echo "review-controller-irrelevant diff, build skipped" ;;
@@ -278,3 +286,9 @@ jobs:
               exit 1
               ;;
           esac
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
+          fi

@@ -45,8 +45,11 @@ spaces. Canonical clearance example:
 gh pr edit 2482 -R RevealUIStudio/revealui --add-label sec-review:approved
 ```
 
-Same shape for other owner one-liners: `gh pr merge <n> -R owner/repo …`,
-`gh pr view <n> -R owner/repo …`, `gh pr checks <n> -R owner/repo`. Hooks that
+Feature pull requests into `test` use merge commits only:
+`gh pr merge <n> -R owner/repo --merge`.
+Never pass `--squash`, `--rebase`, `--admin`, or `--auto`.
+Same shape for other owner one-liners: `gh pr view <n> -R owner/repo`,
+`gh pr checks <n> -R owner/repo`. Hooks that
 print clearance commands (for example sec-review-pending) already use `-R`;
 agent wrap-ups and skills must match.
 
