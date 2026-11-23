@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase } from './__tests__/database.js';
 import { PostgresWebhookInbox } from './inbox.js';
 import { PostgresShadowObservationStore } from './observations.js';
+import type { ReviewEvidence } from './reviewer.js';
 import type { PullRequestSnapshot } from './snapshot.js';
 
 describe('PostgresShadowObservationStore', () => {
@@ -178,7 +179,7 @@ describe('PostgresShadowObservationStore', () => {
       `00000000-0000-4000-8000-${number.toString(16).padStart(12, '0')}`;
     const record = async (
       number: number,
-      reviewEvidence?: ReturnType<typeof review>,
+      reviewEvidence?: ReviewEvidence,
       candidateSnapshot = snapshot,
     ) => {
       const id = deliveryId(number);
@@ -211,6 +212,39 @@ describe('PostgresShadowObservationStore', () => {
     });
     expect(observations.map((observation) => observation.reviewId)).toEqual([81]);
     expect(observations[0]?.receiptReview?.verdict).toBe('request-changes');
+
+    const trusted = (reviewId: number, verdict: 'approve' | 'request-changes'): ReviewEvidence => {
+      const result = review(reviewId, verdict);
+      return {
+        status: 'observed',
+        review: {
+          ...result.review,
+          provider: 'trusted-reviewer-app',
+          reviewerLogin: 'revealui-reviewer[bot]',
+          reviewerId: 90211,
+          receiptReview: {
+            ...result.review.receiptReview,
+            reviewerId: 'github-user:90211',
+            system: 'openai-api-trusted-reviewer-app',
+          },
+        },
+      };
+    };
+    const candidate = {
+      repositoryId: snapshot.repositoryId,
+      pullRequest: snapshot.pullRequest,
+      headSha: snapshot.headSha,
+      baseSha: snapshot.baseSha,
+      trustedReviewer: { login: 'revealui-reviewer[bot]', id: 90211 },
+    };
+    await record(116, trusted(85, 'approve'));
+    expect((await store.listReviewObservations(candidate)).map((item) => item.reviewId)).toEqual([
+      85,
+    ]);
+    await record(117, trusted(86, 'request-changes'));
+    expect((await store.listReviewObservations(candidate)).map((item) => item.reviewId)).toEqual([
+      86,
+    ]);
   });
 });
 

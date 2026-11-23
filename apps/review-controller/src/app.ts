@@ -1,12 +1,20 @@
+import { validReceiptAuthorizationRequest } from '@revealui/security/review-receipt';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import type { WebhookInbox } from './inbox.js';
+import type { PostgresReceiptAuthority } from './receipt-authority.js';
 import { MAX_WEBHOOK_BYTES, verifyGitHubWebhook } from './webhook.js';
 
 export function createReviewControllerApp(input: {
   inbox: Pick<WebhookInbox, 'enqueue' | 'ready'>;
   env?: NodeJS.ProcessEnv;
   now?: () => Date;
+  receiptAuthority?: {
+    store: Pick<PostgresReceiptAuthority, 'attest'>;
+    keyId: string;
+    privateKey: string;
+    repositoryId: number;
+  };
 }): Hono {
   const env = input.env ?? process.env;
   const app = new Hono();
@@ -17,6 +25,32 @@ export function createReviewControllerApp(input: {
       return c.json({ ok: true });
     } catch {
       return c.json({ ok: false }, 503);
+    }
+  });
+  app.post('/receipt/authorization', bodyLimit({ maxSize: 4096 }), async (c) => {
+    c.header('Cache-Control', 'no-store');
+    if (!input.receiptAuthority) return c.json({ error: 'receipt_authority_unavailable' }, 503);
+    let request: unknown;
+    try {
+      request = await c.req.json();
+    } catch {
+      return c.json({ error: 'invalid_authorization_request' }, 400);
+    }
+    if (
+      !validReceiptAuthorizationRequest(request) ||
+      request.repositoryId !== input.receiptAuthority.repositoryId
+    )
+      return c.json({ error: 'invalid_authorization_request' }, 400);
+    try {
+      const result = await input.receiptAuthority.store.attest({
+        request,
+        keyId: input.receiptAuthority.keyId,
+        privateKey: input.receiptAuthority.privateKey,
+        ...(input.now ? { now: input.now() } : {}),
+      });
+      return c.json(result);
+    } catch {
+      return c.json({ error: 'receipt_authority_unavailable' }, 503);
     }
   });
   app.post('/github/webhook', bodyLimit({ maxSize: MAX_WEBHOOK_BYTES }), async (c) => {

@@ -6,7 +6,9 @@ import {
 import { and, asc, eq, gte, lte, or, sql } from 'drizzle-orm';
 import type { AcceptedWebhook } from './webhook.js';
 
-export const MAX_WEBHOOK_ATTEMPTS = 12;
+import { MAX_WEBHOOK_ATTEMPTS } from './work-policy.js';
+
+export { MAX_WEBHOOK_ATTEMPTS } from './work-policy.js';
 
 export interface ClaimedWebhook {
   deliveryId: string;

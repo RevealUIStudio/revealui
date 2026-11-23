@@ -31,8 +31,8 @@ export function classifySecurityPathsAtApiLimit(
   sourceFileCount = paths.length,
 ): string[] {
   if (!Number.isSafeInteger(sourceFileCount) || sourceFileCount < 0)
-    return ['(file list count is invalid — unclassifiable, failing closed)'];
+    return ['(file list count is invalid: unclassifiable, failing closed)'];
   if (sourceFileCount >= MAX_CLASSIFIABLE_SECURITY_PATHS)
-    return ['(file list at the API ceiling — unclassifiable, failing closed)'];
+    return ['(file list at the API ceiling: unclassifiable, failing closed)'];
   return classifySecurityPaths(paths);
 }

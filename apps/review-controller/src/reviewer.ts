@@ -1,5 +1,5 @@
 export interface CodexReviewObservation {
-  provider: 'codex-subscription';
+  provider: 'codex-subscription' | 'trusted-reviewer-app';
   reviewerLogin: string;
   reviewerId: number;
   reviewId: number;
