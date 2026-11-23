@@ -659,3 +659,158 @@ export function verifyReviewReceipt(input: {
   }
   return { ok: true, receiptId: receipt.receiptId };
 }
+
+/** Online authorization is domain-separated from immutable review evidence. */
+export interface ReceiptAuthorizationRequest {
+  schema: 'revealfleet-receipt-authorization-request/v1';
+  challenge: string;
+  repositoryId: number;
+  pullRequest: number;
+  envelopeSha256: string;
+}
+export interface ReceiptAuthorization {
+  schema: 'revealfleet-receipt-authorization/v1';
+  challenge: string;
+  repositoryId: number;
+  pullRequest: number;
+  envelopeSha256: string;
+  generation: number;
+  authorized: boolean;
+  issuedAt: string;
+  expiresAt: string;
+}
+export interface ReceiptAuthorizationEnvelope {
+  keyId: string;
+  authorization: ReceiptAuthorization;
+  signature: string;
+}
+export const RECEIPT_AUTHORIZATION_LIFETIME_MS = 5_000;
+
+export function validReceiptAuthorizationRequest(
+  value: unknown,
+): value is ReceiptAuthorizationRequest {
+  return (
+    isRecord(value) &&
+    exactKeys(value, ['schema', 'challenge', 'repositoryId', 'pullRequest', 'envelopeSha256']) &&
+    value.schema === 'revealfleet-receipt-authorization-request/v1' &&
+    isSha256(value.challenge) &&
+    isSafeInteger(value.repositoryId, 1) &&
+    isSafeInteger(value.pullRequest, 1) &&
+    isSha256(value.envelopeSha256)
+  );
+}
+
+export function signReceiptAuthorization(input: {
+  request: ReceiptAuthorizationRequest;
+  generation: number;
+  authorized: boolean;
+  keyId: string;
+  privateKey: string | Buffer;
+  now: Date;
+  receiptExpiresAt?: Date;
+}): ReceiptAuthorizationEnvelope {
+  if (
+    !(validReceiptAuthorizationRequest(input.request) && isSafeInteger(input.generation)) ||
+    (input.authorized && input.generation === 0) ||
+    !Number.isFinite(input.now.getTime()) ||
+    !/^[A-Za-z0-9._:-]{1,128}$/.test(input.keyId)
+  )
+    throw new Error('receipt_authorization_input_invalid');
+  const expiry = Math.min(
+    input.now.getTime() + RECEIPT_AUTHORIZATION_LIFETIME_MS,
+    input.authorized ? (input.receiptExpiresAt?.getTime() ?? NaN) : Infinity,
+  );
+  if (!Number.isFinite(expiry) || expiry <= input.now.getTime())
+    throw new Error('receipt_authorization_expired');
+  const authorization: ReceiptAuthorization = {
+    ...input.request,
+    schema: 'revealfleet-receipt-authorization/v1',
+    generation: input.generation,
+    authorized: input.authorized,
+    issuedAt: input.now.toISOString(),
+    expiresAt: new Date(expiry).toISOString(),
+  };
+  const key = createPrivateKey(input.privateKey);
+  if (key.asymmetricKeyType !== 'ed25519') throw new Error('receipt_authorization_key_invalid');
+  return {
+    keyId: input.keyId,
+    authorization,
+    signature: sign(null, Buffer.from(canonicalJson(authorization)), key).toString('base64'),
+  };
+}
+
+export function verifyReceiptAuthorization(input: {
+  envelope: unknown;
+  expected: ReceiptAuthorizationRequest;
+  trustedKeys: Readonly<Record<string, string>>;
+  requestedAt: Date;
+  now: Date;
+}): { ok: true; generation: number } | { ok: false; reason: string } {
+  const fail = (reason: string) => ({ ok: false as const, reason });
+  const value = input.envelope;
+  if (
+    !(
+      validReceiptAuthorizationRequest(input.expected) &&
+      isRecord(value) &&
+      exactKeys(value, ['keyId', 'authorization', 'signature'])
+    ) ||
+    typeof value.keyId !== 'string' ||
+    typeof value.signature !== 'string' ||
+    !isRecord(value.authorization)
+  )
+    return fail('receipt_authorization_malformed');
+  const a = value.authorization;
+  if (
+    !exactKeys(a, [
+      'schema',
+      'challenge',
+      'repositoryId',
+      'pullRequest',
+      'envelopeSha256',
+      'generation',
+      'authorized',
+      'issuedAt',
+      'expiresAt',
+    ]) ||
+    a.schema !== 'revealfleet-receipt-authorization/v1' ||
+    a.challenge !== input.expected.challenge ||
+    a.repositoryId !== input.expected.repositoryId ||
+    a.pullRequest !== input.expected.pullRequest ||
+    a.envelopeSha256 !== input.expected.envelopeSha256 ||
+    !isSafeInteger(a.generation, 1) ||
+    a.authorized !== true ||
+    !isIsoTimestamp(a.issuedAt) ||
+    !isIsoTimestamp(a.expiresAt)
+  )
+    return fail('receipt_authorization_not_current');
+  const now = input.now.getTime(),
+    requested = input.requestedAt.getTime();
+  const issued = Date.parse(a.issuedAt),
+    expiry = Date.parse(a.expiresAt);
+  if (
+    !(Number.isFinite(now) && Number.isFinite(requested)) ||
+    now < requested ||
+    now - requested > RECEIPT_AUTHORIZATION_LIFETIME_MS ||
+    issued > now ||
+    expiry <= now ||
+    expiry <= issued ||
+    expiry - issued > RECEIPT_AUTHORIZATION_LIFETIME_MS
+  )
+    return fail('receipt_authorization_stale');
+  const publicKey = Object.hasOwn(input.trustedKeys, value.keyId)
+    ? input.trustedKeys[value.keyId]
+    : undefined;
+  if (!(publicKey && /^[A-Za-z0-9+/]{86}==$/.test(value.signature)))
+    return fail('receipt_authorization_signature_invalid');
+  try {
+    const key = createPublicKey(publicKey);
+    if (
+      key.asymmetricKeyType !== 'ed25519' ||
+      !verify(null, Buffer.from(canonicalJson(a)), key, Buffer.from(value.signature, 'base64'))
+    )
+      return fail('receipt_authorization_signature_invalid');
+  } catch {
+    return fail('receipt_authorization_signature_invalid');
+  }
+  return { ok: true, generation: a.generation };
+}

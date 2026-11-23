@@ -1,11 +1,16 @@
 import { serve } from '@hono/node-server';
-import { createReviewControllerDatabase } from '@revealui/db/review-controller';
+import {
+  createReviewControllerDatabase,
+  createReviewControllerPublicationPool,
+} from '@revealui/db/review-controller';
 import { createReviewControllerApp } from './app.js';
 import { ShadowWebhookHandler } from './event-handler.js';
 import { GitHubAppClient } from './github-app.js';
 import { PostgresWebhookInbox } from './inbox.js';
 import { PostgresShadowObservationStore } from './observations.js';
-import { readReceiptPolicy } from './receipt-policy.js';
+import { PostgresPublicationCoordinator } from './publication-coordinator.js';
+import { PostgresReceiptAuthority } from './receipt-authority.js';
+import { assertReceiptPublicationScope, readReceiptPolicy } from './receipt-policy.js';
 import { PostgresSignedReceiptStore } from './receipt-store.js';
 import { runWebhookWorker } from './worker.js';
 
@@ -32,13 +37,30 @@ async function boot(): Promise<void> {
   if (receiptPolicy && receiptPolicy.repositoryFullName !== repositoryFullName)
     throw new Error('receipt policy repository does not match controller repository');
   const privateKey = required('GITHUB_APP_PRIVATE_KEY');
-  const database = createReviewControllerDatabase(required('DATABASE_URL'));
+  const databaseUrl = required('DATABASE_URL');
+  const database = createReviewControllerDatabase(databaseUrl);
+  const publicationPool = createReviewControllerPublicationPool(databaseUrl);
+  const publicationCoordinator = new PostgresPublicationCoordinator(publicationPool);
   const inbox = new PostgresWebhookInbox(database.db);
   await inbox.ready();
   const port = Number(process.env.PORT ?? '8080');
   if (!Number.isSafeInteger(port) || port <= 0 || port > 65535)
     throw new Error('PORT must be a valid TCP port');
-  const app = createReviewControllerApp({ inbox });
+  const receiptAuthority = new PostgresReceiptAuthority(database.db);
+  if (receiptPolicy?.mode === 'publish') await receiptAuthority.ready();
+  const app = createReviewControllerApp({
+    inbox,
+    ...(receiptPolicy?.mode === 'publish'
+      ? {
+          receiptAuthority: {
+            store: receiptAuthority,
+            keyId: receiptPolicy.keyId,
+            privateKey: String(receiptPolicy.privateKey),
+            repositoryId,
+          },
+        }
+      : {}),
+  });
   const github = new GitHubAppClient({
     appId,
     installationId,
@@ -52,6 +74,9 @@ async function boot(): Promise<void> {
   await receipts.ready();
   if (receiptPolicy?.mode === 'publish') {
     const latestReceipts = await receipts.listLatest(repositoryId);
+    // Validate the full inventory before scheduling any expiration work.
+    for (const receipt of latestReceipts)
+      assertReceiptPublicationScope(receiptPolicy, repositoryId, receipt.pullRequest);
     for (const receipt of latestReceipts) {
       await inbox.scheduleReceiptExpiration({
         ...receipt,
@@ -72,7 +97,15 @@ async function boot(): Promise<void> {
   process.once('SIGTERM', stop);
   const worker = runWebhookWorker({
     inbox,
-    handler: new ShadowWebhookHandler(github, observations, receiptPolicy, receipts, inbox),
+    handler: new ShadowWebhookHandler(
+      github,
+      observations,
+      receiptPolicy,
+      receipts,
+      inbox,
+      publicationCoordinator,
+      receiptAuthority,
+    ),
     signal: abortController.signal,
   });
   try {
@@ -80,7 +113,7 @@ async function boot(): Promise<void> {
   } finally {
     process.off('SIGINT', stop);
     process.off('SIGTERM', stop);
-    await database.close();
+    await Promise.all([database.close(), publicationPool.end()]);
   }
 }
 

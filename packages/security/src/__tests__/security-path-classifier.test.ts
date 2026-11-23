@@ -20,9 +20,9 @@ describe('shared security path classifier', () => {
   it('fails closed at the changed-file API ceiling', () => {
     expect(
       classifySecurityPathsAtApiLimit(['docs/readme.md'], MAX_CLASSIFIABLE_SECURITY_PATHS),
-    ).toEqual(['(file list at the API ceiling — unclassifiable, failing closed)']);
+    ).toEqual(['(file list at the API ceiling: unclassifiable, failing closed)']);
     expect(classifySecurityPathsAtApiLimit(['docs/readme.md'], Number.NaN)).toEqual([
-      '(file list count is invalid — unclassifiable, failing closed)',
+      '(file list count is invalid: unclassifiable, failing closed)',
     ]);
   });
 });
