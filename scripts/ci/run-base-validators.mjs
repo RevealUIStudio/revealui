@@ -23,11 +23,16 @@ export const JUDGE_PATHS = [
 ];
 
 /**
- * Content the scan tree owns. Copying the base `scripts/sync` tree must not
- * replace the promoted secrets spec, or the lockstep test compares the base
- * spec to the head doc.
+ * Content the scan tree owns. Copying a base tree must not replace it.
+ * secret-paths.ts is the promoted secrets spec. The lockstep test compares
+ * that spec to the head doc. raw-sql-allowlist.json is exemption data for
+ * the tree being scanned. Validator scripts still come from the base copy.
+ * Allowlist entries stay exact paths.
  */
-export const HEAD_OWNED_PATHS = ['scripts/sync/secret-paths.ts'];
+export const HEAD_OWNED_PATHS = [
+  'scripts/sync/secret-paths.ts',
+  'scripts/validate/raw-sql-allowlist.json',
+];
 
 /**
  * Validator entrypoints. Each item is an argv array, without a shell.
