@@ -123,6 +123,31 @@ describe('classifyFiles — shared SECURITY_PATHS source (GAP-404)', () => {
   });
 });
 
+describe('classifyFiles: validator data, validator runner, and main CI workflow', () => {
+  const marked = [
+    'scripts/validate/raw-sql-allowlist.json',
+    'scripts/sync/secret-paths.ts',
+    'scripts/ci/run-base-validators.mjs',
+    '.github/workflows/ci.yml',
+  ];
+
+  it.each(marked)('flags %s as a security path', (file) => {
+    expect(SECURITY_PATHS).toContain(file);
+    expect(classifyFiles([file])).toEqual([file]);
+  });
+
+  it('does not flag files that sit next to those markers', () => {
+    expect(
+      classifyFiles([
+        'scripts/validate/raw-sql.ts',
+        'scripts/sync/secret-path-drift.ts',
+        'scripts/ci/__tests__/run-base-validators.test.ts',
+        '.github/workflows/deploy-test.yml',
+      ]),
+    ).toEqual([]);
+  });
+});
+
 describe('decideReviewGate — a live REQUEST-CHANGES holds, overriding the label', () => {
   it('HOLDS on a live REQUEST-CHANGES even with the clearance label present', () => {
     const d = decideReviewGate({ verdict: holdVerdict, labels: [CLEAR_LABEL] });
