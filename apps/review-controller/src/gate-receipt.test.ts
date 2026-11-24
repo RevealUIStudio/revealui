@@ -47,7 +47,7 @@ interface GateModule {
 const repository = 'RevealUIStudio/revealui';
 const pullRequest = 3155;
 const head = 'a'.repeat(40);
-const now = new Date('2026-11-23T12:00:00.000Z');
+const ONE_DAY_MS = 86_400_000;
 const { privateKey } = generateKeyPairSync('ed25519');
 const privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
 
@@ -73,13 +73,14 @@ function reviewGate(): GateModule {
 }
 
 function signedReceipt() {
+  const nowMs = Date.now();
   return signGateReceipt({
     repositoryFullName: repository,
     pullRequest,
     head,
-    expiresAt: new Date('2026-11-24T18:00:00.000Z'),
+    expiresAt: new Date(nowMs + ONE_DAY_MS),
     privateKeyPem,
-    now,
+    now: new Date(nowMs),
   });
 }
 
@@ -113,6 +114,7 @@ describe('controller gate receipt', () => {
   });
 
   it('signs a same-day receipt through the next UTC date and keeps a later date', () => {
+    const now = new Date('2026-11-23T12:00:00.000Z');
     expect(gateReceiptExpiryDate(new Date('2026-11-23T18:00:00.000Z'), now)).toBe('2026-11-24');
     expect(gateReceiptExpiryDate(new Date('2026-11-25T01:00:00.000Z'), now)).toBe('2026-11-25');
     expect(() => gateReceiptExpiryDate(new Date('2026-11-23T11:00:00.000Z'), now)).toThrow(
