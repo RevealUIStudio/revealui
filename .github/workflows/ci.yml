@@ -51,7 +51,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
-  NODE_VERSION: "24"
+  NODE_VERSION: "26.13.1"
   PNPM_VERSION: "10.28.2"
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
