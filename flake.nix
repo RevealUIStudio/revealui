@@ -11,10 +11,40 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        # Use Node.js 24 LTS (Krypton)
-        nodejs = pkgs.nodejs_24;
+        # One exact runtime for development, CI and the package-manager build.
+        nodejs = assert pkgs.lib.assertMsg (pkgs.nodejs_26.version == "26.13.1")
+          "Update the reviewed Node pin together with nixpkgs"; pkgs.nodejs_26;
+        project = builtins.fromJSON (builtins.readFile ./package.json);
+        pnpm = assert pkgs.lib.assertMsg (project.packageManager == "pnpm@10.28.2")
+          "Update the Nix pnpm version/integrity together with package.json";
+          pkgs.pnpm_10.override {
+            version = "10.28.2";
+            hash = "sha512-QYcvA3rSL3NI47Heu69+hnz9RI8nJtnPdMCPGVB8MdLI56EVJbmD/rwt9kC1Q43uYCPrsfhO1DzC1lTSvDJiZA==";
+            nodejs-slim = nodejs;
+          };
+        runtimeHook = ''
+          export PATH="${nodejs}/bin:${pnpm}/bin:$PATH"
+          if [ "$(node --version)" != "v26.13.1" ] || [ "$(pnpm --version)" != "10.28.2" ]; then
+            echo "Nix runtime differs from the reviewed project pins" >&2
+            return 1
+          fi
+        '';
 
       in {
+        packages = { inherit nodejs pnpm; };
+
+        checks.runtime = pkgs.runCommand "revealui-nix-runtime" {
+          nativeBuildInputs = [ nodejs pnpm ];
+        } ''
+          ${runtimeHook}
+          test "$(command -v node)" = "${nodejs}/bin/node"
+          test "$(command -v pnpm)" = "${pnpm}/bin/pnpm"
+          test "$(node --version)" = "v26.13.1"
+          test "$(pnpm --version)" = "10.28.2"
+          node --input-type=module -e 'if (process.versions.modules !== "147") throw new Error("unexpected Node ABI"); await Promise.resolve();'
+          touch "$out"
+        '';
+
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             pkg-config
@@ -40,8 +70,7 @@
           buildInputs = with pkgs; [
             # Node.js ecosystem
             nodejs
-            nodePackages.pnpm
-            # Note: Corepack removed - pnpm 10+ has built-in version management
+            pnpm
 
             # Security
             gitleaks
@@ -81,7 +110,7 @@
             wget
             jq
             # Note: opensrc (npm install -g opensrc) provides package source for AI agents
-            # Not in nixpkgs — installed globally via npm. Re-install after fnm node switch.
+            # Global user tools remain outside the reproducible Nix environment.
 
             # File utilities
             ripgrep
@@ -104,7 +133,7 @@
             chafa
           ];
 
-          shellHook = ''
+          shellHook = runtimeHook + ''
             # Database helper functions — defined directly in shellHook so they
             # are shell functions, not subprocesses. Available in any interactive
             # session that enters this dev environment.
@@ -218,7 +247,7 @@ PGHBA
             export NPM_TOKEN="''${NPM_TOKEN:-}"
 
             # Add node_modules/.bin to PATH for project scripts
-            export PATH="$PWD/node_modules/.bin:$PATH"
+            export PATH="${nodejs}/bin:${pnpm}/bin:$PWD/node_modules/.bin:$PATH"
 
             # Set development environment
             export NODE_ENV="''${NODE_ENV:-development}"
@@ -372,13 +401,12 @@ PGHBA
         devShells.ci = pkgs.mkShell {
           buildInputs = with pkgs; [
             nodejs
-            nodePackages.pnpm
+            pnpm
             git
           ];
 
-          shellHook = ''
+          shellHook = runtimeHook + ''
             echo "CI Environment - Minimal dependencies"
-            # Note: corepack enable removed - pnpm 10+ manages its own version
             export NODE_ENV="test"
           '';
         };
