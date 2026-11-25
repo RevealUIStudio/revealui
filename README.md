@@ -277,6 +277,19 @@ Open in VS Code or GitHub Codespaces. The `.devcontainer/` config handles everyt
 | macOS       | Nix flakes + direnv (`flake.nix`) |
 | Windows     | WSL 2 (recommended) or Dev Containers (`.devcontainer/`) |
 
+The default and CI Nix shells share exact Node26.13.1 and pnpm10.28.2. The
+flake checks the Node version and the `package.json` package-manager pin;
+pnpm's source integrity is fixed in the flake. Update those reviewed pins
+together with `flake.lock`. Nix owns the runtime and libraries inside these
+shells; nvm remains the ordinary user-shell manager outside Nix.
+
+`nix build --no-link .#checks.x86_64-linux.runtime` checks executable resolution,
+Node ABI147, ESM and package-manager versions without entering the full desktop
+shell. Estimate a shell's closure with `nix build --dry-run
+.#devShells.x86_64-linux.default` before realizing it, especially when WSL store
+space is reserved for recovery. These commands do not initialize a database or
+activate services.
+
 ## Project structure
 
 ```
