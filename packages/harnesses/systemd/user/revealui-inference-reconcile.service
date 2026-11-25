@@ -5,11 +5,15 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=oneshot
+# No unit consumes reconciliation completion. Let the user target become ready
+# after exec succeeds while the existing policy reconciliation continues.
+Type=exec
+Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
 # Contributor default: built dist in the fleet checkout. Override via drop-in
 # if revealui-harnesses is on PATH instead.
 ExecStart=%h/.local/bin/node %h/revealfleet/revealui/packages/harnesses/dist/cli.js inference reconcile
 TimeoutStartSec=180
+RuntimeMaxSec=180
 Nice=10
 
 [Install]
