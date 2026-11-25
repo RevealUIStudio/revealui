@@ -58,6 +58,10 @@
     "packages/db/src/schema/audit-log",
     "packages/db/src/audit-store",
     "packages/db/migrations/",
-    "packages/apify-actor-governed-run/"
+    "packages/apify-actor-governed-run/",
+    "scripts/validate/raw-sql-allowlist.json",
+    "scripts/sync/secret-paths.ts",
+    "scripts/ci/run-base-validators.mjs",
+    ".github/workflows/ci.yml"
   ]
 }
