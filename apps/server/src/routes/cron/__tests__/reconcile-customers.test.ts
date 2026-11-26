@@ -609,6 +609,145 @@ describe('reconcile-customers Studio Consultation skip', () => {
     expect(hoisted.logger.error).not.toHaveBeenCalled();
   });
 
+  it('skips a dry-run metadata customer and does not write or change orphan rows', async () => {
+    const dryRun = makeStripeCustomer({
+      id: 'cus_dry_run_1',
+      email: 'rehearsal@example.com',
+      metadata: { dry_run: 'true' },
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([dryRun]));
+    const update = vi.fn(() => {
+      throw new Error('must not update existing rows');
+    });
+    const remove = vi.fn(() => {
+      throw new Error('must not delete existing rows');
+    });
+    const db = buildDbMock({
+      selectQueue: [
+        { table: 'users', rows: [] },
+        { table: 'accountSubscriptions', rows: [] },
+      ],
+    });
+    hoisted.getClientMock.mockReturnValue({ ...db, update, delete: remove });
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      alerted: number;
+      results: Array<{ customerId: string; email: string | null; outcome: string }>;
+    };
+
+    expect(res.status).toBe(200);
+    expect(body.orphaned).toBe(0);
+    expect(body.alerted).toBe(0);
+    expect(body.results).toEqual([
+      {
+        customerId: 'cus_dry_run_1',
+        email: 'rehearsal@example.com',
+        outcome: 'skipped-dry-run',
+      },
+    ]);
+    expect(hoisted.insertMock).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+    expect(hoisted.logger.error).not.toHaveBeenCalled();
+    expect(hoisted.sendCronFailureAlert).not.toHaveBeenCalled();
+    expect(hoisted.logger.info).toHaveBeenCalledWith(
+      expect.stringContaining('cus_dry_run_1'),
+      expect.objectContaining({
+        customerId: 'cus_dry_run_1',
+        reason: 'dry-run-metadata',
+      }),
+    );
+  });
+
+  it('still alerts when dry_run metadata is explicitly false', async () => {
+    const orphan = makeStripeCustomer({
+      id: 'cus_not_dry_run',
+      metadata: { dry_run: 'false' },
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([orphan]));
+    hoisted.getClientMock.mockReturnValue(
+      buildDbMock({
+        selectQueue: [
+          { table: 'users', rows: [] },
+          { table: 'accountSubscriptions', rows: [] },
+          { table: 'unreconciledWebhooks', rows: [] },
+        ],
+      }),
+    );
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      alerted: number;
+      results: Array<{ customerId: string; outcome: string }>;
+    };
+
+    expect(body.orphaned).toBe(1);
+    expect(body.alerted).toBe(1);
+    expect(body.results[0]?.outcome).toBe('orphan-newly-alerted');
+    expect(body.results[0]?.customerId).toBe('cus_not_dry_run');
+    expect(hoisted.insertMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('still matches a dry-run metadata customer when a users row exists', async () => {
+    const dryRun = makeStripeCustomer({
+      id: 'cus_dry_run_user',
+      metadata: { dry_run: 'dry_run' },
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([dryRun]));
+    hoisted.getClientMock.mockReturnValue(
+      buildDbMock({
+        selectQueue: [{ table: 'users', rows: [{ id: 'usr_local_dry' }] }],
+      }),
+    );
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      results: Array<{ outcome: string }>;
+    };
+
+    expect(body.orphaned).toBe(0);
+    expect(body.results[0]?.outcome).toBe('matched');
+    expect(hoisted.insertMock).not.toHaveBeenCalled();
+  });
+
+  it('skips a studio deal customer without changing an existing orphan row', async () => {
+    const consultation = makeStripeCustomer({
+      id: 'cus_consultation_existing',
+      metadata: STUDIO_CONSULTATION_METADATA,
+    });
+    hoisted.customersListMock.mockResolvedValueOnce(makeStripeListResponse([consultation]));
+    const update = vi.fn(() => {
+      throw new Error('must not update existing rows');
+    });
+    const remove = vi.fn(() => {
+      throw new Error('must not delete existing rows');
+    });
+    const db = buildDbMock({
+      selectQueue: [
+        { table: 'users', rows: [] },
+        { table: 'accountSubscriptions', rows: [] },
+      ],
+    });
+    hoisted.getClientMock.mockReturnValue({ ...db, update, delete: remove });
+
+    const res = await invoke(GOOD_SECRET);
+    const body = (await res.json()) as {
+      orphaned: number;
+      results: Array<{ customerId: string; outcome: string }>;
+    };
+
+    expect(body.orphaned).toBe(0);
+    expect(body.results[0]?.outcome).toBe('skipped-studio-consultation');
+    expect(body.results[0]?.customerId).toBe('cus_consultation_existing');
+    expect(hoisted.insertMock).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
   it('still matches a consultation-metadata customer when an accountSubscriptions row exists', async () => {
     const consultation = makeStripeCustomer({
       id: 'cus_consultation_sub',
