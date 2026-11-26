@@ -31,7 +31,7 @@
     "drizzle-orm": "catalog:",
     "jose": "catalog:",
     "lexical": "^0.46.0",
-    "next": "^16.4.2",
+    "next": "^16.4.6",
     "prism-react-renderer": "^2.4.1",
     "qrcode.react": "^4.2.0",
     "react": "catalog:",
@@ -43,7 +43,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^16.4.2",
+    "@next/bundle-analyzer": "^16.4.6",
     "@revealui/dev": "workspace:*",
     "@revealui/test": "workspace:*",
     "@simplewebauthn/server": "^13.3.2",
