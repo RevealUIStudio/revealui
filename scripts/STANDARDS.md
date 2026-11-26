@@ -144,7 +144,8 @@ Use consistent prefixes for related scripts. Prefixes in active use in the root
 - `validate:`, validation gates (`validate:boundary`, `validate:claims`)
 - `gate:`, CI gates (`gate:security`, `gate:types`)
 - `secrets:`, secret operations (`secrets:generate`, `secrets:scan`)
-- `release:`, release flows (`release:oss`, `release:pro`, `release:dry-run`)
+- `release:`, release planning (`release:status`, `release:dry-run`); publication
+  belongs to the canonical `release.yml` OIDC workflow on `main`.
 
 ### Separators
 

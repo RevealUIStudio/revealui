@@ -1,28 +1,22 @@
 import { getRestClient } from '@revealui/db/client';
-import { getAllSites } from '@revealui/db/queries/sites';
+import { getAllSites, getSiteById } from '@revealui/db/queries/sites';
 
 /**
- * Canonical CMS site that dashboard-authored pages belong to when the operator
- * runs a single site and the dashboard shows no site picker. Shared by the
- * typed pages bridge (engine write path) and the content proxy (list/create
- * forwarding) so both surfaces resolve one default and never drift apart.
+ * Canonical site used by maintained internal seeds. Authenticated dashboard
+ * writes resolve an owned default through resolveDefaultSiteId instead.
  */
 export const DEFAULT_CMS_SITE_ID = 'fleet-marketing';
 
-/**
- * Resolve the site a page list or create belongs to when the caller supplies no
- * explicit siteId. A single-site operator gets their one site with no picker to
- * choose from. A fresh instance with no sites, or a multi-site instance, falls
- * back to the canonical CMS site until the dashboard grows a picker (multi-site
- * scoping is a later phase). The resolution runs server-side against the sites
- * table so the client never has to know which site it is editing.
- */
-export async function resolveDefaultSiteId(): Promise<string> {
+export class SiteSelectionRequiredError extends Error {}
+
+/** Resolve only an authenticated caller's owned site, never a global default. */
+export async function resolveDefaultSiteId(userId: string): Promise<string> {
+  if (!userId) throw new Error('Authenticated site owner is required');
   const db = getRestClient();
-  const sites = await getAllSites(db, { limit: 2 });
-  const [only] = sites;
-  if (sites.length === 1 && only) {
-    return only.id;
-  }
-  return DEFAULT_CMS_SITE_ID;
+  const owned = await getAllSites(db, { ownerId: userId, limit: 2 });
+  if (owned.length === 1 && owned[0]) return owned[0].id;
+  // Multi-site operators may retain their canonical site only when they own it.
+  const canonical = await getSiteById(db, DEFAULT_CMS_SITE_ID);
+  if (canonical?.ownerId === userId) return canonical.id;
+  throw new SiteSelectionRequiredError('Select a site you own before creating or listing pages');
 }

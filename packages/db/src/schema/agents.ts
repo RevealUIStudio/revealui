@@ -21,6 +21,7 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { vector } from './_vector-type.js';
+import { accounts } from './accounts.js';
 import { sites } from './sites.js';
 import { users } from './users.js';
 
@@ -311,6 +312,11 @@ export const agentActions = pgTable(
     }),
     agentId: text('agent_id').notNull(),
 
+    // Trusted execution attribution. Legacy rows remain NULL and are never
+    // attributed from agent IDs, client params, or an inferred account.
+    actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    accountId: text('account_id').references(() => accounts.id, { onDelete: 'cascade' }),
+
     // Action details
     tool: text('tool').notNull(),
     params: jsonb('params'),
@@ -332,6 +338,7 @@ export const agentActions = pgTable(
   (table) => [
     index('agent_actions_conversation_id_idx').on(table.conversationId),
     index('agent_actions_agent_id_idx').on(table.agentId),
+    index('agent_actions_actor_account_idx').on(table.actorUserId, table.accountId),
     index('agent_actions_status_idx').on(table.status),
     check(
       'agent_actions_status_check',
@@ -490,6 +497,11 @@ export type NewUserDevice = typeof userDevices.$inferInsert;
 export type SyncMetadata = typeof syncMetadata.$inferSelect;
 export type NewSyncMetadata = typeof syncMetadata.$inferInsert;
 export type AgentAction = typeof agentActions.$inferSelect;
+/** Trusted attribution shared by task receipts and private runtime ownership. */
+export type AgentActionScope = {
+  actorUserId: NonNullable<AgentAction['actorUserId']>;
+  accountId: AgentAction['accountId'];
+};
 export type NewAgentAction = typeof agentActions.$inferInsert;
 export type RegisteredAgent = typeof registeredAgents.$inferSelect;
 export type NewRegisteredAgent = typeof registeredAgents.$inferInsert;

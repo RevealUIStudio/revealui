@@ -81,6 +81,16 @@ Full details in `docs/PRO.md`.
 npm create revealui
 ```
 
+## Merging into test
+
+Feature pull requests into `test` use merge commits only:
+
+```bash
+gh pr merge <number> --merge
+```
+
+Never pass `--squash`, `--rebase`, `--admin`, or `--auto`.
+
 ---
 
 ## Skills

@@ -3,9 +3,11 @@ import {
   allowsUnattendedCheckout,
   allowsUnattendedPerpetualCheckout,
   CREDIT_BUNDLES,
+  canonicalFounderServiceId,
   ENTERPRISE_SALES_HREF,
   FEATURE_LABELS,
   FOUNDER_SERVICE_OFFERINGS,
+  findFounderServiceOffering,
   getTierColor,
   getTierLabel,
   getTiersFromCurrent,
@@ -28,7 +30,7 @@ import {
   TIER_LABELS,
   TIER_LIMITS,
 } from '../pricing.js';
-import { PILOT_PRICE, PROOF_SPRINT_PRICE } from '../public-catalog.js';
+import { PILOT_PRICE, PROOF_SPRINT_PRICE, PROOF_SPRINT_SERVICE_ID } from '../public-catalog.js';
 
 // =============================================================================
 // LicenseTierId coverage
@@ -166,7 +168,9 @@ describe('SUBSCRIPTION_TIERS', () => {
   it('sells the same email SLA on every paid tier and keeps coming-soon off the cards', () => {
     const paid = SUBSCRIPTION_TIERS.filter((tier) => tier.id !== 'free');
     for (const tier of paid) {
-      expect(tier.features).toContain('Email support (24h weekday / 4h if unusable)');
+      expect(tier.features).toContain(
+        'Email support (best-effort targets: 24h weekdays / 4h critical)',
+      );
       expect(tier.features.some((feature) => feature.includes('coming soon'))).toBe(false);
     }
   });
@@ -357,26 +361,62 @@ describe('FOUNDER_SERVICE_OFFERINGS', () => {
 
   it('has the correct IDs in order', () => {
     const ids = FOUNDER_SERVICE_OFFERINGS.map((s) => s.id);
-    expect(ids).toEqual(['consultation', 'proof-sprint', 'launch-package']);
+    expect(ids).toEqual(['consultation', 'pilot', 'launch-package']);
   });
 
-  it('keeps the Pilot price alias equal to the stable middle SKU export', () => {
-    expect(PILOT_PRICE).toBe(PROOF_SPRINT_PRICE);
+  it('keeps the retired price export equal to PILOT_PRICE', () => {
     expect(PILOT_PRICE).toBe('$3,997');
+    expect(PROOF_SPRINT_PRICE).toBe(PILOT_PRICE);
+    expect(PROOF_SPRINT_SERVICE_ID).toBe('proof-sprint');
   });
 
-  it('locks Consultation, Proof Sprint, and Launch prices (2026-09-22)', () => {
+  it('accepts the retired proof-sprint id as an alias for pilot', () => {
+    expect(canonicalFounderServiceId('proof-sprint')).toBe('pilot');
+    expect(canonicalFounderServiceId('pilot')).toBe('pilot');
+    expect(canonicalFounderServiceId('launch-package')).toBe('launch-package');
+    const byPilot = findFounderServiceOffering('pilot');
+    const byRetired = findFounderServiceOffering('proof-sprint');
+    expect(byRetired).toBe(byPilot);
+    expect(byPilot?.name).toBe('Pilot');
+    expect(byPilot?.id).toBe('pilot');
+  });
+
+  it('locks Consultation, Pilot, and Launch prices (2026-09-22)', () => {
     const byId = Object.fromEntries(FOUNDER_SERVICE_OFFERINGS.map((s) => [s.id, s]));
     expect(byId.consultation?.name).toBe('Consultation');
     expect(byId.consultation?.price).toBe('$300');
-    expect(byId['proof-sprint']?.name).toBe('Proof Sprint');
-    expect(byId['proof-sprint']?.price).toBe('$3,997');
+    expect(byId.consultation?.description).toContain('Scope a Pilot or Launch');
+    expect(byId.pilot?.name).toBe('Pilot');
+    expect(byId.pilot?.price).toBe('$3,997');
+    expect(byId.pilot?.description).toBe(
+      'One site and one receipted action you operate. Includes 1 Adapter. Stage B is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start.',
+    );
+    expect(byId.pilot?.includes).toEqual([
+      'One site',
+      'One receipted action you operate',
+      '1 Adapter included',
+      'Stage B included',
+      'Full credit toward Launch if you start Launch within 45 days of Pilot start',
+    ]);
     expect(byId['launch-package']?.name).toBe('Launch');
     expect(byId['launch-package']?.price).toBe('$14,500');
+    expect(byId['launch-package']?.includes).toContain('Up to 3 Adapters included');
     const names = FOUNDER_SERVICE_OFFERINGS.map((s) => s.name);
-    expect(names).not.toContain('Pilot');
+    expect(names).toContain('Pilot');
+    expect(names).not.toContain('Proof Sprint');
     expect(names).not.toContain('Hour');
     expect(names).not.toContain('Architecture Review');
+  });
+
+  it('keeps the retired public name off buyer-facing offering fields', () => {
+    for (const service of FOUNDER_SERVICE_OFFERINGS) {
+      expect(service.name.includes('Proof Sprint')).toBe(false);
+      expect(service.description.includes('Proof Sprint')).toBe(false);
+      expect(service.deliverable.includes('Proof Sprint')).toBe(false);
+      for (const line of service.includes) {
+        expect(line.includes('Proof Sprint')).toBe(false);
+      }
+    }
   });
 
   it('service IDs are unique', () => {

@@ -11,7 +11,7 @@
  *   pnpm gate:security --json     -  output JSON summary to stdout
  *
  * Checks:
- *   1. Dependency vulnerabilities (pnpm audit  -  fail on critical/high)
+ *   1. Dependency vulnerabilities (pnpm audit: fail on critical, warn on high)
  *   2. Hardcoded secrets/credentials (git grep patterns)
  *   3. Committed .env files (git ls-files)
  *   4. Auth & authorization patterns (warn only)
@@ -71,6 +71,13 @@ interface KnownUpstreamAdvisory {
   description: string;
 }
 
+// Highs with no upstream patch. This list cannot excuse criticals:
+// checkDependencyAudit fails when critical > 0 before these entries are applied.
+// Rechecked 2026-11-21. GHSA-86w9-cpqp-85rv is gone once node-forge is >=1.4.3
+// (pnpm override). GHSA-ch52-4w7c-c8xp was withdrawn 2026-10-28.
+// GHSA-vfj7-8cjw-p6xm was withdrawn 2026-10-23. GHSA-xqc2-xf4c-x3h3 is gone
+// once react-server-dom-webpack resolves at 19.2.9 in lockstep with react.
+// pnpm audit reports none of them.
 const KnownUpstreamAdvisories: KnownUpstreamAdvisory[] = [];
 
 function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
@@ -108,7 +115,7 @@ function classifyAuditAdvisories(advisories: AuditAdvisory[]): {
 
 /**
  * Check 1: Dependency vulnerability scan
- * Fails on critical or high severity; warns on moderate.
+ * Fails on critical. Warns on high and moderate.
  */
 async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();

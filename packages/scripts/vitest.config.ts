@@ -9,6 +9,7 @@ export default createVitestConfig({
   overrides: {
     resolve: {
       alias: {
+        '@revealui/scripts': resolve(__dirname, '.'),
         '@revealui/contracts/security': resolve(__dirname, '../contracts/src/security/index.ts'),
       },
     },

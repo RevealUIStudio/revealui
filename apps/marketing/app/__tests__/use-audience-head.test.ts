@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { HOME_HERO } from '../content/home';
+import {
+  HOME_HERO,
+  HOME_HERO_FOUNDATION,
+  HOME_HERO_L2,
+  HOME_HERO_OWNERSHIP,
+} from '../content/home';
 import type { Audience } from '../lib/audience';
 import { useAudienceHead } from '../lib/use-audience-head';
 
@@ -42,9 +47,7 @@ afterEach(() => {
 describe('useAudienceHead — non-technical audience', () => {
   it('sets document.title to the non-technical headline', () => {
     renderHook(() => useAudienceHead('non-technical'));
-    expect(document.title).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
-    );
+    expect(document.title).toBe('RevealUI | Implementation help from RevealUI Studio');
   });
 
   it('does not mutate link[rel=canonical]', () => {
@@ -56,7 +59,7 @@ describe('useAudienceHead — non-technical audience', () => {
   it('sets og:title to the non-technical title', () => {
     renderHook(() => useAudienceHead('non-technical'));
     expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
+      'RevealUI | Implementation help from RevealUI Studio',
     );
   });
 
@@ -93,7 +96,9 @@ describe('useAudienceHead — technical audience', () => {
     renderHook(() => useAudienceHead('technical'));
     expect(
       document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.content,
-    ).toBe(`${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2}`);
+    ).toBe(
+      `${HOME_HERO.subtitle.sentence1} ${HOME_HERO.subtitle.sentence2} ${HOME_HERO.subtitle.support}`,
+    );
   });
 
   it('sets document.documentElement.dataset.audience to technical', () => {
@@ -120,9 +125,7 @@ describe('useAudienceHead — audience switch', () => {
       { initialProps: { audience: 'non-technical' as Audience } },
     );
 
-    expect(document.title).toBe(
-      'RevealUI | Consultation, Pilot, or Launch on infrastructure you own.',
-    );
+    expect(document.title).toBe('RevealUI | Implementation help from RevealUI Studio');
 
     act(() => {
       rerender({ audience: 'technical' });
@@ -147,5 +150,37 @@ describe('useAudienceHead — audience switch', () => {
     });
 
     expect(document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe(before);
+  });
+});
+
+describe('useAudienceHead — query previews and return navigation', () => {
+  it.each([HOME_HERO_FOUNDATION, HOME_HERO_OWNERSHIP, HOME_HERO_L2])(
+    'uses the selected headline in the title and social card',
+    (hero) => {
+      renderHook(() => useAudienceHead('technical', hero));
+      expect(document.title).toBe(`RevealUI | ${hero.h1}`);
+      expect(document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.content).toBe(
+        document.title,
+      );
+      const image = document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
+      expect(new URL(image ?? '').searchParams.get('description')).toBe(hero.h1);
+      expect(
+        document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content,
+      ).toContain(HOME_HERO.subtitle.support);
+    },
+  );
+
+  it('updates the preview on query changes and restores the home canonical after another page', () => {
+    document
+      .querySelector<HTMLLinkElement>('link[rel="canonical"]')
+      ?.setAttribute('href', 'https://revealui.com/pricing');
+    const { rerender } = renderHook(({ hero }) => useAudienceHead('technical', hero), {
+      initialProps: { hero: HOME_HERO_OWNERSHIP as typeof HOME_HERO | typeof HOME_HERO_OWNERSHIP },
+    });
+    expect(document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href).toBe(
+      'https://revealui.com/',
+    );
+    rerender({ hero: HOME_HERO });
+    expect(document.title).toBe(`RevealUI | ${HOME_HERO.h1}`);
   });
 });

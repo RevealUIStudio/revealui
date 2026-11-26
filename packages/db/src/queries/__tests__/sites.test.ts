@@ -30,6 +30,7 @@ function createSelectChain(result: unknown[] = []) {
 function createInsertChain(result: unknown[] = []) {
   return {
     values: vi.fn().mockReturnThis(),
+    onConflictDoNothing: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue(result),
   };
 }
@@ -237,7 +238,7 @@ describe('site queries', () => {
 
   describe('deleteSite', () => {
     it('soft-deletes a site by id', async () => {
-      const chain = createUpdateChain();
+      const chain = createUpdateChain([{ id: 's1' }]);
       db.update.mockReturnValue(chain);
 
       await deleteSite(db as never, 's1');
@@ -277,7 +278,7 @@ describe('site queries', () => {
 
     it('propagates delete errors', async () => {
       const chain = createUpdateChain();
-      chain.where.mockRejectedValue(new Error('cascade blocked'));
+      chain.returning.mockRejectedValue(new Error('cascade blocked'));
       db.update.mockReturnValue(chain);
 
       await expect(deleteSite(db as never, 's1')).rejects.toThrow('cascade blocked');

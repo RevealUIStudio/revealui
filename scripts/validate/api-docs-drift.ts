@@ -28,8 +28,9 @@ function main(): void {
   try {
     execFileSync('pnpm', ['docs:generate:api'], {
       cwd: repoRoot,
-      stdio: 'pipe',
-      encoding: 'utf-8',
+      // The supported producer already streams its build and artifact summary.
+      // Keep that progress visible while comparing only the generated files.
+      stdio: 'inherit',
       env: { ...process.env, DOCS_API_OUT: outPath },
     });
     const generated = readFileSync(outPath, 'utf-8');

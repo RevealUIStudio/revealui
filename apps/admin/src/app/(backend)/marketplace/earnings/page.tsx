@@ -9,7 +9,7 @@ import { LicenseGate } from '@/lib/components/LicenseGate';
 // Types
 // =============================================================================
 
-interface PublishedAgent {
+interface MarketplaceAgent {
   id: string;
   name: string;
   taskCount: number;
@@ -19,11 +19,11 @@ interface PublishedAgent {
   status: string;
 }
 
-interface EarningsSummary {
-  totalEarningsUsdc: number;
+interface ActivitySummary {
+  estimatedTaskValueUsdc: number;
   totalTasks: number;
   agentCount: number;
-  agents: PublishedAgent[];
+  agents: MarketplaceAgent[];
 }
 
 // =============================================================================
@@ -31,29 +31,29 @@ interface EarningsSummary {
 // =============================================================================
 
 export default function EarningsDashboardPage() {
-  const [summary, setSummary] = useState<EarningsSummary | null>(null);
+  const [summary, setSummary] = useState<ActivitySummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
   useEffect(() => {
-    // Fetch publisher's agents and compute earnings
+    // Estimate task value from current listing prices, without payment or payout evidence.
     fetch(`${apiUrl}/api/revmarket/agents?mine=true`, { credentials: 'include' })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((data: { agents: PublishedAgent[] }) => {
+      .then((data: { agents: MarketplaceAgent[] }) => {
         const agents = data.agents ?? [];
         const totalTasks = agents.reduce((sum, a) => sum + a.taskCount, 0);
-        const totalEarnings = agents.reduce(
+        const estimatedTaskValue = agents.reduce(
           (sum, a) => sum + a.taskCount * Number.parseFloat(a.basePriceUsdc),
           0,
         );
 
         setSummary({
-          totalEarningsUsdc: totalEarnings,
+          estimatedTaskValueUsdc: estimatedTaskValue,
           totalTasks,
           agentCount: agents.length,
           agents,
@@ -72,9 +72,13 @@ export default function EarningsDashboardPage() {
             RevMarket
           </Link>
           <span className="mx-2 text-muted-foreground">/</span>
-          <span className="text-sm text-muted-foreground">Earnings</span>
-          <h1 className="mt-1 text-xl font-semibold text-foreground">Publisher Earnings</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Revenue from your published agents</p>
+          <span className="text-sm text-muted-foreground">Activity</span>
+          <h1 className="mt-1 text-xl font-semibold text-foreground">
+            Marketplace activity preview
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Review your agents and recorded task counts.
+          </p>
         </div>
 
         {/* Content */}
@@ -82,8 +86,11 @@ export default function EarningsDashboardPage() {
           {loading ? (
             <EarningsSkeleton />
           ) : error ? (
-            <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
-              Failed to load earnings: {error}
+            <div
+              role="alert"
+              className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error"
+            >
+              We couldn't load marketplace activity: {error}
             </div>
           ) : !summary ? (
             <p className="text-sm text-muted-foreground">No data available</p>
@@ -92,33 +99,35 @@ export default function EarningsDashboardPage() {
               {/* Summary cards */}
               <div className="grid gap-4 sm:grid-cols-3 mb-8">
                 <Stat
-                  label="Total Earnings"
-                  value={`$${summary.totalEarningsUsdc.toFixed(2)}`}
-                  description="USDC"
+                  label="Estimated task value"
+                  value={`$${summary.estimatedTaskValueUsdc.toFixed(2)}`}
+                  description="USDC at current listed prices"
                 />
                 <Stat
-                  label="Tasks Completed"
+                  label="Recorded tasks"
                   value={String(summary.totalTasks)}
                   description="across all agents"
                 />
                 <Stat
-                  label="Published Agents"
+                  label="Your agents"
                   value={String(summary.agentCount)}
-                  description="active in marketplace"
+                  description="including draft listings"
                 />
               </div>
 
-              {/* Agent earnings breakdown */}
-              <h2 className="text-lg font-medium text-foreground mb-4">Earnings by Agent</h2>
+              <p className="mb-6 text-sm text-muted-foreground">
+                Estimates use each agent's task count and current listed price.
+              </p>
+              <h2 className="text-lg font-medium text-foreground mb-4">Task value by agent</h2>
               {summary.agents.length === 0 ? (
                 <EmptyState
-                  title="No published agents yet"
-                  description="Publish an agent to start earning"
+                  title="No agents yet"
+                  description="Create an agent draft to review its listing."
                 />
               ) : (
                 <div className="space-y-3">
                   {summary.agents.map((agent) => {
-                    const earnings = agent.taskCount * Number.parseFloat(agent.basePriceUsdc);
+                    const estimatedValue = agent.taskCount * Number.parseFloat(agent.basePriceUsdc);
                     return (
                       <Card key={agent.id} className="flex items-center gap-4 px-4 py-3">
                         <div className="flex-1">
@@ -140,7 +149,7 @@ export default function EarningsDashboardPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium text-foreground">
-                            ${earnings.toFixed(2)}
+                            ${estimatedValue.toFixed(2)}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             ${agent.basePriceUsdc}/task

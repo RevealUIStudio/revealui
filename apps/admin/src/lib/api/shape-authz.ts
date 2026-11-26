@@ -9,6 +9,7 @@
 
 import type { Database } from '@revealui/db/client';
 import { siteCollaborators, sites, yjsDocuments } from '@revealui/db/schema';
+import { isPlatformSuperAdmin } from '@revealui/utils/validation';
 import { and, eq } from 'drizzle-orm';
 import { isAdminRole } from '@/lib/access/roles/isAdminRole';
 import { isRepoIdentifier, isSyncIdentifier, isUuid } from '@/lib/utils/identifier-validation';
@@ -28,25 +29,12 @@ export function requireAdminRole(role: string | null | undefined): boolean {
   return isAdminRole(role);
 }
 
-function rolesFromJson(json: unknown): string[] {
-  if (!json || typeof json !== 'object' || Array.isArray(json)) {
-    return [];
-  }
-  const roles = (json as { roles?: unknown }).roles;
-  if (!Array.isArray(roles)) {
-    return [];
-  }
-  return roles.filter((role): role is string => typeof role === 'string');
-}
-
 /**
  * Platform founder / super-admin. Tenant owner/admin is not enough.
  * Requires verified email so an unverified row cannot elevate.
  */
 export function isFleetOperator(user: ShapeAuthUser | null | undefined): boolean {
-  if (!user) return false;
-  if (user.emailVerified !== true) return false;
-  return rolesFromJson(user._json).includes('super-admin');
+  return isPlatformSuperAdmin(user);
 }
 
 /**

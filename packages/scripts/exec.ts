@@ -13,6 +13,7 @@
 import { type SpawnOptions, spawn } from 'node:child_process';
 import { registerProcess, updateProcessStatus } from '@revealui/core/monitoring/process-registry';
 import type { ProcessMetadata } from '@revealui/core/monitoring/types';
+import { DryRunEngine } from './dry-run/dry-run-engine.js';
 import { createLogger, type Logger } from './logger.js';
 
 const trackedChildren = new Set<ReturnType<typeof spawn>>();
@@ -21,12 +22,21 @@ let signalForwardingInstalled = false;
 export interface ScriptResult {
   success: boolean;
   message: string;
+  /** CLI-compatible status; a reached deadline always returns 124. */
   exitCode: number;
+  /** Actual process close status, which is null on signal termination. */
+  processExitCode?: number | null;
+  signal?: NodeJS.Signals;
+  timedOut?: boolean;
   stdout?: string;
   stderr?: string;
+  /** A prediction, not evidence that the command executed. */
+  simulated?: boolean;
 }
 
 export interface ExecOptions extends SpawnOptions {
+  /** Simulate without spawning. An active simulation cannot be overridden. */
+  dryRun?: boolean;
   /** Timeout in milliseconds (default: 120000 = 2 minutes) */
   timeout?: number;
   /** Capture stdout/stderr instead of inheriting (default: false) */
@@ -41,9 +51,9 @@ export interface ExecOptions extends SpawnOptions {
   metadata?: ProcessMetadata;
 }
 
-/** Kill the entire process group to prevent orphaned child processes */
+/** Signal the owned process group while its ChildProcess remains tracked. */
 function killProcessGroup(child: ReturnType<typeof spawn>, signal: NodeJS.Signals): void {
-  if (child.pid && !child.killed) {
+  if (child.pid && trackedChildren.has(child)) {
     try {
       // Kill the process group (negative PID) on Unix
       if (process.platform !== 'win32') {
@@ -93,6 +103,20 @@ export async function execCommand(
   args: string[] = [],
   options: ExecOptions = {},
 ): Promise<ScriptResult> {
+  const { dryRun, ...executionOptions } = options;
+  const simulation = DryRunEngine.activeSimulation();
+  if (simulation || dryRun) {
+    const engine = simulation ?? new DryRunEngine({ enabled: true });
+    engine.recordCommand(command, args);
+    return {
+      success: true,
+      simulated: true,
+      exitCode: 0,
+      message: `Simulated command: ${command}`,
+      stdout: '',
+      stderr: '',
+    };
+  }
   const {
     timeout = 120000,
     capture = false,
@@ -101,7 +125,7 @@ export async function execCommand(
     env,
     metadata,
     ...spawnOptions
-  } = options;
+  } = executionOptions;
 
   const logger = customLogger || createLogger({ level: 'silent' });
 
@@ -128,27 +152,32 @@ export async function execCommand(
 
     let stdout = '';
     let stderr = '';
-    let killed = false;
-    let gracefulKillAttempted = false;
+    let timedOut = false;
+    let forceKilled = false;
+    let finished = false;
+    let executionError: Error | undefined;
+    let escalationId: ReturnType<typeof setTimeout> | undefined;
+
+    const escalate = () => {
+      if (finished || escalationId) return;
+      escalationId = setTimeout(() => {
+        if (!finished) {
+          forceKilled = true;
+          logger.error('Command still open after the 5000ms termination grace; sending SIGKILL.');
+          killProcessGroup(child, 'SIGKILL');
+        }
+      }, 5000);
+    };
 
     // Set up timeout with graceful shutdown
     const timeoutId = setTimeout(() => {
-      if (!gracefulKillAttempted) {
+      if (!finished) {
         // First attempt: graceful SIGTERM
-        gracefulKillAttempted = true;
-        logger.warn(`Command timeout approaching, sending SIGTERM: ${command} ${args.join(' ')}`);
+        timedOut = true;
+        logger.warn(`Command deadline reached after ${timeout}ms; sending SIGTERM.`);
         killProcessGroup(child, 'SIGTERM');
-
         // Second attempt after 5s: force SIGKILL
-        setTimeout(() => {
-          if (!killed) {
-            killed = true;
-            logger.error(
-              `Command force-killed after ${timeout + 5000}ms: ${command} ${args.join(' ')}`,
-            );
-            killProcessGroup(child, 'SIGKILL');
-          }
-        }, 5000);
+        escalate();
       }
     }, timeout);
 
@@ -166,7 +195,17 @@ export async function execCommand(
     }
 
     child.on('error', (error) => {
+      executionError = error;
+      // AbortSignal and signaling errors can precede closure of a successfully
+      // spawned child. Retain its ownership and bounded escalation until close.
+      if (child.pid) {
+        killProcessGroup(child, 'SIGTERM');
+        escalate();
+        return;
+      }
+      finished = true;
       clearTimeout(timeoutId);
+      clearTimeout(escalationId);
       trackedChildren.delete(child);
 
       // Update process status
@@ -177,32 +216,39 @@ export async function execCommand(
       resolve({
         success: false,
         message: error.message,
-        exitCode: 1,
+        exitCode: timedOut ? 124 : 1,
+        timedOut,
         stdout: capture ? stdout : undefined,
         stderr: capture ? stderr : undefined,
       });
     });
 
     child.on('close', (code, signal) => {
+      if (finished) return;
+      finished = true;
       clearTimeout(timeoutId);
+      clearTimeout(escalationId);
       trackedChildren.delete(child);
 
       // Update process status
       if (child.pid) {
-        if (killed || signal) {
+        if (timedOut || signal) {
           updateProcessStatus(child.pid, 'killed', code ?? undefined, signal ?? undefined);
-        } else if (code === 0) {
+        } else if (code === 0 && !executionError) {
           updateProcessStatus(child.pid, 'completed', code);
         } else {
-          updateProcessStatus(child.pid, 'failed', code ?? 1);
+          updateProcessStatus(child.pid, 'failed', executionError ? 1 : (code ?? 1));
         }
       }
 
-      if (killed) {
+      if (timedOut) {
         resolve({
           success: false,
-          message: 'Command timed out',
-          exitCode: code ?? 124,
+          message: `Command timed out after ${timeout}ms${forceKilled ? ' (force-killed)' : ''}`,
+          exitCode: 124,
+          processExitCode: code,
+          signal: signal ?? undefined,
+          timedOut: true,
           stdout: capture ? stdout : undefined,
           stderr: capture ? stderr : undefined,
         });
@@ -210,16 +256,21 @@ export async function execCommand(
       }
 
       resolve({
-        success: code === 0,
-        message: code === 0 ? 'Success' : `Exited with code ${code}`,
-        exitCode: code ?? 1,
+        success: code === 0 && !executionError,
+        message:
+          executionError?.message ??
+          (code === 0
+            ? 'Success'
+            : signal
+              ? `Terminated by ${signal}`
+              : `Exited with code ${code}`),
+        exitCode: executionError ? 1 : (code ?? 1),
+        processExitCode: code,
+        signal: signal ?? undefined,
+        timedOut: false,
         stdout: capture ? stdout : undefined,
         stderr: capture ? stderr : undefined,
       });
-    });
-
-    child.on('exit', () => {
-      trackedChildren.delete(child);
     });
   });
 }
@@ -243,7 +294,11 @@ export async function execSequence(
   const results: ScriptResult[] = [];
 
   for (const [command, args, cmdOptions] of commands) {
-    const result = await execCommand(command, args, { ...options, ...cmdOptions });
+    const result = await execCommand(command, args, {
+      ...options,
+      ...cmdOptions,
+      dryRun: Boolean(options.dryRun || cmdOptions?.dryRun),
+    });
     results.push(result);
 
     if (!result.success) {
@@ -270,7 +325,11 @@ export async function execParallel(
   options: ExecOptions = {},
 ): Promise<{ success: boolean; results: ScriptResult[] }> {
   const promises = commands.map(([command, args, cmdOptions]) =>
-    execCommand(command, args, { ...options, ...cmdOptions }),
+    execCommand(command, args, {
+      ...options,
+      ...cmdOptions,
+      dryRun: Boolean(options.dryRun || cmdOptions?.dryRun),
+    }),
   );
 
   const results = await Promise.all(promises);

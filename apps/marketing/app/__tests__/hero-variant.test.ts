@@ -36,7 +36,9 @@ describe('selectHomeHero', () => {
   });
 
   it('matches the Foundation A/B H1 lock verbatim', () => {
-    expect(HOME_HERO_FOUNDATION.h1).toBe('Existing tools report in. You keep the stack.');
+    expect(HOME_HERO_FOUNDATION.h1).toBe(
+      'Build on shared business primitives with supported integrations.',
+    );
   });
 
   it('keeps the full locked positioning form on all hero variants', () => {
@@ -54,7 +56,7 @@ describe('selectHomeHero', () => {
   it('serves the L2 leverage-frame for ?hero=l2', () => {
     expect(selectHomeHero('?hero=l2')).toBe(HOME_HERO_L2);
     expect(HOME_HERO_L2.h1).toBe(
-      'Your secrets stay on infra you own. Agents use the same plan rules.',
+      'Configure agents for the business data and permissions you choose.',
     );
     expect(HOME_HERO_L2.subtitle).toEqual(HOME_HERO.subtitle);
   });

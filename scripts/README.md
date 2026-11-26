@@ -47,7 +47,7 @@ scripts/
 ├── cli/                       # CLIs built on BaseCLI
 │   ├── _base.ts               # BaseCLI / ExecutingCLI / DispatcherCLI abstractions
 │   ├── scripts.ts             # `pnpm scripts` — interactive script explorer
-│   └── release.ts             # `pnpm release` — publish/release flows
+│   └── release.ts             # `pnpm release` — planning/status/version management
 ├── analyze/                   # Read-only audits (any-types, console, emdash, palette)
 │   └── __tests__/
 ├── validate/                  # Pass/fail validation gates (see validate/README.md)
@@ -92,6 +92,28 @@ as `@revealui/scripts/*`. The local `scripts/lib/` directory holds only
 ---
 
 ## Common Commands
+
+`pnpm push [target-branch [remote]]` pushes the current committed HEAD to the
+named destination. It requires a clean index and worktree and never moves or
+deletes uncommitted files, saved work, worktrees, or caches. Direct Git pushes
+also reject dirty work and branch source commits that differ from the checkout.
+Use an independently prepared clean checkout for a different source commit.
+
+Coordinated pushes use a kernel-owned `flock` lease; a live holder never expires
+by age. The gate uses a separate per-user lease across worktrees and rejects
+contention immediately, including from a direct push with an open transport.
+The supported local tooling requires `flock` and Node 24.13 or newer. Worker
+counts, including quality prerequisites, are bounded by available process
+memory and CPU; `REVEALUI_GATE_CONCURRENCY` can reduce that count but cannot
+exceed the budget. Less than 1.25 GiB of available memory rejects admission.
+`pnpm docs:generate:api` applies the same resource calculation to its supported
+server dependency build before importing routes and producing documentation.
+Build failures stop generation before either artifact is written.
+
+`pnpm validate:push` checks these contracts against synthetic local remotes and
+isolated resource/lock fixtures. These changes do not yet move validation before
+Git's transport connection; long-running transport behavior remains tracked in
+issue #3036.
 
 Every command below is a real alias in the root `package.json`. Run
 `jq '.scripts' package.json` for the full list.
@@ -161,14 +183,22 @@ pnpm test:integration        # Integration tests (sets up the test DB)
 pnpm release                 # Release CLI entry (scripts/cli/release.ts)
 pnpm release:dry-run         # Simulate a release (no changes)
 pnpm release:status          # Show pending changeset status
-pnpm release:oss             # Publish OSS packages
-pnpm release:pro             # Publish Pro packages
+pnpm release version        # Apply pending changeset versions locally
 ```
+
+OSS publication and release tags belong to GitHub Actions `release.yml` on
+`main`, with OIDC and environment `npm-publish`. After reviewed changesets are
+applied and promoted, the owner runs **Actions → Release OSS Packages**.
+The retained `release:oss`, `release:pro`, `release publish`, and `release tag`
+compatibility commands refuse local execution with a nonzero exit.
+`release.yml` publishes OSS packages only; the missing canonical Pro OIDC
+publication capability is tracked under GAP-501.
 
 ### Script Explorer
 
 ```bash
 pnpm scripts list                    # List registered scripts by category
+pnpm scripts list --supports-dry-run # Filter scripts with dry-run support (-d)
 pnpm scripts search <query>          # Full-text search
 pnpm scripts info <name>             # Detailed info for one script
 pnpm scripts run <name> <command>    # Execute a registered script with validation
@@ -183,6 +213,18 @@ pnpm scripts history                 # Execution history
 
 The interactive CLIs in `scripts/cli/` extend `BaseCLI` from
 [cli/_base.ts](./cli/_base.ts):
+
+`--dry-run` returns an explicit simulated plan before initialization,
+confirmation, opaque handlers, cleanup, or execution-history writes. It does
+not evaluate handler preconditions or predict actual success. Use normal
+read-only `release status` or `release preview` to inspect changesets.
+The `dry-run` release subcommand has the same planning contract without a flag.
+Supported executor and dispatcher simulation also prevents spawning or importing
+commands; nested calls cannot disable an active simulation. This contract covers
+the maintained CLI and supported helpers, not arbitrary JavaScript/raw APIs.
+`run()` returns the settled execution outcome and nonzero failure/cancellation
+code; execution history is finalized after cleanup with that outcome. One CLI
+instance rejects overlapping runs and can be reused sequentially.
 
 ```typescript
 class MyCLI extends BaseCLI {

@@ -1,10 +1,12 @@
 # Security review gate — review-before-merge enforcement (GAP-376 complete).
 #
-# Provenance: pull_request_target runs the WORKFLOW DEFINITION from the BASE
-# ref, so a PR cannot rewrite this file for its own evaluation. Scripts still
-# pin to base.sha (belt-and-braces with #1921). The job does not check out
-# PR-head code; it only runs trusted gate scripts and queries the API for
-# files/labels/reviews.
+# Provenance: pull_request_target runs the WORKFLOW DEFINITION from the
+# commit that supplied this file, so a PR cannot rewrite it for its own
+# evaluation. Scripts check out github.workflow_sha, that same commit, so
+# they match the workflow when the pull request's recorded base is stale.
+# The job does not check out PR-head code; it only runs trusted gate scripts
+# and queries the API for files, labels, and reviews. Clearance is a
+# controller receipt for the exact head, not a comment signature.
 #
 # Shadow verify (A1–A3) recorded 2026-07-24:
 #   A1 — check-run attaches to PR head SHA (#2110)
@@ -46,19 +48,18 @@ jobs:
           set -euo pipefail
           echo "event_name=${{ github.event_name }}"
           echo "head_sha=${{ github.event.pull_request.head.sha }}"
-          echo "base_sha=${{ github.event.pull_request.base.sha }}"
+          echo "workflow_sha=${{ github.workflow_sha }}"
           echo "pr_number=${{ github.event.pull_request.number }}"
           echo "workflow_ref=${{ github.workflow_ref }}"
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # Evaluate with the BASE branch's copy of the gate scripts: the
-          # trusted (base) logic judges the untrusted (head) change, so a PR's
-          # own edits to these files cannot influence its evaluation. Changed
-          # files, labels, comments, and reviews all come from the API, so the
-          # checkout exists only to supply this script code.
-          # Kept under pull_request_target (defaults to base) as belt-and-braces.
-          ref: ${{ github.event.pull_request.base.sha }}
+          # Checkout the commit this workflow file came from. Head edits are
+          # not in this tree. Changed files, labels, and reviews come from
+          # the API. Comment text is read only for a live hold. The checkout
+          # only supplies script code.
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
           # GAP-404: gate loads SECURITY_PATHS from security-paths.shared.json
           # at module load. Sparse list must include that JSON or the job
           # crashes ENOENT before it can classify the PR (revealui#2074).
@@ -87,13 +88,14 @@ jobs:
             apps/*/package.json
             packages/harnesses/
             packages/dev/
+            packages/security/src/
           sparse-checkout-cone-mode: false
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
           version: '10.28.2'
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
 
@@ -102,7 +104,8 @@ jobs:
           set -euo pipefail
           # Durable sparse-job contract (do not change without updating
           # scripts/validate/gates-resolver.cjs):
-          #   - install only harnesses + dev (sparse checkout; no turbo, no security)
+          #   - install only harnesses + dev (sparse checkout; do not build security)
+          #   - packages/security/src is checked out and bundled by tsup.gates-cjs.ts
           #   - emit packages/harnesses/dist/gates/index.cjs via tsup.gates-cjs.ts
           # Full package DTS needs @revealui/security (GAP-381) and is out of scope here.
           # tsup.gates-cjs.ts has lived on main and test for the full dual-format era;
@@ -113,7 +116,11 @@ jobs:
       - name: Evaluate review gate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REVFLEET_OVERRIDE_SIGNERS: ${{ vars.REVFLEET_OVERRIDE_SIGNERS }}
+          REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
+          REVIEW_RECEIPT_REPO: ${{ vars.REVIEW_RECEIPT_REPO }}
+          REVIEW_RECEIPT_REF: ${{ vars.REVIEW_RECEIPT_REF }}
+          REVIEW_RECEIPT_SIGNERS: ${{ vars.REVIEW_RECEIPT_SIGNERS }}
+          REVIEW_RECEIPT_TOKEN: ${{ secrets.REVIEW_RECEIPT_TOKEN }}
         run: |
           set -euo pipefail
           node scripts/validate/security-review-gate.cjs \

@@ -1,18 +1,19 @@
 // Support page content. Schema reused from LegalSection for layout
 // consistency with the other trust pages.
 
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
 import { SITE } from '../site';
 import type { LegalSection } from './privacy';
 
 export const SUPPORT_META = {
   title: 'Support',
-  lastUpdated: 'August 24, 2026',
+  lastUpdated: 'October 4, 2026',
   intro:
     'RevealUI Studio is a solo-operator company. We want to help you succeed with RevealUI, and we want to be honest about what kind of help we can offer, on what timeline, and through which channels. This page covers all three.',
   notice: {
     variant: 'info' as const,
     title: 'One channel for direct support, three for community + docs',
-    body: 'The fastest path is to check the documentation first. For account-specific issues, billing, or anything sensitive, email support. We reply within 24 hours during business hours (Mon-Fri, U.S. Central), and within 4 hours any day for a critical issue. Full detail is on our SLA page.',
+    body: `For account-specific issues, billing, or anything sensitive, email support. ${PAID_SUPPORT_POLICY.summary}. Full detail, including protection for earlier agreements, is on our SLA page.`,
   },
 } as const;
 
@@ -30,9 +31,11 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
     ],
   },
   {
-    heading: '2. Response SLA',
+    heading: '2. Response targets and earlier agreements',
     paragraphs: [
-      `Email to ${SITE.emails.support}: we respond within **24 hours** during business hours (Monday through Friday, 9am to 5pm U.S. Central Time, excluding U.S. federal holidays), and within **4 hours** any day for a critical issue (your data is at risk, or you cannot use the product you purchased at all). Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our SLA page at https://revealui.com/sla.`,
+      `Email ${SITE.emails.support}. ${PAID_SUPPORT_POLICY.standardResponse} ${PAID_SUPPORT_POLICY.criticalResponse} Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our SLA page at https://revealui.com/sla.`,
+      PAID_SUPPORT_POLICY.coverage,
+      PAID_SUPPORT_POLICY.applicability,
       'GitHub Issues and Discussions: best-effort. We read them, but we may not respond instantly. If something is urgent, email is the right channel.',
       'Security reports: see the dedicated security policy at https://revealui.com/security. Those go to a separate address with a separate response commitment.',
     ],
@@ -82,7 +85,7 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   {
     heading: '7. Premium support',
     paragraphs: [
-      'Today, every paid tier gets the same response commitment described in §2 and on our SLA page: 24 hours during business hours, 4 hours for a critical issue. We do not yet offer a faster tiered SLA, and we would rather tell you that plainly than promise a tier we cannot staff as a solo operator.',
+      `Every paid tier has the same prospective response targets: ${PAID_SUPPORT_POLICY.summary}. We do not offer a faster staffed tier. Earlier agreements retain their stated support commitments.`,
       'Enterprise customers who need a dedicated Slack channel, a named technical contact, or scheduled architecture reviews should contact us before purchase to confirm scope and timeline.',
     ],
   },

@@ -12,7 +12,7 @@
 
 import { join } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
-import { type ExecutionRecord, getExecutionLogger } from '../audit/execution-logger.js';
+import { type ExecutionRecord, withExecutionLogger } from '../audit/execution-logger.js';
 
 /**
  * Script usage statistics
@@ -123,14 +123,16 @@ export class UsageAnalytics {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-    const logger = await getExecutionLogger(this.projectRoot);
-
-    // Get all executions in period
-    const history = await logger.getHistory({
-      startDate,
-      endDate,
-      limit: 100000,
-    });
+    // Own the logger until this awaited query finishes.
+    const history = await withExecutionLogger(
+      (logger) =>
+        logger.getHistory({
+          startDate,
+          endDate,
+          limit: 100000,
+        }),
+      this.projectRoot,
+    );
 
     // Calculate script statistics
     const scriptStats = this.calculateScriptStats(history, days);
@@ -204,14 +206,16 @@ export class UsageAnalytics {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-    const logger = await getExecutionLogger(this.projectRoot);
-
-    const history = await logger.getHistory({
-      scriptName,
-      startDate,
-      endDate,
-      limit: 100000,
-    });
+    const history = await withExecutionLogger(
+      (logger) =>
+        logger.getHistory({
+          scriptName,
+          startDate,
+          endDate,
+          limit: 100000,
+        }),
+      this.projectRoot,
+    );
 
     const stats = this.calculateScriptStats(history, days);
     const scriptStat = stats.find((s) => s.scriptName === scriptName);
@@ -421,12 +425,15 @@ export class UsageAnalytics {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-    const logger = await getExecutionLogger(this.projectRoot);
-    const history = await logger.getHistory({
-      startDate,
-      endDate,
-      limit: 100000,
-    });
+    const history = await withExecutionLogger(
+      (logger) =>
+        logger.getHistory({
+          startDate,
+          endDate,
+          limit: 100000,
+        }),
+      this.projectRoot,
+    );
 
     const hourCounts = new Array(24).fill(0);
 
@@ -445,12 +452,15 @@ export class UsageAnalytics {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-    const logger = await getExecutionLogger(this.projectRoot);
-    const history = await logger.getHistory({
-      startDate,
-      endDate,
-      limit: 100000,
-    });
+    const history = await withExecutionLogger(
+      (logger) =>
+        logger.getHistory({
+          startDate,
+          endDate,
+          limit: 100000,
+        }),
+      this.projectRoot,
+    );
 
     const dayCounts = new Array(7).fill(0);
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

@@ -2,12 +2,14 @@
  * Local AI profile — load/save + env fill (self-host control plane).
  */
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
+import { createLLMClientFromEnv } from '../client.js';
 import {
   applyLocalAiProfileToEnv,
   emptyIdleProfile,
+  getLocalAiActiveEnvPath,
   type LocalAiProfile,
   loadLocalAiProfile,
   profileDefaultsForTier,
@@ -41,6 +43,12 @@ describe('local-ai-profile', () => {
     expect(loaded?.tier).toBe('daily');
     expect(loaded?.provider).toBe('ollama');
     expect(loaded?.model).toBe('gemma3:1b');
+    const env: NodeJS.ProcessEnv = {};
+    applyLocalAiProfileToEnv(env, undefined, path);
+    expect(env.LLM_PROVIDER).toBe('ollama');
+    expect(env.LLM_MODEL).toBe('gemma3:1b');
+    const client = createLLMClientFromEnv({ env: {}, profilePath: path });
+    expect(client.getCircuitBreakerStats().primary.name).toBe('llm-ollama');
   });
 
   it('applyLocalAiProfileToEnv fills missing keys only', () => {
@@ -91,12 +99,17 @@ describe('local-ai-profile', () => {
     expect(profileDefaultsForTier('idle').provider).toBeNull();
   });
 
+  it('retains the default production profile bundle paths', () => {
+    const defaultProfile = join(homedir(), '.local', 'share', 'revealui', 'inference-profile.json');
+    expect(getLocalAiActiveEnvPath(defaultProfile)).toBe(
+      join(homedir(), '.config', 'revealui', 'local-ai.active.env'),
+    );
+  });
+
   it('writes shell-compat active env next to profile save', () => {
     const dir = mkdtempSync(join(tmpdir(), 'laip-env-'));
     dirs.push(dir);
     const path = join(dir, 'inference-profile.json');
-    // Point home-relative paths via absolute profile path only; active env uses real home.
-    // We only assert save does not throw and profile round-trips.
     saveLocalAiProfile(
       {
         ...emptyIdleProfile(),
@@ -110,5 +123,9 @@ describe('local-ai-profile', () => {
       path,
     );
     expect(readFileSync(path, 'utf8')).toContain('"tier": "snaps"');
+    const activePath = getLocalAiActiveEnvPath(path);
+    expect(activePath).toBe(join(dir, 'local-ai.active.env'));
+    expect(readFileSync(activePath, 'utf8')).toContain('export LLM_PROVIDER=inference-snaps');
+    expect(readFileSync(activePath, 'utf8')).toContain('export LLM_MODEL=gemma3');
   });
 });

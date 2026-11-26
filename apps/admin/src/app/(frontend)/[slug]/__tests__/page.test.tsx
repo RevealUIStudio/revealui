@@ -5,13 +5,9 @@
  *  - refuse reserved auth-flow slugs without querying content, and 404 them
  *    (via notFound()) rather than route through the allow-all redirects
  *    collection (S1b);
- *  - validate the session server-side and scope visibility via `req` rather
- *    than `overrideAccess: true` (S2), AND gate draft/unpublished visibility on
- *    an ADMIN role — a non-admin (public-signup `user`) session must NOT see
- *    drafts, and an anonymous OR non-admin caller passes a truthy user-LESS
- *    `req` ({}) so the collection's `authenticatedOrPublished` rule yields
- *    published-only (NOT deny-all: an `undefined` req would trip find()'s
- *    `if (!req) return false` and 404 every public page).
+ *  - validate the session server-side and pass every authenticated caller to
+ *    the canonical typed collection ACL. Site membership, rather than an
+ *    account-wide admin role or draft cookie, determines draft access.
  *
  * No regex authored (fleet posture): assertions use equality + object shape.
  */
@@ -27,6 +23,8 @@ const mockNotFound = vi.fn(() => {
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
+  isRecoverySession: (value: { session: { metadata?: { recovery?: boolean } } }) =>
+    value.session.metadata?.recovery === true,
 }));
 
 vi.mock('next/headers', () => ({
@@ -80,6 +78,7 @@ describe('(frontend)/[slug] — reserved auth slugs (S1b)', () => {
     'forgot-password',
     'reset-password',
     'setup',
+    'client-shares',
   ])('404s a reserved slug %s without querying content', async (slug) => {
     // notFound() throws — the reserved slug never reaches the content query
     // nor the allow-all redirects collection.
@@ -96,7 +95,7 @@ describe('(frontend)/[slug] — reserved auth slugs (S1b)', () => {
   });
 });
 
-describe('(frontend)/[slug] — role-gated visibility (S2 + role-gate)', () => {
+describe('(frontend)/[slug] — site-scoped visibility (S2)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFind.mockResolvedValue({ docs: [{ id: '1', hero: null, layout: [] }] });
@@ -115,7 +114,7 @@ describe('(frontend)/[slug] — role-gated visibility (S2 + role-gate)', () => {
     expect(opts.overrideAccess).toBeUndefined();
   });
 
-  it('non-admin (public-signup user) session gets NO drafts and a user-less req', async () => {
+  it('passes authenticated non-admin identity to the canonical site ACL', async () => {
     mockGetSession.mockResolvedValue({
       user: { id: 'u-2', email: 'user@example.com', role: 'user' },
       session: {},
@@ -127,10 +126,8 @@ describe('(frontend)/[slug] — role-gated visibility (S2 + role-gate)', () => {
       draft?: boolean;
       overrideAccess?: boolean;
     };
-    // A role-`user` session is NOT admin → no user on req → published-only.
-    expect(opts.req).toEqual({});
-    expect(opts.req?.user).toBeUndefined();
-    expect(opts.draft).toBe(false);
+    expect(opts.req).toEqual({ user: { id: 'u-2', email: 'user@example.com', roles: ['user'] } });
+    expect(opts.draft).toBe(true);
     expect(opts.overrideAccess).toBeUndefined();
   });
 
@@ -190,6 +187,7 @@ describe('(frontend)/[slug] — generateMetadata reserved slugs', () => {
     'forgot-password',
     'reset-password',
     'setup',
+    'client-shares',
   ])('does not query content from generateMetadata for reserved slug %s', async (slug) => {
     // The reserved-slug guard lives in queryPageBySlug, the shared entry point
     // for both Page() and generateMetadata(), so the metadata path must skip

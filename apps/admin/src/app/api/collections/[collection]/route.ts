@@ -1,7 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
+import { resolveDefaultSiteId, SiteSelectionRequiredError } from '@/lib/db/defaultSite';
 import { apiForwardHeaders } from '@/lib/utils/api-proxy-headers';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -12,7 +12,7 @@ const API_URL =
 
 /**
  * Pages are the one site-scoped content collection: the API exposes list/create
- * only under `/sites/:siteId/pages`, while every other collection lists/creates
+ * under the flat collection read and `/sites/:siteId/pages` create, while every other collection lists/creates
  * flat under `/:collection`. The dashboard supplies the site scope here — an
  * explicit `siteId` when a site is selected, otherwise the server-resolved
  * default site (single-site operators never choose one). All other collections
@@ -25,19 +25,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 async function resolveListTarget(
   collection: string,
   searchParams: URLSearchParams,
+  userId: string,
 ): Promise<string> {
   if (collection !== 'pages') {
     return `${API_URL}/api/content/${collection}?${searchParams.toString()}`;
   }
+  // Creator completion spans owned sites and never resolves a default site.
+  // An explicit site remains a normal constraint in the owning API query.
+  if (searchParams.get('createdByMe') === 'true') {
+    return `${API_URL}/api/content/pages?${searchParams.toString()}`;
+  }
   const forwarded = new URLSearchParams(searchParams);
   const explicit = forwarded.get('siteId');
-  forwarded.delete('siteId');
-  const siteId = explicit && explicit.length > 0 ? explicit : await resolveDefaultSiteId();
+  const siteId = explicit && explicit.length > 0 ? explicit : await resolveDefaultSiteId(userId);
+  forwarded.set('siteId', siteId);
   const query = forwarded.toString();
-  return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages${query ? `?${query}` : ''}`;
+  return `${API_URL}/api/content/pages${query ? `?${query}` : ''}`;
 }
 
-async function resolveCreateTarget(collection: string, body: unknown): Promise<string> {
+async function resolveCreateTarget(
+  collection: string,
+  body: unknown,
+  userId: string,
+): Promise<string> {
   if (collection !== 'pages') {
     return `${API_URL}/api/content/${collection}`;
   }
@@ -45,11 +55,14 @@ async function resolveCreateTarget(collection: string, body: unknown): Promise<s
     isRecord(body) && typeof body.siteId === 'string' && body.siteId.length > 0
       ? body.siteId
       : undefined;
-  const siteId = explicit ?? (await resolveDefaultSiteId());
+  const siteId = explicit ?? (await resolveDefaultSiteId(userId));
   return `${API_URL}/api/content/sites/${encodeURIComponent(siteId)}/pages`;
 }
 
 function apiUnavailable(collection: string, error: unknown): NextResponse {
+  if (error instanceof SiteSelectionRequiredError) {
+    return NextResponse.json({ error: error.message }, { status: 409 });
+  }
   const err = error instanceof Error ? error : new Error(String(error));
   logger.error('Content API unavailable', err, { collection });
   return NextResponse.json({ error: 'Content API unavailable' }, { status: 503 });
@@ -61,7 +74,11 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
     logger.error('Content API request failed', new Error(text || 'Unknown error'), {
       status: response.status,
     });
-    return NextResponse.json({ error: 'API request failed' }, { status: response.status });
+    const message =
+      response.status === 409
+        ? 'This conflicts with an existing address or name. Choose another and try again.'
+        : 'API request failed';
+    return NextResponse.json({ error: message, message }, { status: response.status });
   }
   const data = await response.json();
 
@@ -69,8 +86,19 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
   // The Hono API returns { success, data: T[] } but APIClient.find() reads { docs, totalDocs }.
   // Users route already returns { docs, ... }  -  only transform the { data } envelope.
   if (data && Array.isArray(data.data) && !data.docs) {
+    const countOr = (value: unknown, fallback: number): number =>
+      typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : fallback;
+    const limit = countOr(data.limit, 0);
+    const offset = countOr(data.offset, 0);
     return NextResponse.json(
-      { docs: data.data, totalDocs: data.data.length, totalPages: 1, page: 1 },
+      {
+        docs: data.data,
+        totalDocs: countOr(data.totalDocs, data.data.length),
+        totalPages: countOr(data.totalPages, 1),
+        page: countOr(data.page, limit > 0 ? Math.floor(offset / limit) + 1 : 1),
+        ...(data.limit !== undefined ? { limit } : {}),
+        ...(data.offset !== undefined ? { offset } : {}),
+      },
       { status: response.status },
     );
   }
@@ -103,9 +131,12 @@ export async function GET(
   const { searchParams } = new URL(request.url);
 
   try {
-    const apiResponse = await fetch(await resolveListTarget(collection, searchParams), {
-      headers: await apiForwardHeaders(request),
-    });
+    const apiResponse = await fetch(
+      await resolveListTarget(collection, searchParams, session.user.id),
+      {
+        headers: await apiForwardHeaders(request),
+      },
+    );
     return proxyResponse(apiResponse);
   } catch (err) {
     return apiUnavailable(collection, err);
@@ -129,7 +160,7 @@ export async function POST(
   // the only upload gate. JSON create for non-upload collections is unchanged.
   if (contentType.startsWith('multipart/form-data')) {
     try {
-      const target = await resolveCreateTarget(collection, undefined);
+      const target = await resolveCreateTarget(collection, undefined, session.user.id);
       const init: RequestInit & { duplex: 'half' } = {
         method: 'POST',
         headers: await apiForwardHeaders(request, { 'Content-Type': contentType }),
@@ -146,7 +177,7 @@ export async function POST(
   const body = await request.json();
 
   try {
-    const apiResponse = await fetch(await resolveCreateTarget(collection, body), {
+    const apiResponse = await fetch(await resolveCreateTarget(collection, body, session.user.id), {
       method: 'POST',
       headers: await apiForwardHeaders(request, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body),

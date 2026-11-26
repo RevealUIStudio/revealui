@@ -12,7 +12,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
-    "hono": "4.13.8",
+    "hono": "4.13.11",
     "stripe": "catalog:",
     "zod": "catalog:"
   },
@@ -20,6 +20,8 @@
     "@revealui/ai": "workspace:*"
   },
   "devDependencies": {
+    "@revealui/scripts": "workspace:*",
+    "pg": "catalog:",
     "@electric-sql/pglite": "catalog:",
     "@electric-sql/pglite-pgvector": "^0.0.5",
     "@playwright/test": "catalog:",

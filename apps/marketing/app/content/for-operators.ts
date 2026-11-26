@@ -5,8 +5,8 @@
 // nav label "For Operators" (OQ-4); fork Branch A stays on / (OQ-5);
 // coupled ship with agency-site receiving surface (OQ-6).
 // Live /for-operators and /services are Moved stubs. This module is leftover
-// CMS/page-block copy only — do not republish Written plan / ten years /
-// Book a build call.
+// CMS/page-block copy only. Do not republish a written-plan price, a ten-year
+// claim, or a build-call booking.
 // The future managed offering is named "RevealUI Cloud" (OQ-1) — referenced
 // only via the inline link to /for-operators/managed (Page 3, not this PR).
 //
@@ -14,19 +14,18 @@
 // because an email-agent template ships (packages/ai/src/templates) but no
 // order-processing template exists.
 
-import {
-  CONSULTATION_PRICE,
-  LAUNCH_PACKAGE_PRICE,
-  PILOT_PRICE,
-} from '@revealui/contracts/public-catalog';
 import { SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
-/**
- * Agency-site contact surface — where the operator funnel converts.
- * Per non-technical-lane spec §6.2 handoff contract.
- */
-const AGENCY_CONTACT = `${SITE.urls.agency}/contact` as const;
+/** Product surfaces name the Studio site. Prices stay off this catalog. */
+const STUDIO_POINTER =
+  'Humans buy Studio work at revealuistudio.com. Book an intro there. This product site sells install and license tiers. Studio does not operate a customer VM.' as const;
+
+const STUDIO_CTA = {
+  label: 'Open revealuistudio.com',
+  href: SITE.urls.agency,
+  external: true,
+} as const satisfies Cta;
 
 /**
  * Page 3 (managed roadmap) — not yet implemented; the inline link in
@@ -37,14 +36,9 @@ const MANAGED_ROADMAP_HREF = '/for-operators/managed' as const;
 
 export const FOR_OPERATORS_HERO = {
   eyebrow: 'Studio work',
-  h1Lines: ['Consultation, Pilot, or Launch', 'on infrastructure you own.'] as const,
-  subtitle:
-    'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
-  primaryCta: {
-    label: 'Book a 30-minute intro',
-    href: AGENCY_CONTACT,
-    external: true,
-  } satisfies Cta,
+  h1Lines: ['Humans buy Studio work', 'on revealuistudio.com.'] as const,
+  subtitle: STUDIO_POINTER,
+  primaryCta: STUDIO_CTA,
   reverseLink: {
     label: 'Are you a developer? See the runtime.',
     href: '/',
@@ -101,97 +95,13 @@ export const FOR_OPERATORS_HOW_WE_DELIVER = {
     'If "I want it automatic and instant" is the requirement, this is not yet the right time to engage. If "I want it built, scoped, and delivered by people who maintain the runtime it runs on" is the requirement, that is what we ship.',
 } as const;
 
-// ---------------------------------------------------------------------------
-// Studio engagement ladder: Consultation / Pilot / Launch on
-// revealuistudio.com only. Architecture work happens inside Launch.
-// Dead leftover rungs must not exist in this module. Prices import from
-// @revealui/contracts/public-catalog so leftover admin catalogs cannot
-// ship in the public marketing bundle.
-// ---------------------------------------------------------------------------
-
-export type AgencyEngagementId = 'consultation' | 'pilot' | 'launch-package';
-
-export interface AgencyEngagement {
-  readonly id: AgencyEngagementId;
-  readonly name: string;
-  readonly price: string;
-  readonly startsFrom: boolean;
-}
-
-export const AGENCY_ENGAGEMENT_LADDER: readonly AgencyEngagement[] = [
-  {
-    id: 'consultation',
-    name: 'Consultation',
-    price: CONSULTATION_PRICE,
-    startsFrom: false,
-  },
-  {
-    id: 'pilot',
-    name: 'Pilot',
-    price: PILOT_PRICE,
-    startsFrom: false,
-  },
-  {
-    id: 'launch-package',
-    name: 'Launch',
-    price: LAUNCH_PACKAGE_PRICE,
-    startsFrom: false,
-  },
-] as const;
-
-/** Rendered display form for a ladder rung ("$3,500"). */
-export function agencyEngagementPriceDisplay(engagement: AgencyEngagement): string {
-  return engagement.startsFrom ? `from ${engagement.price}` : engagement.price;
-}
-
-function findEngagement(id: AgencyEngagementId): AgencyEngagement {
-  const found = AGENCY_ENGAGEMENT_LADDER.find((e) => e.id === id);
-  if (!found) throw new Error(`unknown agency engagement id: ${id}`);
-  return found;
-}
-
-const CONSULTATION = findEngagement('consultation');
-const PILOT = findEngagement('pilot');
-const LAUNCH_PACKAGE = findEngagement('launch-package');
-
-// ---------------------------------------------------------------------------
-// Engagement pricing — rendered by components/for-operators/EngagementPricing.tsx,
-// placed after <HowWeDeliver /> on ForOperatorsPage. Surface-specific body copy
-// is operator-voice; the canonical anchor (name + price) derives from
-// AGENCY_ENGAGEMENT_LADDER above.
-// ---------------------------------------------------------------------------
-
-export interface PricingRung {
-  readonly title: string;
-  readonly price: string;
-  readonly body: string;
-  readonly cta: Cta;
-}
-
+// Product /services copy does not publish Studio prices. The live route
+// redirects to /pricing. This block is the leftover CMS pointer.
 export const FOR_OPERATORS_PRICING = {
-  eyebrow: 'What it costs',
-  heading: 'What an engagement costs.',
-  body: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
-  rungs: [
-    {
-      title: CONSULTATION.name,
-      price: agencyEngagementPriceDisplay(CONSULTATION),
-      body: 'A scoped session with the founder. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
-    },
-    {
-      title: PILOT.name,
-      price: agencyEngagementPriceDisplay(PILOT),
-      body: 'One site on your domain and one receipted action you operate. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
-    },
-    {
-      title: LAUNCH_PACKAGE.name,
-      price: agencyEngagementPriceDisplay(LAUNCH_PACKAGE),
-      body: 'Architecture work happens inside Launch, with a runbook and 30-day async stabilization. Half now, half on delivery. This SKU lives on revealuistudio.com, not on the product catalog.',
-      cta: { label: 'Book a Consultation', href: AGENCY_CONTACT, external: true },
-    },
-  ] as readonly PricingRung[],
+  eyebrow: 'Studio',
+  heading: 'Studio work is not listed here.',
+  body: STUDIO_POINTER,
+  primaryCta: STUDIO_CTA,
 } as const;
 
 export const FOR_OPERATORS_DISCOVERY = {
@@ -244,7 +154,7 @@ export const FOR_OPERATORS_FAQ = {
     },
     {
       question: 'How much does it cost?',
-      answer: `Studio SKUs live on revealuistudio.com, not on this catalog. ${CONSULTATION.name} is ${CONSULTATION.price}, ${PILOT.name} is ${PILOT.price}, and ${LAUNCH_PACKAGE.name} is ${LAUNCH_PACKAGE.price}. Book on Google Calendar from that site.`,
+      answer: STUDIO_POINTER,
     },
     {
       question: 'How long does it take?',
@@ -267,11 +177,7 @@ export const FOR_OPERATORS_FAQ = {
 export const FOR_OPERATORS_CLOSING = {
   heading: 'Get on a call.',
   body: "A free 30-minute discovery call. We walk through what you're building, whether we're the right team for it, and what a scoped engagement would look like.",
-  primaryCta: {
-    label: 'Book a 30-minute intro',
-    href: AGENCY_CONTACT,
-    external: true,
-  } satisfies Cta,
+  primaryCta: STUDIO_CTA,
   emailFallback: {
     prefix: 'Email ',
     address: SITE.emails.founder,

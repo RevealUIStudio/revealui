@@ -1,3 +1,4 @@
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import type {
   RevealCollectionConfig,
   RevealDataObject,
@@ -7,15 +8,23 @@ import type {
   RevealRequest,
 } from '@revealui/core/types';
 import { getRestClient } from '@revealui/db/client';
-import { createPage, deletePage, getPageById, updatePage } from '@revealui/db/queries/pages';
+import {
+  createPage,
+  deletePage,
+  getPageById,
+  pageContentReadCondition,
+  updatePage,
+} from '@revealui/db/queries/pages';
 import { createPost, deletePost, getPostById, updatePost } from '@revealui/db/queries/posts';
+import { actorCanManageSite, getSiteContentActor } from '@revealui/db/queries/sites';
 import { posts } from '@revealui/db/schema/admin';
 import { pages } from '@revealui/db/schema/pages';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
-import { and, asc, count, desc, eq, isNull, or, type SQL, sql } from 'drizzle-orm';
+import type { PlatformAuthUser } from '@revealui/utils/validation';
+import { and, asc, count, desc, eq, inArray, isNull, or, type SQL, sql } from 'drizzle-orm';
 import { cmsCollectionHandlers } from './cmsCollectionStorage';
-import { DEFAULT_CMS_SITE_ID } from './defaultSite';
+import { resolveDefaultSiteId } from './defaultSite';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
 type UserSort = NonNullable<RevealFindOptions['sort']>;
@@ -25,7 +34,7 @@ const SUPPORTED_COLLECTION = 'users';
 type TypedCollectionHandler = {
   findByID?: (
     collection: RevealCollectionConfig,
-    options: { id: string | number },
+    options: { id: string | number; req?: RevealRequest },
   ) => Promise<RevealDocument | null | undefined>;
   find?: (
     collection: RevealCollectionConfig,
@@ -48,7 +57,7 @@ type TypedCollectionHandler = {
 type LocalCollectionStorageAdapter = {
   findByID?: (
     collection: RevealCollectionConfig,
-    options: { id: string | number },
+    options: { id: string | number; req?: RevealRequest },
   ) => Promise<RevealDocument | null | undefined>;
   find?: (
     collection: RevealCollectionConfig,
@@ -288,7 +297,7 @@ function buildTenantsOrderBy(sort: RevealFindOptions['sort']) {
 
 async function findTypedUserByID(
   collection: RevealCollectionConfig,
-  options: { id: string | number },
+  options: { id: string | number; req?: RevealRequest },
 ): Promise<RevealDocument | null | undefined> {
   if (collection.slug !== SUPPORTED_COLLECTION) {
     return undefined;
@@ -354,7 +363,7 @@ async function findTypedUsers(
 
 async function findTypedTenantByID(
   collection: RevealCollectionConfig,
-  options: { id: string | number },
+  options: { id: string | number; req?: RevealRequest },
 ): Promise<RevealDocument | null | undefined> {
   if (collection.slug !== 'tenants') {
     return undefined;
@@ -487,6 +496,10 @@ function buildPagesWhere(where: RevealFindOptions['where']) {
 
   const conditions: (SQL<unknown> | null)[] = [isNull(pages.deletedAt)];
   for (const [field, condition] of entries ?? []) {
+    if (field === 'id' && isRecord(condition) && Array.isArray(condition.in)) {
+      conditions.push(inArray(pages.id, condition.in.map(String)));
+      continue;
+    }
     if (!(isRecord(condition) && 'equals' in condition)) {
       return null;
     }
@@ -560,17 +573,47 @@ function pageStatusFromData(data: RevealDataObject): string | undefined {
   return typeof raw === 'string' && raw.length > 0 ? raw : undefined;
 }
 
+async function pageActor(req?: RevealRequest): Promise<PlatformAuthUser | null> {
+  if (!req?.user?.id) return null;
+  const actor = await getSiteContentActor(getRestClient(), String(req.user.id));
+  if (!actor)
+    throw Object.assign(new Error('Access denied: authenticated user is unavailable'), {
+      statusCode: 403,
+    });
+  return actor;
+}
+
+async function requirePageSiteAuthority(
+  actor: PlatformAuthUser | null,
+  siteId: string,
+): Promise<void> {
+  if (
+    !(
+      actor &&
+      (await actorCanManageSite(getRestClient(), actor, siteId, getExplicitDeploymentMode()))
+    )
+  ) {
+    throw Object.assign(new Error('Access denied: you do not own this site'), { statusCode: 403 });
+  }
+}
+
 async function findTypedPageByID(
   collection: RevealCollectionConfig,
-  options: { id: string | number },
+  options: { id: string | number; req?: RevealRequest },
 ): Promise<RevealDocument | null | undefined> {
   if (collection.slug !== 'pages') {
     return undefined;
   }
 
   const db = getRestClient();
-  const row = await getPageById(db, String(options.id));
-  return row ? mapPageDocument(row) : null;
+  const actor = await pageActor(options.req);
+  const row = await getPageById(db, String(options.id), {
+    actor,
+    mode: getExplicitDeploymentMode(),
+    includePublic: true,
+  });
+  if (!row) return null;
+  return mapPageDocument(row);
 }
 
 async function findTypedPages(
@@ -581,17 +624,26 @@ async function findTypedPages(
     return undefined;
   }
 
+  const actor = await pageActor(options.req);
   const where = buildPagesWhere(options.where);
   if (where === null) {
-    return undefined;
+    throw Object.assign(new Error('Unsupported pages filter'), { statusCode: 400 });
   }
 
   const orderBy = buildPagesOrderBy(options.sort);
   if (orderBy === null) {
-    return undefined;
+    throw Object.assign(new Error('Unsupported pages sort'), { statusCode: 400 });
   }
 
   const db = getRestClient();
+  const scopedWhere = and(
+    where,
+    pageContentReadCondition(db, {
+      actor,
+      mode: getExplicitDeploymentMode(),
+      includePublic: true,
+    }),
+  );
   const limit = options.limit ?? 10;
   const page = options.page ?? 1;
   const offset = (page - 1) * limit;
@@ -599,14 +651,14 @@ async function findTypedPages(
   const rows = await db
     .select()
     .from(pages)
-    .where(where)
+    .where(scopedWhere)
     .orderBy(...(orderBy.length > 0 ? orderBy : [asc(pages.path)]))
     .limit(limit)
     .offset(offset);
   const [{ value: totalDocs = 0 } = { value: 0 }] = await db
     .select({ value: count() })
     .from(pages)
-    .where(where);
+    .where(scopedWhere);
 
   const totalPages = totalDocs > 0 ? Math.ceil(totalDocs / limit) : 0;
 
@@ -641,11 +693,21 @@ async function createTypedPage(
     throw new Error('pages create requires a non-empty title and slug');
   }
 
+  const actor = await pageActor(options.req);
+  if (!actor?.id)
+    throw Object.assign(new Error('Access denied: page creation requires authentication'), {
+      statusCode: 403,
+    });
+  const siteId =
+    typeof data.siteId === 'string' && data.siteId.length > 0
+      ? data.siteId
+      : await resolveDefaultSiteId(String(actor.id));
+  await requirePageSiteAuthority(actor, siteId);
   const blocks = Array.isArray(data.blocks) ? data.blocks : [];
   const values: NewPage = {
     id: typeof data.id === 'string' && data.id.length > 0 ? data.id : `rvl_${crypto.randomUUID()}`,
-    siteId:
-      typeof data.siteId === 'string' && data.siteId.length > 0 ? data.siteId : DEFAULT_CMS_SITE_ID,
+    siteId,
+    createdBy: String(actor.id),
     title,
     slug,
     path:
@@ -683,6 +745,15 @@ async function updateTypedPage(
     throw new Error(`pages update: page not found: ${id}`);
   }
 
+  const actor = await pageActor(options.req);
+  await requirePageSiteAuthority(actor, existing.siteId);
+  if (
+    typeof options.data.siteId === 'string' &&
+    options.data.siteId.length > 0 &&
+    options.data.siteId !== existing.siteId
+  ) {
+    throw Object.assign(new Error('A page cannot move to another site'), { statusCode: 400 });
+  }
   const { data } = options;
   const patch: Partial<NewPage> = {};
 
@@ -739,6 +810,7 @@ async function deleteTypedPage(
     throw new Error(`pages delete: page not found: ${id}`);
   }
 
+  await requirePageSiteAuthority(await pageActor(options.req), existing.siteId);
   await deletePage(db, id);
   return mapPageDocument(existing);
 }
@@ -885,7 +957,7 @@ function buildPostsOrderBy(sort: RevealFindOptions['sort']) {
 
 async function findTypedPostByID(
   collection: RevealCollectionConfig,
-  options: { id: string | number },
+  options: { id: string | number; req?: RevealRequest },
 ): Promise<RevealDocument | null | undefined> {
   if (collection.slug !== 'posts') {
     return undefined;
@@ -1108,7 +1180,7 @@ export function createTypedCollectionStorage(): LocalCollectionStorageAdapter | 
   return {
     findByID(
       collection: RevealCollectionConfig,
-      options: { id: string | number },
+      options: { id: string | number; req?: RevealRequest },
     ): Promise<RevealDocument | null | undefined> {
       const handler = typedCollectionHandlers[collection.slug]?.findByID;
       return handler ? handler(collection, options) : Promise.resolve(undefined);

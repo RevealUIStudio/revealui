@@ -1,88 +1,54 @@
 import { getConfiguredStripeMode } from '@revealui/config/stripe-mode';
+import { type LicensePayload, readLicenseJti } from '@revealui/core/license';
+import { isJtiRevoked } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
-import { accountEntitlements, accountSubscriptions, licenses } from '@revealui/db/schema';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { licenses } from '@revealui/db/schema';
+import { and, eq, isNull } from 'drizzle-orm';
 
 /**
- * Query billing status with grace period enforcement.
- *
- * When a subscription is past_due/canceled/revoked but graceUntil is in the future,
- * returns 'grace_period'  -  the customer retains access until grace expires.
+ * Read the registration for the configured, already signature-verified grant.
+ * A different license owned by the customer cannot authorize this token.
+ * Stored-token decoding only binds trusted registration metadata to the signed
+ * request identity; it never establishes the token's signature or entitlement.
  */
-export async function queryBillingStatusByCustomerId(
-  db: Database,
-  customerId: string,
-): Promise<string | null> {
-  const [license] = await db
-    .select({ status: licenses.status, expiresAt: licenses.expiresAt })
-    .from(licenses)
-    // Scope to the configured Stripe mode: a leftover test-mode 'active' row must
-    // not sort ahead of and mask a live-mode 'revoked' row for the same customer.
-    // Completes #1700, which mode-scoped the other license readers but missed
-    // this one (checkLicenseStatus is mounted globally on /api/*).
-    .where(and(eq(licenses.customerId, customerId), eq(licenses.mode, getConfiguredStripeMode())))
-    // Prefer active/support_expired licenses over expired/revoked  -  a customer may have
-    // both a perpetual (active or support_expired) and a subscription (revoked) license.
-    .orderBy(
-      sql`CASE WHEN ${licenses.status} = 'active' THEN 0 WHEN ${licenses.status} = 'support_expired' THEN 0 ELSE 1 END`,
-      desc(licenses.createdAt),
-    )
-    .limit(1);
-
-  if (license?.status) {
-    // Grace period for legacy licenses: if expired but expiresAt is in the future, allow access
-    if (
-      (license.status === 'expired' || license.status === 'revoked') &&
-      license.expiresAt &&
-      license.expiresAt > new Date()
-    ) {
-      return 'grace_period';
-    }
-    return license.status;
-  }
-
-  const [accountSubscription] = await db
-    .select({ accountId: accountSubscriptions.accountId })
-    .from(accountSubscriptions)
-    .where(eq(accountSubscriptions.stripeCustomerId, customerId))
-    .limit(1);
-
-  if (!accountSubscription?.accountId) {
-    return null;
-  }
-
-  const [entitlement] = await db
+async function queryRegisteredLicense(db: Database, payload: LicensePayload) {
+  if (!payload.jti?.trim() || payload.jti !== payload.jti.trim()) return null;
+  const candidates = await db
     .select({
-      status: accountEntitlements.status,
-      graceUntil: accountEntitlements.graceUntil,
+      licenseKey: licenses.licenseKey,
+      status: licenses.status,
+      supportExpiresAt: licenses.supportExpiresAt,
+      perpetual: licenses.perpetual,
     })
-    .from(accountEntitlements)
-    // Mode-scope the entitlement read for the same reason as the license read
-    // above: a test-mode entitlement row must not answer for a live deployment.
+    .from(licenses)
     .where(
       and(
-        eq(accountEntitlements.accountId, accountSubscription.accountId),
-        eq(accountEntitlements.mode, getConfiguredStripeMode()),
+        eq(licenses.customerId, payload.customerId),
+        eq(licenses.tier, payload.tier),
+        eq(licenses.perpetual, payload.perpetual === true),
+        eq(licenses.mode, getConfiguredStripeMode()),
+        isNull(licenses.deletedAt),
       ),
-    )
-    .limit(1);
-
-  if (!entitlement?.status) return null;
-
-  // Grace period enforcement: if status is degraded but graceUntil is in the future,
-  // the customer retains access until grace expires
-  const now = new Date();
-  if (
-    (entitlement.status === 'past_due' ||
-      entitlement.status === 'canceled' ||
-      entitlement.status === 'revoked') &&
-    entitlement.graceUntil &&
-    entitlement.graceUntil > now
-  ) {
-    return 'grace_period';
+    );
+  let matched: (typeof candidates)[number] | null = null;
+  for (const candidate of candidates) {
+    if ((await readLicenseJti(candidate.licenseKey)) !== payload.jti) continue;
+    // An ambiguous registration cannot turn one terminal row into a grant.
+    if (matched) return null;
+    matched = candidate;
   }
+  return matched;
+}
 
-  return entitlement.status;
+/** Authoritative runtime status for exactly the signed grant in use. */
+export async function queryBillingStatusForLicense(
+  db: Database,
+  payload: LicensePayload,
+): Promise<string | null> {
+  if (!payload.jti?.trim() || payload.jti !== payload.jti.trim()) return null;
+  if (await isJtiRevoked(db, payload.jti)) return 'revoked';
+  const license = await queryRegisteredLicense(db, payload);
+  return license?.status ?? null;
 }
 
 /** Result of a support expiry query for perpetual licenses */
@@ -94,39 +60,17 @@ export interface SupportExpiryInfo {
 }
 
 /**
- * Query the support expiry date for a perpetual license by customer ID.
- *
- * Returns the supportExpiresAt from the most recent perpetual license for
- * the given customer. Matches both 'active' and 'support_expired' statuses
- * (the sweep cron may have already marked it). Non-perpetual licenses or
- * revoked/expired licenses return { perpetual: false }.
+ * Read advisory support coverage for the same signed perpetual grant.
+ * Another perpetual license cannot supply its support coverage.
  */
 export async function querySupportExpiry(
   db: Database,
-  customerId: string,
+  payload: LicensePayload,
 ): Promise<SupportExpiryInfo> {
-  const [license] = await db
-    .select({
-      perpetual: licenses.perpetual,
-      supportExpiresAt: licenses.supportExpiresAt,
-      status: licenses.status,
-    })
-    .from(licenses)
-    // Mode-scope the perpetual-support read (completes #1700, same class as above).
-    .where(
-      and(
-        eq(licenses.customerId, customerId),
-        eq(licenses.perpetual, true),
-        eq(licenses.mode, getConfiguredStripeMode()),
-      ),
-    )
-    // Prefer active over support_expired; skip revoked/expired entirely
-    .orderBy(
-      sql`CASE WHEN ${licenses.status} = 'active' THEN 0 WHEN ${licenses.status} = 'support_expired' THEN 1 ELSE 2 END`,
-      desc(licenses.createdAt),
-    )
-    .limit(1);
-
+  if (payload.perpetual !== true || (await isJtiRevoked(db, payload.jti))) {
+    return { supportExpiresAt: null, perpetual: false };
+  }
+  const license = await queryRegisteredLicense(db, payload);
   if (!license || (license.status !== 'active' && license.status !== 'support_expired')) {
     return { supportExpiresAt: null, perpetual: false };
   }

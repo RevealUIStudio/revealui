@@ -13,6 +13,9 @@ interface ProbeProps {
   amount?: number;
   currency?: string;
   fetchImpl?: typeof fetch;
+  enabled?: boolean;
+  tier?: 'pro' | 'max' | 'enterprise';
+  acceptedSupportPolicyRevision?: string;
 }
 
 function Probe(props: ProbeProps) {
@@ -39,6 +42,44 @@ describe('usePaymentIntent', () => {
 
   it('exports a hook function', () => {
     expect(typeof usePaymentIntent).toBe('function');
+  });
+
+  it('defers intent creation until acceptance and clears the secret when disabled', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({ clientSecret: 'pi_accepted' }));
+    const view = await mount(createElement(Probe, { enabled: false, fetchImpl }));
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(view.host.textContent).toContain('secret=;loading=false');
+    await view.rerender(
+      createElement(Probe, {
+        enabled: true,
+        acceptedSupportPolicyRevision: '2026-10-04',
+        fetchImpl,
+      }),
+    );
+    await vi.waitFor(() => expect(view.host.textContent).toContain('secret=pi_accepted'));
+    await view.rerender(createElement(Probe, { enabled: false, fetchImpl }));
+    expect(view.host.textContent).toContain('secret=;loading=false');
+    await view.unmount();
+  });
+
+  it('posts the explicitly accepted revision with the selected tier', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse({ clientSecret: 'pi_accepted' }));
+    const view = await mount(
+      createElement(Probe, {
+        enabled: true,
+        tier: 'max',
+        acceptedSupportPolicyRevision: '2026-10-04',
+        fetchImpl,
+      }),
+    );
+    await vi.waitFor(() => expect(view.host.textContent).toContain('secret=pi_accepted'));
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/api/billing/payment-intent',
+      expect.objectContaining({
+        body: JSON.stringify({ tier: 'max', acceptedSupportPolicyRevision: '2026-10-04' }),
+      }),
+    );
+    await view.unmount();
   });
 
   it('loads a client secret from the default endpoint', async () => {

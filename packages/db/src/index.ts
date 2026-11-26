@@ -68,6 +68,7 @@ export {
 export {
   closeAllPools,
   createClient,
+  createRestClient,
   type Database as DatabaseClient,
   type DatabaseConfig,
   type DatabaseType,
@@ -75,6 +76,8 @@ export {
   getPoolMetrics,
   getRestClient,
   getRestPool,
+  getTransactionConnection,
+  getTransactionContext,
   hasDatabaseConnectionEnv,
   requiresTransactions,
   resetClient,

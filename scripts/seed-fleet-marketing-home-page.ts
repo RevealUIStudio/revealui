@@ -19,7 +19,7 @@
  *   pnpm tsx scripts/seed-fleet-marketing-home-page.ts -- --dry-run
  *
  * Database resolution: see scripts/lib/seed-env.ts (POSTGRES_URL preferred;
- * electric-latency-probe DB refused unless REVEALUI_ALLOW_PROBE_DB=1).
+ * electric-latency-probe DB always refused).
  */
 
 import { randomUUID } from 'node:crypto';

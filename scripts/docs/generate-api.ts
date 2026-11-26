@@ -8,10 +8,11 @@
  * Output: docs/api/rest-api/README.md
  */
 
+import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import app, { openApiConfiguration } from '../../apps/server/src/app.js';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { phaseConcurrency } from '../utils/resource-admission.js';
 import { assertOpenApi30Compatible } from './openapi-30-compat.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -219,16 +220,47 @@ function generateMarkdown(spec: OpenAPISpec): string {
   return lines.join('\n');
 }
 
-const sourceSpec = app.getOpenAPIDocument(openApiConfiguration);
-assertOpenApi30Compatible(sourceSpec);
-const spec = sourceSpec as unknown as OpenAPISpec;
-// The drift gate redirects both artifacts to temporary paths; normal
-// generation refreshes the checked-in snapshot with this same producer.
-writeFileSync(specOutputPath, `${JSON.stringify(sourceSpec, null, 2)}\n`);
+export async function generateApiDocs(): Promise<void> {
+  // Build the supported registry dependency graph before importing its exports.
+  // This also bounds standalone generation and the nested drift-gate build.
+  const cap = phaseConcurrency(2);
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(
+      'pnpm',
+      ['turbo', 'run', 'build', '--filter=server^...', `--concurrency=${cap}`],
+      {
+        cwd: repoRoot,
+        stdio: 'inherit',
+      },
+    );
+    child.once('error', reject);
+    child.once('close', (code, signal) => {
+      if (code === 0) resolve();
+      else reject(new Error(`API dependency graph failed (${signal ?? code}).`));
+    });
+  });
+  const { default: app, openApiConfiguration } = await import('../../apps/server/src/app.js');
+  const sourceSpec = app.getOpenAPIDocument(openApiConfiguration);
+  assertOpenApi30Compatible(sourceSpec);
+  const spec = sourceSpec as unknown as OpenAPISpec;
+  // The drift gate redirects both artifacts to temporary paths; normal
+  // generation refreshes the checked-in snapshot with this same producer.
+  mkdirSync(dirname(specOutputPath), { recursive: true });
+  writeFileSync(specOutputPath, `${JSON.stringify(sourceSpec, null, 2)}\n`);
 
-const markdown = generateMarkdown(spec);
-mkdirSync(dirname(outputPath), { recursive: true });
-writeFileSync(outputPath, markdown);
+  const markdown = generateMarkdown(spec);
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, markdown);
 
-console.log(`✓ Generated: ${outputPath}`);
-console.log(`  ${Object.keys(spec.paths).length} endpoints across ${spec.tags?.length ?? 0} tags`);
+  console.log(`✓ Generated: ${outputPath}`);
+  console.log(
+    `  ${Object.keys(spec.paths).length} endpoints across ${spec.tags?.length ?? 0} tags`,
+  );
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  generateApiDocs().catch((error: unknown) => {
+    console.error('API documentation generation failed:', error);
+    process.exitCode = 1;
+  });
+}

@@ -1,143 +1,35 @@
 #!/bin/bash
-# Re-exec under bash if invoked via sh (Husky runs hooks with `sh -e`)
+# Husky invokes hooks through sh; parse the complete body under Bash.
 if [ -z "$BASH_VERSION" ]; then
-  exec bash -e "$0" "$@"
+  exec /bin/bash -p -e "$0" "$@"
 fi
-
-# ── Execute from memory: the whole body is parsed before any of it runs ──
-# The dirty-save below reverts tracked files with `git checkout -- .` and
-# copies them back after the gate; when .husky/pre-push is itself dirty,
-# both steps rewrite this file on disk while it is executing (peer sessions
-# switching the shared checkout mid-push can do the same). A shell may
-# re-read a running script from disk between commands, so a mid-run rewrite
-# can corrupt execution, including the final gate exit status. Every code
-# path below exits inside this brace group, so the on-disk file is never
-# read again once the group has been parsed.
+case "$-" in
+  *p*) ;;
+  *) exec /bin/bash -p -e "$0" "$@" ;;
+esac
 {
-
-# ── Gate scope: decided by the refs being pushed, not the checked-out branch ──
-# git feeds pre-push one "<local ref> <local sha> <remote ref> <remote sha>"
-# line per pushed ref on stdin. Tag pushes and ref deletions add no commits
-# to any branch, so they never gate; branch pushes gate on the remote branch
-# being pushed, regardless of which branch is checked out.
-ZERO_SHA=0000000000000000000000000000000000000000
-PROTECTED_BRANCH=""
-FEATURE_BRANCH=""
-while read -r _local_ref local_sha remote_ref _remote_sha; do
+set -euo pipefail
+REFS=$(cat)
+BRANCH_UPDATE=0
+while read -r local_ref local_sha remote_ref remote_sha; do
   [ -z "$remote_ref" ] && continue
-  [ "$local_sha" = "$ZERO_SHA" ] && continue # deletion: no local commits to validate
-  case "$remote_ref" in
-    refs/heads/main|refs/heads/test)
-      PROTECTED_BRANCH="${remote_ref#refs/heads/}"
-      ;;
-    refs/heads/*)
-      FEATURE_BRANCH="${remote_ref#refs/heads/}"
-      ;;
-  esac
-done
+  if [[ "$remote_ref" == refs/heads/* ]] && [[ ! "$local_sha" =~ ^0+$ ]]; then
+    BRANCH_UPDATE=1
+  fi
+done <<< "$REFS"
 
-if [ -z "$PROTECTED_BRANCH" ] && [ -z "$FEATURE_BRANCH" ]; then
-  echo ""
-  echo "No branch refs in this push (tags or deletions only); skipping CI gate."
+# Tags and deletions add no branch commits. A managed no-op still consumes
+# its live admission so the owner can confirm that the installed hook ran.
+if [ "$BRANCH_UPDATE" -eq 0 ] && { [ -n "$REFS" ] || ! { : <&3; } 2>/dev/null; }; then
+  echo "No branch updates (tags or deletions only); skipping validation."
   exit 0
 fi
-
-# ── Sentinel file: signals to auto-commit hook that a gate is running ──
-GIT_DIR=$(git rev-parse --git-dir)
-GATE_SENTINEL="$GIT_DIR/gate-in-progress"
-cleanup_sentinel() { rm -f "$GATE_SENTINEL"; }
-trap cleanup_sentinel EXIT
-echo $$ > "$GATE_SENTINEL"
-
-# GAP-418 item 8: a worktree with no node_modules made this hook a no-op
-# (`pnpm` unresolved). Fail closed — CI is still required.
+if [ -n "${NODE_OPTIONS:-}" ] || [ -n "${BASH_ENV:-}" ] || [ -n "${ENV:-}" ]; then
+  echo "Push denied: Node or shell startup injection is unsupported for push admission." >&2
+  exit 1
+fi
 ROOT=$(git rev-parse --show-toplevel)
-if ! command -v pnpm >/dev/null 2>&1; then
-  echo "husky pre-push: pnpm not on PATH — fail closed" >&2
-  exit 1
-fi
-if [ ! -e "$ROOT/node_modules" ]; then
-  echo "husky pre-push: node_modules missing — fail closed (cannot resolve pnpm)" >&2
-  exit 1
-fi
-
-# ── Save dirty files to /tmp (never use git stash — it loses data on pop) ──
-# Skip if the coordinated push script already handled this
-SAVE_DIR=""
-if [ "${REVEALUI_PUSH_COORDINATED:-0}" != "1" ]; then
-  DIRTY=$(git status --porcelain -u 2>/dev/null || true)
-  if [ -n "$DIRTY" ]; then
-    SAVE_DIR="/tmp/revealui-prepush-save-$$"
-    mkdir -p "$SAVE_DIR/files"
-    : > "$SAVE_DIR/manifest"
-
-    echo ""
-    echo "Saving uncommitted files before gate..."
-
-    # Write status to temp file to avoid subshell
-    STATUS_FILE=$(mktemp)
-    git status --porcelain -u > "$STATUS_FILE" 2>/dev/null || true
-
-    while IFS= read -r line; do
-      status="${line:0:2}"
-      filepath="${line:3}"
-      [[ "$status" == " D" || "$status" == "D " ]] && continue
-      [[ "$filepath" == *" -> "* ]] && filepath="${filepath##* -> }"
-      filepath="${filepath%\"}"
-      filepath="${filepath#\"}"
-      if [ -f "$filepath" ]; then
-        dir=$(dirname "$filepath")
-        mkdir -p "$SAVE_DIR/files/$dir"
-        cp -f "$filepath" "$SAVE_DIR/files/$filepath"
-        echo "$filepath" >> "$SAVE_DIR/manifest"
-      fi
-    done < "$STATUS_FILE"
-    rm -f "$STATUS_FILE"
-
-    FILE_COUNT=$(wc -l < "$SAVE_DIR/manifest")
-    echo "  Saved $FILE_COUNT file(s) to $SAVE_DIR"
-
-    # Clean worktree
-    git checkout -- . 2>/dev/null || true
-    while IFS= read -r relpath; do
-      if ! git ls-files --error-unmatch "$relpath" >/dev/null 2>&1; then
-        rm -f "$relpath" 2>/dev/null || true
-      fi
-    done < "$SAVE_DIR/manifest"
-  fi
-else
-  echo ""
-  echo "(Dirty file handling by coordinated push script)"
-fi
-
-# Branch-aware gate strictness, keyed to the pushed refs
-#   main/test: quality + typecheck (build + tests deferred to CI)
-#   feature/*: quality-only (local dev, no CI)
-GATE_EXIT=0
-if [ -n "$PROTECTED_BRANCH" ]; then
-  echo ""
-  echo "Running CI gate for protected branch '$PROTECTED_BRANCH' (quality + typecheck; build + tests run in CI)..."
-  echo ""
-  pnpm gate --no-build --no-test || GATE_EXIT=$?
-else
-  echo ""
-  echo "Running quality checks for '$FEATURE_BRANCH'..."
-  echo ""
-  pnpm gate --phase=1 --changed || GATE_EXIT=$?
-fi
-
-# Restore saved files (plain copy — never conflicts)
-if [ -n "$SAVE_DIR" ] && [ -f "$SAVE_DIR/manifest" ]; then
-  echo ""
-  echo "Restoring saved files..."
-  while IFS= read -r relpath; do
-    dir=$(dirname "$relpath")
-    mkdir -p "$dir"
-    cp -f "$SAVE_DIR/files/$relpath" "$relpath"
-  done < "$SAVE_DIR/manifest"
-  echo "  Restored $(wc -l < "$SAVE_DIR/manifest") file(s)"
-  rm -rf "$SAVE_DIR"
-fi
-
-exit $GATE_EXIT
+NODE=$(command -v node)
+"$NODE" "$ROOT/scripts/git-hooks/push-admission.cjs" verify "$@" <<< "$REFS"
+exit $?
 }

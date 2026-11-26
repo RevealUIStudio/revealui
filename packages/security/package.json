@@ -39,6 +39,16 @@
       "types": "./dist/cookie-consent.d.ts",
       "import": "./dist/cookie-consent.js",
       "default": "./dist/cookie-consent.js"
+    },
+    "./review-receipt": {
+      "types": "./dist/review-receipt.d.ts",
+      "import": "./dist/review-receipt.js",
+      "default": "./dist/review-receipt.js"
+    },
+    "./security-path-classifier": {
+      "types": "./dist/security-path-classifier.d.ts",
+      "import": "./dist/security-path-classifier.js",
+      "default": "./dist/security-path-classifier.js"
     }
   },
   "files": [

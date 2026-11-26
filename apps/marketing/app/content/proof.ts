@@ -16,8 +16,9 @@
 // are deleted in this PR; the rebuild is tracked as a gap with the owner in the
 // loop); the persona checklist (duplicated the "who it's for" framing and
 // led with the same unproven audit-trail claim); and the local-AI beat (its
-// own page covers this). What remains is what a buyer needs to decide whether
-// to trust the repo: it is inspectable, and the numbers are checkable.
+// own page covers this). GAP-355 subsequently shipped configured signed rows
+// and Pro+ root delivery; this July removal rationale is historical. What
+// remains here helps a buyer inspect the repo and check the numbers.
 //
 // 2026-08-09: light allure polish; keep inspectability and metric honesty.
 

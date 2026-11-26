@@ -1,152 +1,74 @@
 /**
- * Transaction Implementation Test - Critical Fix #1 Verification
- *
- * Verifies that withTransaction():
- * 1. Works correctly with pg Pool driver (localhost dev/test)
- * 2. Throws clear error with Neon HTTP driver (no transaction support)
- *
- * This prevents data corruption in multi-step operations.
- *
- * @see docs/PRODUCTION_BLOCKERS.md - Critical Fix #1
+ * Owned clients resolve callback transactions through the maintained transport.
+ * Unowned clients must provide their own callback transaction API before work runs.
+ * Managed Neon transport and lease/savepoint behavior are covered by client tests.
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { withTransaction } from './client/index.js';
-import type { Database } from './client/types.js';
+import { type Database, withTransaction } from './client/index.js';
 
-describe('Critical Fix #1: Transaction Implementation', () => {
-  describe('Neon HTTP Driver (no transaction support)', () => {
-    const neonMockDb = {} as Database;
-
-    it('throws error when withTransaction is called with Neon HTTP client', async () => {
-      await expect(withTransaction(neonMockDb, async () => ({ success: true }))).rejects.toThrow(
-        'Transaction not supported',
-      );
-    });
-
-    it('error message mentions Neon HTTP driver limitation', async () => {
-      try {
-        await withTransaction(neonMockDb, async () => ({ success: true }));
-        expect.fail('Should have thrown');
-      } catch (error) {
-        expect((error as Error).message).toContain('Neon HTTP driver');
-        expect((error as Error).message).toContain('does not support transactions');
-      }
-    });
-
-    it('error message suggests alternatives', async () => {
-      try {
-        await withTransaction(neonMockDb, async () => ({ success: true }));
-        expect.fail('Should have thrown');
-      } catch (error) {
-        expect((error as Error).message).toContain('withSaga()');
-      }
-    });
-
-    it('error message references Neon HTTP driver limitation', async () => {
-      try {
-        await withTransaction(neonMockDb, async () => ({ success: true }));
-        expect.fail('Should have thrown');
-      } catch (error) {
-        expect((error as Error).message).toContain('Neon HTTP driver');
-      }
-    });
-
-    it('prevents payment flows without atomicity', async () => {
-      // Simulate critical payment operation
-      const processPayment = () =>
-        withTransaction(neonMockDb, async () => {
-          // These operations need atomicity:
-          // 1. Create payment record
-          // 2. Update user balance
-          // 3. Send receipt
-          return { paymentId: '123', success: true };
-        });
-
-      // Must throw to prevent data corruption
-      await expect(processPayment()).rejects.toThrow('Transaction not supported');
-    });
-
-    it('prevents account creation without atomicity', async () => {
-      // Simulate account creation
-      const createAccount = () =>
-        withTransaction(neonMockDb, async () => {
-          // These operations need atomicity:
-          // 1. Create user
-          // 2. Create session
-          // 3. Initialize settings
-          return { userId: 'new-user-123' };
-        });
-
-      // Must throw to prevent partial account creation
-      await expect(createAccount()).rejects.toThrow('Transaction not supported');
-    });
+describe('withTransaction injected client admission', () => {
+  it('rejects an unowned client without a transaction API before invoking work', async () => {
+    const db = {} as Database;
+    const work = vi.fn(async () => 'must not run');
+    await expect(withTransaction(db, work)).rejects.toThrow('Transaction not supported');
+    expect(work).not.toHaveBeenCalled();
   });
 
-  describe('pg Pool Driver (transaction support)', () => {
-    it('executes transaction with pg Pool client', async () => {
-      const mockTxFn = vi.fn(async (callback: (tx: unknown) => Promise<string>) => {
-        // Simulate transaction execution
-        return callback({});
-      });
+  it('requires a callable transaction API before invoking work', async () => {
+    const db = { transaction: true } as unknown as Database;
+    const work = vi.fn(async () => 'must not run');
+    await expect(withTransaction(db, work)).rejects.toThrow('no callback transaction API');
+    expect(work).not.toHaveBeenCalled();
+  });
 
-      const pgMockDb = {
-        transaction: mockTxFn,
-      } as unknown as Database;
+  it('directs unsupported injected clients to the maintained factory or a capable client', async () => {
+    const db = {} as Database;
+    await expect(withTransaction(db, async () => 'unreachable')).rejects.toThrow(
+      'Use a client from the maintained database factory or inject a transaction-capable client',
+    );
+  });
 
-      const result = await withTransaction(pgMockDb, async () => {
-        return 'success';
-      });
-
-      expect(result).toBe('success');
-      expect(mockTxFn).toHaveBeenCalledTimes(1);
+  it('returns the injected transaction result and passes its exact context to work', async () => {
+    const context = { isTransaction: true } as unknown as Database;
+    const result = { completed: true };
+    const work = vi.fn(async (tx: Database) => {
+      expect(tx).toBe(context);
+      return result;
     });
+    const transaction = vi.fn(async (callback: (tx: Database) => Promise<typeof result>) =>
+      callback(context),
+    );
+    const db = { transaction } as unknown as Database;
+    expect(await withTransaction(db, work)).toBe(result);
+    expect(transaction).toHaveBeenCalledExactlyOnceWith(work);
+    expect(work).toHaveBeenCalledExactlyOnceWith(context);
+  });
 
-    it('passes transaction context to callback', async () => {
-      let capturedTx: unknown = null;
-
-      const mockTxFn = vi.fn(async (callback: (tx: unknown) => Promise<void>) => {
-        const txContext = { isTransaction: true };
-        return callback(txContext);
-      });
-
-      const pgMockDb = {
-        transaction: mockTxFn,
-      } as unknown as Database;
-
-      await withTransaction(pgMockDb, async (tx) => {
-        capturedTx = tx;
-      });
-
-      expect(capturedTx).toEqual({ isTransaction: true });
+  it('propagates transaction admission failure without running work or retrying', async () => {
+    const failure = new Error('Synthetic transaction admission failure');
+    const transaction = vi.fn(async () => {
+      throw failure;
     });
+    const db = { transaction } as unknown as Database;
+    const work = vi.fn(async () => 'must not run');
+    await expect(withTransaction(db, work)).rejects.toBe(failure);
+    expect(transaction).toHaveBeenCalledTimes(1);
+    expect(work).not.toHaveBeenCalled();
+  });
 
-    it('propagates errors from transaction callback', async () => {
-      const mockTxFn = vi.fn(async (callback: (tx: unknown) => Promise<never>) => {
-        return callback({});
-      });
-
-      const pgMockDb = {
-        transaction: mockTxFn,
-      } as unknown as Database;
-
-      await expect(
-        withTransaction(pgMockDb, async () => {
-          throw new Error('Transaction failed');
-        }),
-      ).rejects.toThrow('Transaction failed');
+  it('propagates callback failure through the injected transaction owner without retrying', async () => {
+    const failure = new Error('Synthetic transaction callback failure');
+    const context = {} as Database;
+    const transaction = vi.fn(async (callback: (tx: Database) => Promise<never>) =>
+      callback(context),
+    );
+    const db = { transaction } as unknown as Database;
+    const work = vi.fn(async () => {
+      throw failure;
     });
+    await expect(withTransaction(db, work)).rejects.toBe(failure);
+    expect(transaction).toHaveBeenCalledTimes(1);
+    expect(work).toHaveBeenCalledExactlyOnceWith(context);
   });
 });
-
-/**
- * Success Criteria:
- * ✅ All 9 tests passing = withTransaction works correctly for both drivers
- * ❌ Any test failing = Critical regression requiring immediate fix
- *
- * What This Verifies:
- * 1. Neon HTTP driver: Throws clear error (prevents silent failures)
- * 2. pg Pool driver: Executes transactions correctly
- * 3. Error messages are developer-friendly and actionable
- * 4. Prevents accidental use in critical operations (payments, auth)
- */

@@ -7,6 +7,7 @@
 
 import {
   allowsUnattendedCheckout,
+  canonicalFounderServiceId,
   isPublicPerpetualCatalogName,
   type LicenseTierId,
   PERPETUAL_TIERS,
@@ -191,7 +192,7 @@ async function fetchStripePrices(): Promise<StripeProductMap | null> {
           renewal: product.metadata?.revealui_renewal ?? '',
         });
       } else if (track === 'service') {
-        const serviceId = product.metadata?.revealui_service_id ?? tier;
+        const serviceId = canonicalFounderServiceId(product.metadata?.revealui_service_id ?? tier);
         map.services.set(serviceId, {
           price: priceStr,
           priceNote: product.metadata?.revealui_price_note,

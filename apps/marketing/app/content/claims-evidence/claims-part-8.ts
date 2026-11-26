@@ -1,3 +1,4 @@
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
 import {
   API_HEALTH,
   BLOG_CHROME,
@@ -15,6 +16,8 @@ import {
   NAV_CONTENT,
   NOT_FOUND_CONTENT,
   OPEN_WEIGHT,
+  PAID_SUPPORT_POLICY_CONTENT,
+  PAID_SUPPORT_POLICY_RENDERED_TEST,
   SELF_HOST,
   STATUS_CONTENT,
   THIS_SITE,
@@ -236,8 +239,13 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'legal/support.ts',
     exportPath: 'SUPPORT_META.notice.body',
-    text: 'The fastest path is to check the documentation first. For account-specific issues, billing, or anything sensitive, email support. We reply within 24 hours during business hours (Mon-Fri, U.S. Central), and within 4 hours any day for a critical issue. Full detail is on our SLA page.',
-    evidence: [LEGAL_SUPPORT_CONTENT, LEGAL_SLA_CONTENT],
+    text: `For account-specific issues, billing, or anything sensitive, email support. ${PAID_SUPPORT_POLICY.summary}. Full detail, including protection for earlier agreements, is on our SLA page.`,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      PAID_SUPPORT_POLICY_RENDERED_TEST,
+      LEGAL_SUPPORT_CONTENT,
+      LEGAL_SLA_CONTENT,
+    ],
   },
   {
     file: 'legal/refund-policy.ts',
@@ -248,8 +256,13 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'legal/sla.ts',
     exportPath: 'SLA_META.notice.body',
-    text: 'We respond within 24 hours during U.S. business hours, and within 4 hours for anything critical. Our license and download infrastructure targets 99% monthly uptime. Live status is always at revealui.com/status.',
-    evidence: [LEGAL_SLA_CONTENT, STATUS_CONTENT],
+    text: `${PAID_SUPPORT_POLICY.summary}. Our license and download infrastructure targets 99% monthly uptime. Live status is at revealui.com/status.`,
+    evidence: [
+      PAID_SUPPORT_POLICY_CONTENT,
+      PAID_SUPPORT_POLICY_RENDERED_TEST,
+      LEGAL_SLA_CONTENT,
+      STATUS_CONTENT,
+    ],
   },
   {
     file: 'legal/subprocessors.ts',

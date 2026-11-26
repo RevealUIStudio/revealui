@@ -143,7 +143,7 @@ export async function createSubscriptionWithIncompleteIntent(
       ...(params.metadata ? { metadata: params.metadata } : {}),
     },
     {
-      idempotencyKey: `incomplete-sub-${params.customerId}-${params.priceId}`,
+      idempotencyKey: `incomplete-sub-${params.customerId}-${params.priceId}${params.metadata?.support_policy_revision ? `-${params.metadata.support_policy_revision}` : ''}`,
     },
   );
   const clientSecret = invoiceClientSecret(subscription.latest_invoice);

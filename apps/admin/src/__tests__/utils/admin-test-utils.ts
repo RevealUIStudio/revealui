@@ -5,7 +5,6 @@
 
 import { randomUUID } from 'node:crypto';
 import type { RevealUIInstance } from '@revealui/core';
-import { getRevealUI } from '@revealui/core';
 
 let revealuiInstance: RevealUIInstance | null = null;
 
@@ -51,7 +50,10 @@ export async function getTestRevealUI(): Promise<RevealUIInstance> {
     // Lazy import: avoid loading all collections (including @revealui/ai) at module
     // level, since clearTestRevealUI() doesn't need config and many tests mock
     // everything at the route level without needing a real RevealUI instance.
-    const { default: config } = await import('@reveal-config');
+    const [{ default: config }, { getRevealUI }] = await Promise.all([
+      import('@reveal-config'),
+      import('@revealui/core'),
+    ]);
     revealuiInstance = await getRevealUI({ config });
     // Trigger database initialization by making a lightweight query
     // This ensures tables are created before any test queries

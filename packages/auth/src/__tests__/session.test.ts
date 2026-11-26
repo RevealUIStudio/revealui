@@ -11,6 +11,7 @@ import { hashToken } from '../utils/token.js';
 // Mock database client
 const mockInsert = vi.fn();
 const mockDeleteWhere = vi.fn();
+const mockDeleteReturning = vi.fn();
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
@@ -46,7 +47,8 @@ describe('Session Management', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mocks to default behavior
-    mockDeleteWhere.mockResolvedValue({ rowCount: 1 });
+    mockDeleteWhere.mockReturnValue({ returning: mockDeleteReturning });
+    mockDeleteReturning.mockResolvedValue([{ tokenHash: 'hashed-token' }]);
     mockInsert.mockReturnValue({
       values: vi.fn(() => ({
         returning: vi.fn(() => [
@@ -180,7 +182,7 @@ describe('Session Management', () => {
     });
 
     it('returns false when no matching session row exists', async () => {
-      mockDeleteWhere.mockResolvedValueOnce({ rowCount: 0 });
+      mockDeleteReturning.mockResolvedValueOnce([]);
 
       const headers = new Headers();
       headers.set('cookie', 'revealui-session=unknown-token');
@@ -189,8 +191,8 @@ describe('Session Management', () => {
       expect(deleted).toBe(false);
     });
 
-    it('returns false when the driver result exposes no rowCount', async () => {
-      mockDeleteWhere.mockResolvedValueOnce({});
+    it('returns false when DELETE RETURNING yields no rows', async () => {
+      mockDeleteReturning.mockResolvedValueOnce([]);
 
       const headers = new Headers();
       headers.set('cookie', 'revealui-session=tok-a');

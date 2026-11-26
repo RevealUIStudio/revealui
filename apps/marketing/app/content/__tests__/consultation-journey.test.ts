@@ -1,4 +1,3 @@
-import { CONSULTATION_PRICE } from '@revealui/contracts/public-catalog';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   CONSULTATION_JOURNEY,
@@ -31,10 +30,10 @@ describe('CONSULTATION_JOURNEY', () => {
     ]);
   });
 
-  it('pins Consultation at $300 with vendor-agnostic session copy', () => {
+  it('points payment at the Studio site and keeps vendor-agnostic session copy', () => {
     const blob = JSON.stringify(CONSULTATION_JOURNEY);
-    expect(CONSULTATION_JOURNEY.steps[1]?.body).toContain(CONSULTATION_PRICE);
-    expect(CONSULTATION_PRICE).toBe('$300');
+    expect(CONSULTATION_JOURNEY.steps[1]?.body).toContain('revealuistudio.com');
+    expect(blob.includes('$300')).toBe(false);
     expect(CONSULTATION_JOURNEY.steps[3]?.body).toContain('video session');
     expect(CONSULTATION_JOURNEY.steps[3]?.body).toContain('consent');
     expect(CONSULTATION_JOURNEY.steps[3]?.body.toLowerCase()).toContain('no account required');

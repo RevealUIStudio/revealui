@@ -36,6 +36,7 @@ function setCriticalRequiredVars(): void {
   process.env.REVEALUI_PUBLIC_SERVER_URL = 'https://admin.example.com';
   process.env.POSTGRES_URL = 'postgresql://user:pass@host:5432/db';
   process.env.REVEALUI_KEK = VALID_KEK;
+  process.env.REVEALUI_DEPLOYMENT_MODE = 'forge';
 }
 
 describe('validateRequiredEnvVars', () => {
@@ -59,7 +60,7 @@ describe('validateRequiredEnvVars', () => {
   describe('unlicensed self-host / marketplace-template deploy (no license private key)', () => {
     it('does not require SESSION_COOKIE_DOMAIN, Stripe price IDs, or Google email vars', () => {
       setCriticalRequiredVars();
-      // No REVEALUI_LICENSE_PRIVATE_KEY, no REVEALUI_DEPLOYMENT_MODE, no
+      // Explicit Forge mode, no REVEALUI_LICENSE_PRIVATE_KEY, no
       // REVEALUI_FLEET_MODE — exactly the env shape of a stranger's fresh
       // Railway deploy (REVEALUI_ALLOW_UNLICENSED_SELF_HOST is a separate,
       // license-enforcement-only flag checked in instrumentation.ts, not here).
@@ -99,6 +100,7 @@ describe('validateRequiredEnvVars', () => {
     it('still requires SESSION_COOKIE_DOMAIN, Stripe price IDs, and Google email vars', () => {
       setCriticalRequiredVars();
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
 
       const result = validateRequiredEnvVars({ environment: 'production' });
 
@@ -118,6 +120,7 @@ describe('validateRequiredEnvVars', () => {
     it('passes when all hosted-only vars are set', () => {
       setCriticalRequiredVars();
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
       process.env.SESSION_COOKIE_DOMAIN = '.example.com';
       process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_pro';
       process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
@@ -146,6 +149,7 @@ describe('validateRequiredEnvVars', () => {
     it('REVEALUI_EMAIL_BOOT_OPTIONAL=1 demotes missing email transport vars to warnings', () => {
       setCriticalRequiredVars();
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
       process.env.SESSION_COOKIE_DOMAIN = '.example.com';
       process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_pro';
       process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
@@ -170,6 +174,7 @@ describe('validateRequiredEnvVars', () => {
     it('does not treat REVEALUI_EMAIL_BOOT_OPTIONAL=true as opt-in', () => {
       setCriticalRequiredVars();
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
       process.env.SESSION_COOKIE_DOMAIN = '.example.com';
       process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID = 'price_pro';
       process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID = 'price_max';
@@ -184,6 +189,7 @@ describe('validateRequiredEnvVars', () => {
     it('keeps other hosted-only vars hard-required when email boot is optional', () => {
       setCriticalRequiredVars();
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
       process.env.REVEALUI_EMAIL_BOOT_OPTIONAL = '1';
 
       const result = validateRequiredEnvVars({ environment: 'production' });
@@ -195,10 +201,22 @@ describe('validateRequiredEnvVars', () => {
     });
   });
 
+  it.each([undefined, '', 'typo'])('rejects unknown production mode %s', (mode) => {
+    setCriticalRequiredVars();
+    if (mode === undefined) delete process.env.REVEALUI_DEPLOYMENT_MODE;
+    else process.env.REVEALUI_DEPLOYMENT_MODE = mode;
+    const result = validateRequiredEnvVars({ environment: 'production' });
+    expect(result.valid).toBe(false);
+    expect(result.missing).toContain(
+      'REVEALUI_DEPLOYMENT_MODE (must be explicitly hosted or forge)',
+    );
+  });
+
   describe('non-production environments', () => {
     it('never requires the hosted-only vars regardless of deployment mode', () => {
       setCriticalRequiredVars();
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'a-private-key';
+      process.env.REVEALUI_DEPLOYMENT_MODE = 'hosted';
 
       const result = validateRequiredEnvVars({ environment: 'development' });
 

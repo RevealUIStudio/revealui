@@ -43,6 +43,9 @@ export const pages = pgTable(
     parentId: text('parent_id').references((): AnyPgColumn => pages.id, { onDelete: 'cascade' }),
     templateId: text('template_id'),
 
+    // Authenticated creator. Legacy/seed rows remain unattributed.
+    createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+
     // Basic info
     title: text('title').notNull(),
     slug: text('slug').notNull(),
@@ -81,6 +84,7 @@ export const pages = pgTable(
   (table) => [
     index('pages_parent_id_idx').on(table.parentId),
     index('pages_site_id_idx').on(table.siteId),
+    index('pages_creator_site_idx').on(table.createdBy, table.siteId),
     index('pages_site_status_idx').on(table.siteId, table.status),
     uniqueIndex('pages_slug_site_id_idx').on(table.slug, table.siteId),
     index('pages_deleted_at_idx').on(table.deletedAt),

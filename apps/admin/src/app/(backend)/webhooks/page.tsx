@@ -192,7 +192,9 @@ function WebhooksDashboard() {
 
       {!(loading || error) && rows.length === 0 && (
         <div className="m-4 p-8 text-center text-muted-foreground">
-          No webhook events processed yet.
+          {filterType
+            ? 'No webhook events match this filter.'
+            : 'No processed webhook events are available.'}
           {filterType ? (
             <span>
               {' '}

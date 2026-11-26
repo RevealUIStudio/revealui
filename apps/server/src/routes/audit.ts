@@ -8,7 +8,7 @@
  *   GET /anchors — list Merkle anchors for the caller's account (tenant)
  *   GET /anchors/:id/proof?seq= — inclusion proof for one signed row
  *
- * Anchors routes require auth (optionalAuth + 401) and Max+ `auditLog`
+ * Anchors routes require auth (optionalAuth + 401) and Pro+ `auditLog`
  * (requireFeature in index.ts). Record emission stays free; receipt download
  * is the gated surface. Verification is never for sale (ADR §2a).
  */
@@ -62,7 +62,7 @@ app.get('/public-key', (c) => {
 });
 
 // =============================================================================
-// Stage 4 S4-4 — anchors (Max+ receipt surface)
+// Stage 4 S4-4 — anchors (Pro+ receipt surface)
 // =============================================================================
 
 function requireUser(c: Context): UserContext {

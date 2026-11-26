@@ -1,4 +1,5 @@
 import { ReceiptCard } from '@revealui/presentation';
+import { useLocation } from '@revealui/router';
 import { Footer } from '../components/Footer';
 import { Hero } from '../components/landing/Hero';
 import { PricingTeaser } from '../components/landing/PricingTeaser';
@@ -9,6 +10,7 @@ import {
   RECEIPT_HERO_LINES,
   RECEIPT_HERO_TITLE,
 } from '../content/receipt';
+import { selectHomeHero } from '../lib/hero-variant';
 import { useAudienceHead } from '../lib/use-audience-head';
 
 /**
@@ -16,7 +18,8 @@ import { useAudienceHead } from '../lib/use-audience-head';
  * (defaults to self-host; Studio is an outbound path), the license teaser, slim footer.
  */
 export function HomePage() {
-  useAudienceHead('technical');
+  const { search } = useLocation();
+  useAudienceHead('technical', selectHomeHero(search));
   return (
     <div className="min-h-screen bg-background">
       <Hero />

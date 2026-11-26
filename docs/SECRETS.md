@@ -100,7 +100,7 @@ _Machine-generated from [`scripts/sync/secret-paths.ts`](../scripts/sync/secret-
 spec, the Vercel/Fly sync manifests, or their sensitivity markers. Change `secret-paths.ts`
 and re-run the renderer._
 
-Production runtime paths synced to Vercel + Fly (112 paths). `sensitive` = the
+Production runtime paths synced to Vercel + Fly (124 paths). `sensitive` = the
 value is never UI/API-revealable after write (credentials + private signing keys).
 
 | Path | Kind | Sensitive | Consumers | Notes |
@@ -110,7 +110,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/admin/api-key` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/admin/email` | public-config | no | vercel:admin |  |
 | `revealui/prod/admin/password` | credential | yes | vercel:admin |  |
-| `revealui/prod/admin/signup-open` | public-config | no | vercel:admin | Boolean string; self-serve signup funnel gate (true/false) |
+| `revealui/prod/admin/signup-open` | public-config | no | vercel:api, vercel:admin | Boolean string; self-serve signup funnel gate (true/false) |
 | `revealui/prod/alert-email` | public-config | no | vercel:api, fly:worker | required@boot; required at prod boot - apps/server refuses to start without it |
 | `revealui/prod/api/bundle-pro` | public-config | no | vercel:api | Pro bundle flag for hosted API |
 | `revealui/prod/audit/signing-private-key` | signing-private | yes | vercel:api, vercel:admin, fly:worker | required@boot; Ed25519 PKCS#8 PEM - signs every audit row; only signing surfaces read it, no fallback |
@@ -124,7 +124,8 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/electric/service-url` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/email/from` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
 | `revealui/prod/email/reply-to` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
-| `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging |  |
+| `revealui/prod/google/private-key` | credential | yes | vercel:agency | Existing Studio Calendar service-account signing authority; API/admin email uses WIF instead. Inventory debt: migrate the Calendar provider primitive to short-lived authority before retiring this legacy key. Registration does not authorize a new workaround or provision a key. |
+| `revealui/prod/google/service-account-email` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging, vercel:agency |  |
 | `revealui/prod/google/wif-provider` | public-config | no | vercel:api, vercel:admin, fly:worker, vercel:api-staging, vercel:admin-staging | required@boot; GAP-211 WIF provider resource name; Vercel OIDC token is injected at runtime, not vaulted |
 | `revealui/prod/kek` | credential | yes | vercel:api, vercel:admin, fly:worker | REVEALUI_KEK - AES-256-GCM envelope key; has a NEXT dual-slot rotation story |
 | `revealui/prod/license/signer-invoke-secret` | credential | yes | app:license-signer, vercel:api | HMAC-SHA256 per-call auth for POST /internal/mint. Consumed by license-signer AND mint-client when REVEALUI_LICENSE_SIGN_VIA_SIGNER is on. No REVEALUI_SECRET fallback. Fly signer sets this Fly-direct (skip). |
@@ -134,7 +135,7 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/passkey/rp-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/passkey/rp-name` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/preview-token-secret` | credential | yes | vercel:api | HMAC-SHA256 key for edit-session preview tokens - short-lived read-only credential |
-| `revealui/prod/public/api-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, vercel:docs | required@boot; api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin on Next apps; VITE_API_URL on marketing). Governed MCP tools fail without it. |
+| `revealui/prod/public/api-url` | public-config | no | vercel:api, vercel:admin, vercel:marketing, vercel:docs, fly:worker | required@boot; api self-origin: REVEALUI_API_URL (+ NEXT_PUBLIC_API_URL twin on Next apps; VITE_API_URL on marketing). Governed MCP tools fail without it. |
 | `revealui/prod/public/server-url` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/r2/access-key-id` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/r2/account-id` | public-config | no | vercel:api, vercel:admin, fly:worker |  |
@@ -167,9 +168,20 @@ value is never UI/API-revealable after write (credentials + private signing keys
 | `revealui/prod/stripe/renewal-enterprise-price-id` | price-id | no | vercel:api |  |
 | `revealui/prod/stripe/renewal-max-price-id` | price-id | no | vercel:api |  |
 | `revealui/prod/stripe/renewal-pro-price-id` | price-id | no | vercel:api |  |
-| `revealui/prod/stripe/secret-key` | credential | yes | vercel:api, vercel:admin | sk_live_* - set Fly-direct (mode-gated), not synced to the worker |
+| `revealui/prod/stripe/secret-key` | credential | yes | vercel:api, vercel:admin, vercel:agency | sk_live_* - set Fly-direct (mode-gated), not synced to the worker |
 | `revealui/prod/stripe/webhook-secret` | credential | yes | vercel:api, vercel:admin, fly:worker |  |
 | `revealui/prod/stripe/webhook-secret-live` | credential | yes | vercel:api, fly:worker |  |
+| `revealui/prod/studio/content-api-url` | public-config | no | vercel:agency | STUDIO_CONTENT_API_URL: exact HTTPS content API origin; redirects cannot receive the operator credential. |
+| `revealui/prod/studio/content-device-token` | credential | yes | vercel:agency | STUDIO_CONTENT_DEVICE_TOKEN: managed canonical operator device credential, validated by existing session/device auth on every API request. Provisioning and deployment require normal reviewed disposition. |
+| `revealui/prod/studio/google-calendar-id` | public-config | no | vercel:agency |  |
+| `revealui/prod/studio/google-impersonate-subject` | public-config | no | vercel:agency |  |
+| `revealui/prod/studio/owner-session` | credential | yes | vercel:admin, vercel:agency | STUDIO_OWNER_SESSION: server-only existing Studio owner gate; never client bundled. Source registration does not provision a live credential. |
+| `revealui/prod/studio/site-url` | public-config | no | vercel:admin | STUDIO_SITE_URL: exact HTTPS Studio origin for authenticated operator fulfillment forwarding. |
+| `revealui/prod/studio/stripe-consultation-price-id` | public-config | no | vercel:agency |  |
+| `revealui/prod/studio/stripe-stage-b-price-id` | public-config | no | vercel:agency |  |
+| `revealui/prod/studio/stripe-webhook-secret` | credential | yes | vercel:agency | Existing Studio Stripe webhook signature verification; separate endpoint from product billing. |
+| `revealui/prod/studio/vercel-project-id` | public-config | no | vercel:api | STUDIO_VERCEL_PROJECT_ID: exact production project for provider-verified Consultation domain bindings. |
+| `revealui/prod/studio/vercel-token` | credential | yes | vercel:api | STUDIO_VERCEL_TOKEN: dedicated Studio domain-provider authority. Scope to the configured project/team during reviewed provisioning; never use the fleet deployment/sync token. |
 | `revealui/staging/admin/api-key` | credential | yes | vercel:api-staging, vercel:admin-staging |  |
 | `revealui/staging/admin/email` | public-config | no | vercel:admin-staging | owner sets by hand - fresh staging bootstrap admin user |
 | `revealui/staging/admin/password` | credential | yes | vercel:admin-staging | owner sets by hand - fresh staging bootstrap admin user |

@@ -63,6 +63,17 @@ export async function createConnection(config: ConnectionConfig): Promise<Databa
     connectionTimeoutMillis: connectionTimeout,
   });
 
+  // pg.Pool.end() can resolve before the clients it removed have finished
+  // closing their sockets. Keep the public pool lifecycle events as the
+  // source of truth so callers that drop a disposable database can wait for
+  // every backend to disappear without inspecting pg-pool internals.
+  const connectedClients = new Set<PoolClient>();
+  pool.on('connect', (client) => {
+    connectedClients.add(client);
+    client.once('end', () => connectedClients.delete(client));
+  });
+  let closePromise: Promise<void> | undefined;
+
   return {
     pool,
     type,
@@ -83,8 +94,16 @@ export async function createConnection(config: ConnectionConfig): Promise<Databa
       };
     },
 
-    async close(): Promise<void> {
-      await pool.end();
+    close(): Promise<void> {
+      closePromise ??= (async () => {
+        await pool.end();
+        await Promise.all(
+          [...connectedClients].map(
+            (client) => new Promise<void>((resolve) => client.once('end', resolve)),
+          ),
+        );
+      })();
+      return closePromise;
     },
   };
 }

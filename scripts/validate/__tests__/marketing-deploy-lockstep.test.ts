@@ -23,7 +23,7 @@ import {
 const ROOT = join(import.meta.dirname, '..', '..', '..');
 
 const HEAD: SurfaceDigest[] = [
-  { path: 'apps/marketing/app/content/pricing.ts', sha256: digestText('proof sprint') },
+  { path: 'apps/marketing/app/content/pricing.ts', sha256: digestText('studio ladder') },
 ];
 
 function greenDeploy(overrides: Partial<MainDeployReceipt> = {}): MainDeployReceipt {

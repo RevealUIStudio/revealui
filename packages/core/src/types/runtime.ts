@@ -258,7 +258,7 @@ export interface DatabaseResult {
 export interface CollectionStorageAdapter {
   findByID?: (
     collection: RevealCollectionConfig,
-    options: { id: string | number },
+    options: { id: string | number; req?: RevealRequest },
   ) => Promise<RevealDocument | null | undefined>;
   find?: (
     collection: RevealCollectionConfig,

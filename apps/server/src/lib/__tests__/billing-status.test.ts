@@ -1,110 +1,121 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { LicensePayload } from '@revealui/core/license';
+import { __resetJtiDenylistForTest, recordJtiRevocations } from '@revealui/db';
+import { licenses } from '@revealui/db/schema';
+import { createTestDb, type TestDb } from '@revealui/db/testing';
+import { sql } from 'drizzle-orm';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-const mockDbSelectChain = {
-  from: vi.fn(),
-  where: vi.fn(),
-  orderBy: vi.fn(),
-  limit: vi.fn(),
-};
+vi.mock('@revealui/config/stripe-mode', () => ({ getConfiguredStripeMode: () => 'live' }));
 
-const mockDb = {
-  select: vi.fn(),
-};
+import { queryBillingStatusForLicense, querySupportExpiry } from '../billing-status.js';
 
-const { mockGetConfiguredStripeMode } = vi.hoisted(() => ({
-  mockGetConfiguredStripeMode: vi.fn<[], 'live' | 'test'>().mockReturnValue('live'),
-}));
+let testDb: TestDb;
+const identity: LicensePayload = { customerId: 'cus_bound', tier: 'pro', jti: 'jti_bound' };
 
-vi.mock('@revealui/config/stripe-mode', () => ({
-  getConfiguredStripeMode: mockGetConfiguredStripeMode,
-}));
+// Synthetic persisted-token metadata; callers pass a signature-verified payload.
+function token(jti: string): string {
+  return `${Buffer.from('{"alg":"EdDSA"}').toString('base64url')}.${Buffer.from(
+    JSON.stringify({ ...identity, jti }),
+  ).toString('base64url')}.fixture`;
+}
 
-vi.mock('@revealui/db/schema', () => ({
-  accountEntitlements: {
-    accountId: 'accountEntitlements.accountId',
-    mode: 'accountEntitlements.mode',
-    status: 'accountEntitlements.status',
-    graceUntil: 'accountEntitlements.graceUntil',
-  },
-  accountSubscriptions: {
-    accountId: 'accountSubscriptions.accountId',
-    stripeCustomerId: 'accountSubscriptions.stripeCustomerId',
-  },
-  licenses: {
-    customerId: 'licenses.customerId',
-    mode: 'licenses.mode',
-    status: 'licenses.status',
-    expiresAt: 'licenses.expiresAt',
-    createdAt: 'licenses.createdAt',
-  },
-}));
+async function register(overrides: Partial<typeof licenses.$inferInsert> = {}) {
+  await testDb.drizzle.insert(licenses).values({
+    id: crypto.randomUUID(),
+    licenseKey: token(identity.jti),
+    customerId: identity.customerId,
+    tier: identity.tier,
+    subscriptionId: crypto.randomUUID(),
+    status: 'active',
+    mode: 'live',
+    perpetual: false,
+    ...overrides,
+  });
+}
 
-vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
-  and: vi.fn((...conds: unknown[]) => `and(${conds.join(',')})`),
-  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
-  sql: Object.assign((_strings: TemplateStringsArray, ..._values: unknown[]) => 'sql-expression', {
-    raw: (_s: string) => 'sql-raw',
-  }),
-}));
+beforeAll(async () => {
+  testDb = await createTestDb();
+});
+afterEach(async () => {
+  __resetJtiDenylistForTest();
+  await testDb.drizzle.execute(sql`DELETE FROM license_jti_revocations`);
+  await testDb.drizzle.execute(sql`DELETE FROM licenses`);
+});
+afterAll(async () => testDb.close());
 
-import { eq } from 'drizzle-orm';
-import { queryBillingStatusByCustomerId } from '../billing-status.js';
-
-describe('queryBillingStatusByCustomerId', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockGetConfiguredStripeMode.mockReturnValue('live');
-    mockDbSelectChain.from.mockReturnValue(mockDbSelectChain);
-    mockDbSelectChain.where.mockReturnValue(mockDbSelectChain);
-    mockDbSelectChain.orderBy.mockReturnValue(mockDbSelectChain);
+describe('registered license authority (real database)', () => {
+  it('returns the status for exactly the signed grant in use', async () => {
+    await register();
+    expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBe('active');
   });
 
-  it('returns the latest legacy license status when present', async () => {
-    mockDbSelectChain.limit.mockResolvedValueOnce([{ status: 'revoked', expiresAt: null }]);
-    mockDb.select.mockReturnValue(mockDbSelectChain);
+  it.each(['revoked', 'expired'])(
+    'cannot substitute another active grant for the customer’s %s token',
+    async (status) => {
+      await register({ licenseKey: token('jti_other'), status: 'active' });
+      await register({ status, expiresAt: new Date(Date.now() + 86_400_000) });
+      expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBe(status);
+    },
+  );
 
-    const status = await queryBillingStatusByCustomerId(mockDb as never, 'cus_legacy');
-
-    expect(status).toBe('revoked');
-    expect(mockDb.select).toHaveBeenCalledTimes(1);
+  it.each([
+    { mode: 'test' },
+    { customerId: 'cus_other' },
+    { tier: 'max' },
+    { perpetual: true },
+    { deletedAt: new Date() },
+    { licenseKey: token('jti_other') },
+  ])('does not authorize a registration outside the signed identity: %o', async (overrides) => {
+    await register(overrides);
+    expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBeNull();
   });
 
-  it('mode-scopes the license read to the configured Stripe mode (completes #1700)', async () => {
-    mockGetConfiguredStripeMode.mockReturnValue('live');
-    mockDbSelectChain.limit.mockResolvedValueOnce([{ status: 'active', expiresAt: null }]);
-    mockDb.select.mockReturnValue(mockDbSelectChain);
-
-    await queryBillingStatusByCustomerId(mockDb as never, 'cus_live');
-
-    // The licenses read must carry an equality on the mode column so a leftover
-    // test-mode row cannot sort ahead of a live-mode revocation for the same
-    // customer (checkLicenseStatus is mounted globally on /api/*).
-    expect(vi.mocked(eq)).toHaveBeenCalledWith('licenses.mode', 'live');
+  it('never substitutes an active test-mode row for a revoked live-mode grant', async () => {
+    await register({ mode: 'test', status: 'active' });
+    await register({ status: 'revoked' });
+    expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBe('revoked');
   });
 
-  it('falls back to hosted account entitlements when no legacy license exists', async () => {
-    mockDbSelectChain.limit
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ accountId: 'acct_hosted' }])
-      .mockResolvedValueOnce([{ status: 'expired', graceUntil: null }]);
-    mockDb.select.mockReturnValue(mockDbSelectChain);
-
-    const status = await queryBillingStatusByCustomerId(mockDb as never, 'cus_hosted');
-
-    expect(status).toBe('expired');
-    expect(mockDb.select).toHaveBeenCalledTimes(3);
-    // The hosted entitlement read is likewise mode-scoped.
-    expect(vi.mocked(eq)).toHaveBeenCalledWith('accountEntitlements.mode', 'live');
+  it('denies a missing or ambiguous registration', async () => {
+    expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBeNull();
+    await register();
+    await register({ status: 'revoked' });
+    expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBeNull();
   });
 
-  it('returns null when neither legacy nor hosted status exists', async () => {
-    mockDbSelectChain.limit.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-    mockDb.select.mockReturnValue(mockDbSelectChain);
+  it('checks the existing token denylist even when its registration is active', async () => {
+    await register();
+    await recordJtiRevocations(testDb.drizzle, [{ jti: identity.jti }]);
+    expect(await queryBillingStatusForLicense(testDb.drizzle, identity)).toBe('revoked');
+  });
 
-    const status = await queryBillingStatusByCustomerId(mockDb as never, 'cus_missing');
+  it('retains perpetual runtime status after support lapse', async () => {
+    await register({ perpetual: true, status: 'support_expired' });
+    expect(
+      await queryBillingStatusForLicense(testDb.drizzle, { ...identity, perpetual: true }),
+    ).toBe('support_expired');
+  });
 
-    expect(status).toBeNull();
-    expect(mockDb.select).toHaveBeenCalledTimes(2);
+  it('binds support coverage to the exact perpetual grant', async () => {
+    const expired = new Date(Date.now() - 86_400_000);
+    await register({
+      licenseKey: token('jti_other'),
+      perpetual: true,
+      supportExpiresAt: new Date(Date.now() + 86_400_000),
+    });
+    await register({ perpetual: true, status: 'support_expired', supportExpiresAt: expired });
+    expect(await querySupportExpiry(testDb.drizzle, { ...identity, perpetual: true })).toEqual({
+      perpetual: true,
+      supportExpiresAt: expired,
+    });
+  });
+
+  it('does not claim support coverage for a revoked perpetual grant', async () => {
+    await register({ perpetual: true });
+    await recordJtiRevocations(testDb.drizzle, [{ jti: identity.jti }]);
+    expect(await querySupportExpiry(testDb.drizzle, { ...identity, perpetual: true })).toEqual({
+      perpetual: false,
+      supportExpiresAt: null,
+    });
   });
 });

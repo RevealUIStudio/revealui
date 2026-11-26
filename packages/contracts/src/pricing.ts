@@ -19,8 +19,11 @@ export {
   type LicenseTierId,
   PAID_TIER_SUPPORT,
   type PerpetualTier,
+  PILOT_PRICE,
+  PILOT_SERVICE_ID,
   PRO_PERPETUAL_PRICE,
   PROOF_SPRINT_PRICE,
+  PROOF_SPRINT_SERVICE_ID,
   type PricingResponse,
   PUBLIC_PERPETUAL_NAMES,
   PUBLIC_PERPETUAL_TIERS,
@@ -37,7 +40,9 @@ import {
   LAUNCH_PACKAGE_PRICE,
   type LicenseTierId,
   type PerpetualTier,
-  PROOF_SPRINT_PRICE,
+  PILOT_PRICE,
+  PILOT_SERVICE_ID,
+  PROOF_SPRINT_SERVICE_ID,
   PUBLIC_PERPETUAL_TIERS,
   type ServiceOffering,
   SUBSCRIPTION_TIERS,
@@ -187,16 +192,17 @@ export const CREDIT_BUNDLES: CreditBundle[] = [
 // =============================================================================
 // Founder-led Professional Services (Track D)
 //
-// Scope: public studio menu on revealuistudio.com — Consultation, Proof Sprint,
-// Launch. Architecture work happens inside Launch; it is not a public SKU.
-// Hour and Architecture Review are not public middle SKUs. Pilot $1,500 is retired.
+// Scope: public studio menu on revealuistudio.com. Consultation, Pilot,
+// Launch. Architecture work happens inside Launch. It is not a public SKU.
+// Hour and Architecture Review are not public middle SKUs. The $1,500 list
+// is retired. Proof Sprint is the retired public name for Pilot.
 // These are NOT the product-catalog offerings. The product /pricing page
 // sells licenses only (Free / Pro / Max / Enterprise + Perpetual Pro).
 // Studio SKUs live on revealuistudio.com and in
 // apps/marketing/app/content/for-operators.ts (not rendered on /pricing).
-// Canonical Consultation / Proof Sprint / Launch prices are owned here;
-// leftover studio surfaces import them rather than re-authoring.
-// Locked 2026-09-22.
+// Canonical Consultation / Pilot / Launch prices are owned here.
+// Leftover studio surfaces import them rather than re-authoring.
+// Locked 2026-09-22. Adapter includes locked 2026-09-26.
 // =============================================================================
 
 export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
@@ -205,7 +211,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     name: 'Consultation',
     price: CONSULTATION_PRICE,
     description:
-      'One-on-one time with the founder who built RevealUI. Path A is the default. Path B if you ask. You leave with a denser living pack and a Stage A share URL. Tax is $0. Scope a Proof Sprint or Launch, or pair on a specific problem.',
+      'One-on-one time with the founder who built RevealUI. Path A is the default. Path B if you ask. You leave with a denser living pack and a Stage A share URL. Tax is $0. Scope a Pilot or Launch, or pair on a specific problem.',
     includes: [
       'Path A by default, Path B if you ask',
       'Denser living pack and a Stage A share URL',
@@ -217,16 +223,17 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ctaHref: BOOK_INTRO_HREF,
   },
   {
-    id: 'proof-sprint',
-    name: 'Proof Sprint',
-    price: PROOF_SPRINT_PRICE,
+    id: PILOT_SERVICE_ID,
+    name: 'Pilot',
+    price: PILOT_PRICE,
     description:
-      'One site and one receipted action you operate. Stage B is included. Credits 100% to Launch if you start Launch within 45 days.',
+      'One site and one receipted action you operate. Includes 1 Adapter. Stage B is included. Credits 100% to Launch if you start Launch within 45 days of Pilot start.',
     includes: [
       'One site',
       'One receipted action you operate',
+      '1 Adapter included',
       'Stage B included',
-      'Full credit toward Launch if you start Launch within 45 days',
+      'Full credit toward Launch if you start Launch within 45 days of Pilot start',
     ],
     deliverable: 'A working site and one receipted action on your accounts',
     cta: 'Book a Consultation',
@@ -240,6 +247,7 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
       'Go from zero to production. Architecture stays inside this engagement, with a runbook and 30 days of async stabilization. I set up your RevealUI instance, configure your content model, deploy, and hand you the keys.',
     includes: [
       'Architecture, schema, and security work inside Launch (not a separate SKU)',
+      'Up to 3 Adapters included',
       'Runbook',
       '30 days of async stabilization',
       'RevealUI project setup and configuration',
@@ -251,6 +259,18 @@ export const FOUNDER_SERVICE_OFFERINGS: ServiceOffering[] = [
     ctaHref: BOOK_INTRO_HREF,
   },
 ];
+
+/** Map a catalog id, including the retired proof-sprint key, onto the current id. */
+export function canonicalFounderServiceId(id: string): string {
+  if (id === PROOF_SPRINT_SERVICE_ID) return PILOT_SERVICE_ID;
+  return id;
+}
+
+/** Resolve a founder service by current id or the retired proof-sprint alias. */
+export function findFounderServiceOffering(id: string): ServiceOffering | undefined {
+  const canonicalId = canonicalFounderServiceId(id);
+  return FOUNDER_SERVICE_OFFERINGS.find((offering) => offering.id === canonicalId);
+}
 
 // Leftover Track C SKUs for admin/server checkout only. Marketing must not
 // import this array — use PUBLIC_PERPETUAL_TIERS.

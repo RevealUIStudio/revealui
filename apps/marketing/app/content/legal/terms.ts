@@ -1,11 +1,12 @@
 // Sourced from: app/routes/TermsPage.tsx (Phase 1, no copy changes). Per the internal marketing-overhaul plan §4.4.
 
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
 import { SITE } from '../site';
 import type { LegalSection } from './privacy';
 
 export const TERMS_META = {
   title: 'Terms of Service',
-  lastUpdated: 'September 30, 2026',
+  lastUpdated: 'October 4, 2026',
   intro:
     'These Terms of Service ("Terms") govern your use of the RevealUI platform provided by REVEALUI STUDIO L.L.C., a Tennessee limited liability company ("we", "us", "our"). By creating an account or using the Service, you agree to these Terms.',
   notice: {
@@ -71,6 +72,10 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
           'A license may be revoked following a refund, chargeback, or terms violation. Revocation removes the associated paid entitlement.',
           'Invalid or missing license key: configure a valid key to establish the paid entitlement.',
         ],
+      },
+      {
+        heading: 'Support response policy',
+        paragraph: `${PAID_SUPPORT_POLICY.summary}. ${PAID_SUPPORT_POLICY.coverage} ${PAID_SUPPORT_POLICY.applicability} See https://revealui.com/support and https://revealui.com/sla for hours, scope, and contact details.`,
       },
     ],
   },

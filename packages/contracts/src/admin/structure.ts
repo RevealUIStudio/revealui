@@ -523,6 +523,15 @@ export const CollectionAdminConfigSchema = z
   .object({
     useAsTitle: z.string().optional(),
     defaultColumns: z.array(z.string()).optional(),
+    scope: z
+      .object({
+        field: z.string().min(1),
+        resource: z.string().min(1),
+        label: z.string().min(1),
+        titleField: z.string().min(1),
+        createFields: z.array(FieldSchema).optional(),
+      })
+      .optional(),
     group: z.string().optional(),
     hidden: z.boolean().optional(),
     description: z.string().optional(),

@@ -368,10 +368,21 @@ describe('POST /checkout — session metadata (license-issuance contract)', () =
 
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     // Top-level metadata is what webhooks.ts resolveTier(session.metadata) reads.
-    expect(sessionArgs.metadata).toEqual({ tier: 'pro', revealui_user_id: 'user-metered' });
+    // Support-policy fields ride along so a completed checkout records the offered revision.
+    expect(sessionArgs.metadata).toEqual({
+      tier: 'pro',
+      revealui_user_id: 'user-metered',
+      support_policy_revision: '2026-10-04',
+      support_policy_acceptance: 'checkout_completion',
+    });
     // subscription_data.metadata must stay in lockstep (durable fallback source).
     const subData = sessionArgs.subscription_data as Record<string, unknown>;
-    expect(subData.metadata).toEqual({ tier: 'pro', revealui_user_id: 'user-metered' });
+    expect(subData.metadata).toEqual({
+      tier: 'pro',
+      revealui_user_id: 'user-metered',
+      support_policy_revision: '2026-10-04',
+      support_policy_acceptance: 'checkout_completion',
+    });
   });
 
   it('top-level metadata.tier reflects the requested tier, not a hardcoded default', async () => {
@@ -386,6 +397,8 @@ describe('POST /checkout — session metadata (license-issuance contract)', () =
     expect(sessionArgs.metadata).toEqual({
       tier: 'max',
       revealui_user_id: 'user-metered',
+      support_policy_revision: '2026-10-04',
+      support_policy_acceptance: 'checkout_completion',
     });
   });
 });

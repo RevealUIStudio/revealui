@@ -92,6 +92,32 @@ afterEach(() => {
 });
 
 describe('entitlementMiddleware', () => {
+  it.each(['revoked', 'expired'])(
+    'removes paid features and limits from %s entitlements even with a future grace date',
+    async (status) => {
+      selectResults = [
+        [{ accountId: 'acct_1', role: 'owner' }],
+        [
+          {
+            tier: 'pro',
+            status,
+            graceUntil: new Date(Date.now() + 86_400_000),
+            features: { ai: true, auditLog: true },
+            limits: { maxSites: 5 },
+          },
+        ],
+      ];
+
+      const res = await createApp({ id: 'user-1' }).request('/test');
+      const body = (await res.json()) as { tier: string; features: object; limits: object };
+
+      expect(res.status).toBe(200);
+      expect(body.tier).toBe('free');
+      expect(body.features).toEqual({});
+      expect(body.limits).toEqual({});
+    },
+  );
+
   it('attaches free entitlements for anonymous requests', async () => {
     const app = createApp();
     const res = await app.request('/test');

@@ -11,30 +11,55 @@
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'forge');
+  mockSiteQueries.getSiteContentActor.mockResolvedValue({
+    id: 'admin-1',
+    role: 'admin',
+    emailVerified: true,
+    _json: { roles: ['super-admin'] },
+  });
+  mockSiteQueries.actorCanManageSite.mockResolvedValue(true);
+  mockPageQueries.getPageById.mockResolvedValue({ id: 'page-1', siteId: 'owned-site' });
+  mockPostQueries.getPostById.mockResolvedValue({ id: 'p1', authorId: 'admin-1' });
+  mockMediaQueries.getMediaById.mockResolvedValue({ id: 'm1', uploadedBy: 'admin-1' });
+});
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 const { mockPostQueries, mockSiteQueries, mockPageQueries, mockMediaQueries } = vi.hoisted(() => ({
   mockPostQueries: {
     createPost: vi.fn(),
     updatePost: vi.fn(),
     deletePost: vi.fn(),
+    getPostById: vi.fn(),
   },
   mockSiteQueries: {
     createSite: vi.fn(),
     updateSite: vi.fn(),
     deleteSite: vi.fn(),
+    getSiteContentActor: vi.fn(),
+    actorCanManageSite: vi.fn(),
+    SiteMutationProtectedError: class extends Error {
+      readonly code = 'SITE_MUTATION_PROTECTED';
+    },
   },
   mockPageQueries: {
     createPage: vi.fn(),
     updatePage: vi.fn(),
     deletePage: vi.fn(),
+    getPageById: vi.fn(),
   },
   mockMediaQueries: {
     createMedia: vi.fn(),
     updateMedia: vi.fn(),
     deleteMedia: vi.fn(),
+    getMediaById: vi.fn(),
   },
 }));
 
@@ -52,6 +77,8 @@ import batchApp from '../content/batch.js';
 interface UserCtx {
   id: string;
   role: string;
+  emailVerified?: boolean;
+  _json?: unknown;
 }
 
 function buildApp(user: UserCtx | null = null) {
@@ -91,6 +118,28 @@ describe('Batch Operations API', () => {
   // ─── POST /batch/create ──────────────────────────────────────────────────
 
   describe('POST /batch/create', () => {
+    it('attributes batch page creation to the authenticated actor rather than item ownership', async () => {
+      const res = await buildApp({ id: 'admin-actor', role: 'admin' }).request('/batch/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collection: 'pages',
+          items: [
+            {
+              siteId: 'selected-site',
+              title: 'Own',
+              slug: 'own',
+              path: '/own',
+            },
+          ],
+        }),
+      });
+      expect(res.status).toBe(200);
+      expect(mockPageQueries.createPage).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ createdBy: 'admin-actor', siteId: 'selected-site' }),
+      );
+    });
     it('creates items as admin', async () => {
       mockPostQueries.createPost.mockResolvedValue({ id: 'p1' });
 
@@ -109,6 +158,18 @@ describe('Batch Operations API', () => {
       expect(body.success).toBe(true);
       expect(body.results).toHaveLength(1);
       expect(body.results[0].status).toBe('created');
+    });
+
+    it('reports duplicate site addresses as failed items rather than invented creations', async () => {
+      mockSiteQueries.createSite.mockResolvedValue(null);
+      const res = await buildApp(adminUser).request('/batch/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: 'sites', items: [{ name: 'Site', slug: 'taken' }] }),
+      });
+      const body = await res.json();
+      expect(body.results[0].status).toBe('error');
+      expect(body.results[0].error).toBe('Operation failed');
     });
 
     it('rejects unauthenticated users', async () => {
@@ -288,5 +349,63 @@ describe('Batch Operations API', () => {
       expect(body.results[0].status).toBe('error');
       expect(body.results[0].error).toContain('Operation failed');
     });
+  });
+});
+
+describe('hosted batch platform authority', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv('REVEALUI_DEPLOYMENT_MODE', 'hosted');
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+  it('rejects a stale elevated session when the canonical actor no longer has authority', async () => {
+    mockSiteQueries.getSiteContentActor.mockResolvedValue(null);
+    const response = await buildApp({
+      ...adminUser,
+      emailVerified: true,
+      _json: { roles: ['super-admin'] },
+    }).request('/batch/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'posts', items: [{ id: 'post', title: 'Forged' }] }),
+    });
+    expect(response.status).toBe(403);
+    expect(mockPostQueries.updatePost).not.toHaveBeenCalled();
+  });
+  it.each(['create', 'update', 'delete'])(
+    'denies raw tenant admin at batch %s before any mutation',
+    async (operation) => {
+      const response = await buildApp(adminUser).request(`/batch/${operation}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collection: 'pages',
+          items:
+            operation === 'delete'
+              ? [{ id: 'foreign' }]
+              : [{ id: 'foreign', title: 'Forged', slug: 'forged', siteId: 'foreign' }],
+        }),
+      });
+      expect(response.status).toBe(403);
+      expect(mockPageQueries.createPage).not.toHaveBeenCalled();
+      expect(mockPageQueries.updatePage).not.toHaveBeenCalled();
+      expect(mockPageQueries.deletePage).not.toHaveBeenCalled();
+    },
+  );
+  it('allows the verified operator through the same maintained gate', async () => {
+    mockPageQueries.deletePage.mockResolvedValue({ id: 'page-1' });
+    const response = await buildApp({
+      ...adminUser,
+      emailVerified: true,
+      _json: { roles: ['super-admin'] },
+    }).request('/batch/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'pages', items: [{ id: 'page-1' }] }),
+    });
+    expect(response.status).toBe(200);
+    expect(mockPageQueries.deletePage).toHaveBeenCalled();
   });
 });

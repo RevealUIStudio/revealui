@@ -35,6 +35,7 @@ export async function update(
 
   const previousDoc = await instance.collections[collection].findByID({
     id: options.id,
+    ...(req ? { req } : {}),
   });
   let doc = await instance.collections[collection].update(options);
 

@@ -5,6 +5,7 @@
  * (posts / pages / all), limit/offset defaults, and response shape.
  */
 
+import { pages, posts, sites } from '@revealui/db/schema';
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -184,10 +185,12 @@ describe('GET /search  -  type=pages', () => {
     }
   });
 
-  it('queries only the pages table (one select call)', async () => {
+  it('queries pages with shared parent site scope and excludes posts', async () => {
     setupChain([]);
     await createApp().request('/search?q=hello&type=pages');
-    expect(mockDb.select).toHaveBeenCalledTimes(2);
+    expect(mockSelectChain.from).toHaveBeenCalledWith(pages);
+    expect(mockSelectChain.from).toHaveBeenCalledWith(sites);
+    expect(mockSelectChain.from).not.toHaveBeenCalledWith(posts);
   });
 });
 
@@ -207,7 +210,9 @@ describe('GET /search  -  type=all', () => {
   it('queries both posts and pages tables', async () => {
     setupDualChain([], []);
     await createApp().request('/search?q=hello&type=all');
-    expect(mockDb.select).toHaveBeenCalledTimes(4);
+    expect(mockSelectChain.from).toHaveBeenCalledWith(posts);
+    expect(mockSelectChain.from).toHaveBeenCalledWith(pages);
+    expect(mockSelectChain.from).toHaveBeenCalledWith(sites);
   });
 
   it('merges results from both tables', async () => {

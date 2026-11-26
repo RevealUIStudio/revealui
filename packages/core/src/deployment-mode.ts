@@ -31,6 +31,23 @@ function isPresent(env: DeploymentModeEnv, key: string, lenient: boolean): boole
   return Boolean(env[key]);
 }
 
+/** Explicit posture for authorization. Unknown configuration grants no Forge authority. */
+export function getExplicitDeploymentMode(
+  env: DeploymentModeEnv = process.env as DeploymentModeEnv,
+): DeploymentMode | null {
+  const raw = (env.REVEALUI_DEPLOYMENT_MODE ?? '').trim().toLowerCase();
+  return raw === 'hosted' || raw === 'forge' ? raw : null;
+}
+
+/** Production startup requires explicit posture before accepting requests. */
+export function requireExplicitDeploymentMode(
+  env: DeploymentModeEnv = process.env as DeploymentModeEnv,
+): DeploymentMode {
+  const mode = getExplicitDeploymentMode(env);
+  if (!mode) throw new Error('REVEALUI_DEPLOYMENT_MODE must be explicitly set to hosted or forge');
+  return mode;
+}
+
 /**
  * Resolve deployment mode from env.
  *
@@ -43,10 +60,8 @@ export function detectDeploymentMode(
   env: DeploymentModeEnv,
   { lenient = false }: DetectDeploymentModeOptions = {},
 ): DeploymentMode {
-  const raw = (env.REVEALUI_DEPLOYMENT_MODE ?? '').trim().toLowerCase();
-  if (raw === 'hosted' || raw === 'forge') {
-    return raw;
-  }
+  const explicit = getExplicitDeploymentMode(env);
+  if (explicit) return explicit;
   return isPresent(env, 'REVEALUI_LICENSE_PRIVATE_KEY', lenient) ? 'hosted' : 'forge';
 }
 

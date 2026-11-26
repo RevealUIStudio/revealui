@@ -8,7 +8,10 @@
  *
  * Isolated in its own file so the module-level once-guard starts fresh.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { warnSpy } = vi.hoisted(() => ({ warnSpy: vi.fn() }));
 
@@ -23,39 +26,21 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 import { createLLMClientFromEnv } from '../client.js';
 
-const PROVIDER_ENV_KEYS = [
-  'LLM_PROVIDER',
-  'INFERENCE_SNAPS_BASE_URL',
-  'GROQ_API_KEY',
-  'OLLAMA_BASE_URL',
-  'ANTHROPIC_API_KEY',
-  'OPENAI_API_KEY',
-] as const;
+// The supported profile storage boundary keeps provider tests independent of host profiles.
+const fixtureDir = mkdtempSync(join(tmpdir(), 'llm-factory-'));
+const fixtureProfilePath = join(fixtureDir, 'inference-profile.json');
+afterAll(() => rmSync(fixtureDir, { recursive: true, force: true }));
 
-const savedEnv: Record<string, string | undefined> = {};
-
+let factoryEnv: NodeJS.ProcessEnv;
 beforeEach(() => {
-  for (const key of PROVIDER_ENV_KEYS) {
-    savedEnv[key] = process.env[key];
-    delete process.env[key];
-  }
-});
-
-afterEach(() => {
-  for (const key of PROVIDER_ENV_KEYS) {
-    if (savedEnv[key] === undefined) {
-      delete process.env[key];
-    } else {
-      process.env[key] = savedEnv[key];
-    }
-  }
+  factoryEnv = {};
 });
 
 describe('zero-config localhost default warning', () => {
   it('emits exactly once across repeated zero-config factory calls', () => {
-    createLLMClientFromEnv();
-    createLLMClientFromEnv();
-    createLLMClientFromEnv();
+    createLLMClientFromEnv({ profilePath: fixtureProfilePath, env: factoryEnv });
+    createLLMClientFromEnv({ profilePath: fixtureProfilePath, env: factoryEnv });
+    createLLMClientFromEnv({ profilePath: fixtureProfilePath, env: factoryEnv });
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0]?.[0]).toContain('inference-snaps');

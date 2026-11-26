@@ -43,7 +43,7 @@ local-gate:
     - "--phase=N — run specific phase"
     - "--skip=security — skip check"
     - "--no-build — skip build"
-    - "--changed — lint/typecheck only changed packages (pre-push fast path)"
+    - "--changed — lint/typecheck only changed packages (pnpm push pre-transport validation)"
     - "--types — include full type-system validation"
   failure-policy:
     hard-fail: "Biome lint, typecheck, build, version policy"

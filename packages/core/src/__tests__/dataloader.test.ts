@@ -276,7 +276,19 @@ describe('getDataLoader', () => {
       };
       await loader.find(args);
 
-      expect(mockRevealUI.find).toHaveBeenCalledWith(args);
+      expect(mockRevealUI.find).toHaveBeenCalledWith({ ...args, req });
+    });
+
+    it('keeps its trusted actor when a child query supplies another request', async () => {
+      const mockRevealUI = createMockRevealUI(async () => emptyPaginatedResult());
+      const req = createMockRequest({ revealui: mockRevealUI as never });
+      req.user = { id: 'owner', email: 'owner@example.test' };
+      const replacement = createMockRequest({
+        user: { id: 'foreign', email: 'foreign@example.test' },
+      });
+      const loader = getDataLoader(req);
+      await loader.find({ collection: 'pages', req: replacement });
+      expect(mockRevealUI.find).toHaveBeenCalledWith({ collection: 'pages', req });
     });
 
     it('caches identical find calls', async () => {

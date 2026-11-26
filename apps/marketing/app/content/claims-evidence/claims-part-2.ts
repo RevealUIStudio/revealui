@@ -1,3 +1,4 @@
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
 import {
   A2A_ROUTES,
   AUDIT_ANCHOR_API,
@@ -22,6 +23,8 @@ import {
   MCP_SERVERS,
   MEMORY,
   OPEN_WEIGHT,
+  PAID_SUPPORT_POLICY_CONTENT,
+  PAID_SUPPORT_POLICY_RENDERED_TEST,
   PERPETUAL,
   PRICING_FALLBACKS,
   PROVIDERS,
@@ -154,9 +157,9 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'pricing.ts',
-    exportPath: 'SUBSCRIPTION_TIERS[1].features[12]',
-    text: 'Email support (24h weekday / 4h if unusable)',
-    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
+    exportPath: 'SUBSCRIPTION_TIERS[1].features[14]',
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -206,8 +209,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[2].features[5]',
-    text: 'Email support (24h weekday / 4h if unusable)',
-    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -236,8 +239,8 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'SUBSCRIPTION_TIERS[3].features[6]',
-    text: 'Email support (24h weekday / 4h if unusable)',
-    evidence: [COMMERCIAL_POLICY, SLA_PAGE],
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
   },
   {
     file: 'pricing.ts',
@@ -254,12 +257,18 @@ export const claimsPart2: readonly ClaimEntry[] = [
   {
     file: 'pricing.ts',
     exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[2]',
-    text: '1 year priority support included',
-    evidence: [COMMERCIAL_POLICY],
+    text: '1 year email support included',
+    evidence: [PERPETUAL, PAID_SUPPORT_POLICY_CONTENT],
   },
   {
     file: 'pricing.ts',
     exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[3]',
+    text: PAID_SUPPORT_POLICY.summary,
+    evidence: [PAID_SUPPORT_POLICY_CONTENT, PAID_SUPPORT_POLICY_RENDERED_TEST, SLA_PAGE],
+  },
+  {
+    file: 'pricing.ts',
+    exportPath: 'PUBLIC_PERPETUAL_TIERS[0].features[4]',
     text: 'All Pro updates released during support period',
     evidence: [COMMERCIAL_POLICY],
   },
@@ -398,23 +407,9 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_HERO.h1Lines[0]',
-    proofGrade: 'outcome',
-    text: 'Consultation, Pilot, or Launch',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_HERO.h1Lines[1]',
-    proofGrade: 'outcome',
-    text: 'on infrastructure you own.',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_HERO.subtitle',
     proofGrade: 'outcome',
-    text: 'Studio books Consultation, Pilot, and Launch on Google Calendar. The runtime stays on infrastructure you own. These SKUs live on revealuistudio.com, not on the product catalog.',
+    text: 'Humans buy Studio work at revealuistudio.com. Book an intro there. This product site sells install and license tiers. Studio does not operate a customer VM.',
     match: 'path',
     evidence: [COMMERCIAL_POLICY, SELF_HOST],
   },
@@ -514,30 +509,16 @@ export const claimsPart2: readonly ClaimEntry[] = [
   },
   {
     file: 'for-operators.ts',
+    exportPath: 'FOR_OPERATORS_PRICING.heading',
+    proofGrade: 'outcome',
+    text: 'Studio work is not listed here.',
+    evidence: [COMMERCIAL_POLICY],
+  },
+  {
+    file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_PRICING.body',
     proofGrade: 'outcome',
-    text: 'Engagements are fixed-bid and start with a discovery call that scopes the work. The numbers below are starting points, not final quotes.',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_PRICING.rungs[0].body',
-    proofGrade: 'outcome',
-    text: 'A scoped session with the founder. Booked on Google Calendar. This SKU lives on revealuistudio.com, not on the product catalog.',
-    evidence: [COMMERCIAL_POLICY],
-  },
-  {
-    file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_PRICING.rungs[1].body',
-    proofGrade: 'outcome',
-    text: 'One site on your domain and one receipted action you operate. You keep it. The domain pack is included. Credits 100% to Launch if you start Launch within 45 days. This SKU lives on revealuistudio.com, not on the product catalog.',
-    evidence: [COMMERCIAL_POLICY, SELF_HOST],
-  },
-  {
-    file: 'for-operators.ts',
-    exportPath: 'FOR_OPERATORS_PRICING.rungs[2].body',
-    proofGrade: 'outcome',
-    text: 'Architecture work happens inside Launch, with a runbook and 30-day async stabilization. Half now, half on delivery. This SKU lives on revealuistudio.com, not on the product catalog.',
+    text: 'Humans buy Studio work at revealuistudio.com. Book an intro there. This product site sells install and license tiers. Studio does not operate a customer VM.',
     evidence: [COMMERCIAL_POLICY],
   },
   {
@@ -653,7 +634,7 @@ export const claimsPart2: readonly ClaimEntry[] = [
     file: 'for-operators.ts',
     exportPath: 'FOR_OPERATORS_FAQ.items[3].answer',
     proofGrade: 'behavior',
-    text: '(interpolated: engagement prices from AGENCY_ENGAGEMENT_LADDER)',
+    text: 'Humans buy Studio work at revealuistudio.com. Book an intro there. This product site sells install and license tiers. Studio does not operate a customer VM.',
     match: 'path',
     evidence: [COMMERCIAL_POLICY],
   },

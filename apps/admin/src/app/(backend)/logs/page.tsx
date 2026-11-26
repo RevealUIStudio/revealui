@@ -226,7 +226,9 @@ function LogsDashboard() {
 
       {!(loading || error) && rows.length === 0 && (
         <div className="m-4 p-8 text-center text-muted-foreground">
-          No log entries recorded yet.
+          {filterApp || filterLevel
+            ? 'No log entries match these filters.'
+            : 'No log entries are available.'}
           {filterApp || filterLevel ? (
             <span>
               {' '}
@@ -235,7 +237,7 @@ function LogsDashboard() {
               </Link>
             </span>
           ) : (
-            ' Warn+ logs will appear here once the apps ship entries in production.'
+            ' This view shows captured warning, error, and fatal entries.'
           )}
         </div>
       )}

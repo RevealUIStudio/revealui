@@ -11,8 +11,8 @@
   },
   "cash_ladder": {
     "consultation": { "label": "Consultation", "price_usd": 300 },
-    "pilot": { "label": "Pilot", "price_usd": 1500 },
-    "launch": { "label": "Launch", "price_usd": 7500 }
+    "pilot": { "label": "Pilot", "price_usd": 3997 },
+    "launch": { "label": "Launch", "price_usd": 14500 }
   },
   "snapshot_before_checkpoint": "required",
   "overclaim": {

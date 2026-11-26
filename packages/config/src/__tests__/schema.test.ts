@@ -305,3 +305,26 @@ describe('envSchema  -  wizard env vars', () => {
     });
   });
 });
+
+describe('production explicit posture schema', () => {
+  it('rejects missing production mode and accepts an explicit valid mode', () => {
+    const production = makeValidEnv({
+      REVEALUI_PUBLIC_SERVER_URL: 'https://app.example.com',
+      NEXT_PUBLIC_SERVER_URL: 'https://app.example.com',
+    });
+    expect(validateEnvironment(production, 'production').errors).toContain(
+      'REVEALUI_DEPLOYMENT_MODE must be explicitly hosted or forge in production',
+    );
+    expect(
+      validateEnvironment(
+        envSchema.parse({ ...production, REVEALUI_DEPLOYMENT_MODE: 'forge' }),
+        'production',
+      ).valid,
+    ).toBe(true);
+    expect(
+      envSchema.parse({ ...production, REVEALUI_DEPLOYMENT_MODE: ' HOSTED ' })
+        .REVEALUI_DEPLOYMENT_MODE,
+    ).toBe('hosted');
+    expect(() => envSchema.parse({ ...production, REVEALUI_DEPLOYMENT_MODE: 'typo' })).toThrow();
+  });
+});

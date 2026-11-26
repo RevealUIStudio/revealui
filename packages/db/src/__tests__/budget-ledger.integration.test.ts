@@ -7,6 +7,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
+import { getTableConfig } from 'drizzle-orm/pg-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { type AuditRowSignable, DrizzleAuditStore } from '../audit-store.js';
 import { recordBudgetSpend, reserveBudget, resolveBudgetIncident } from '../budgets/reserve.js';
@@ -30,6 +31,14 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await testDb.close();
+});
+
+it('models the primary key name established by the maintained budget migration', async () => {
+  const primaryKey = getTableConfig(budgetLedgers).primaryKeys[0];
+  const result = await testDb.pglite.query<{ conname: string }>(
+    "SELECT conname FROM pg_constraint WHERE conrelid = 'budget_ledgers'::regclass AND contype = 'p'",
+  );
+  expect(result.rows).toEqual([{ conname: primaryKey?.getName() }]);
 });
 
 function causeMessage(err: unknown): string {

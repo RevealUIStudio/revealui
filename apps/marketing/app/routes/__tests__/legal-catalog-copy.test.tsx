@@ -5,11 +5,46 @@ import { SITE } from '../../content/site';
 import { ContactPage } from '../ContactPage';
 import { RefundPolicyPage } from '../RefundPolicyPage';
 import { SecurityPage } from '../SecurityPage';
+import { SlaPage } from '../SlaPage';
 import { SupportPage } from '../SupportPage';
+import { TermsPage } from '../TermsPage';
 
 afterEach(cleanup);
 
 describe('refund and support leftover catalog copy', () => {
+  it.each([
+    ['support', SupportPage],
+    ['SLA', SlaPage],
+    ['terms', TermsPage],
+  ])(
+    'discloses prospective support targets and protects earlier agreements on %s',
+    (_name, Page) => {
+      const { container } = render(<Page />);
+      const text = container.textContent ?? '';
+      expect(text).toContain('2026-10-04');
+      expect(text).toContain('new purchases made after it is published');
+      expect(text).toContain(
+        'Agreements accepted before publication retain their stated support commitments',
+      );
+      expect(text).toContain('not guaranteed response times or guaranteed coverage');
+      expect(text).toContain('no backup support staff or on-call rotation');
+      expect(text).toContain('24');
+      expect(text).toContain('4');
+      expect(text).not.toContain('48 business hours');
+    },
+  );
+
+  it('keeps the infrastructure and maintenance commitments separate from best-effort support', () => {
+    const { container } = render(<SlaPage />);
+    const text = container.textContent ?? '';
+    expect(text).toContain('99% uptime, measured monthly');
+    expect(text).toContain('at least 48 hours of advance notice');
+    expect(text).toContain('within 24 hours for requests received on weekdays');
+    expect(text).toContain('9am to 5pm U.S. Central Time');
+    expect(text).not.toContain('actual uptime is typically');
+    expect(text).not.toContain('We often beat');
+  });
+
   it('keeps 14-day license refunds and does not list Starter Kit or named invoice SKUs', () => {
     const { container } = render(<RefundPolicyPage />);
     expect(screen.getByRole('heading', { level: 1, name: 'Refund Policy' })).toBeInTheDocument();

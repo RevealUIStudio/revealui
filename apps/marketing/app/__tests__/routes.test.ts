@@ -1,78 +1,154 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { Router } from '@revealui/router';
-import { describe, expect, it } from 'vitest';
-import { ContactPage } from '../routes/ContactPage';
-import { CookiesPage } from '../routes/CookiesPage';
-import { HomePage } from '../routes/HomePage';
+import { Router, RouterProvider } from '@revealui/router';
+import { cleanup, render, screen } from '@testing-library/react';
+import { createElement } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { App } from '../App';
 import { NotFoundPage } from '../routes/NotFoundPage';
-import { PricingPage } from '../routes/PricingPage';
-import { PrivacyPage } from '../routes/PrivacyPage';
-import { RefundPolicyPage } from '../routes/RefundPolicyPage';
-import { StatusPage } from '../routes/StatusPage';
-import { SupportPage } from '../routes/SupportPage';
-import { TemplatesPage } from '../routes/TemplatesPage';
-import { TermsPage } from '../routes/TermsPage';
+
+// Keep route registration and destination calculation real without leaving jsdom.
+vi.mock('../routes/MovedPage', () => ({
+  MovedPage: ({ to }: { to: string }) => createElement('a', { href: to }, 'Moved destination'),
+}));
+
+afterEach(cleanup);
+
+function appRouter(): Router {
+  window.history.replaceState({}, '', '/');
+  const router = new Router();
+  const app = render(createElement(RouterProvider, { router, children: createElement(App) }));
+  app.unmount();
+  return router;
+}
 
 interface VercelRedirect {
   source: string;
   destination: string;
   permanent?: boolean;
+  has?: Array<{ type: string; value: string }>;
 }
 
 function readRedirects(): VercelRedirect[] {
   const vercelConfig = JSON.parse(
     readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
   ) as { redirects?: VercelRedirect[] };
-  return vercelConfig.redirects ?? [];
+  return (vercelConfig.redirects ?? []).filter(
+    (entry) => !(entry.has ?? []).some((condition) => condition.type === 'host'),
+  );
 }
 
 describe('marketing route registry', () => {
-  it('matches every advertised path to a component', () => {
-    const router = new Router();
-    router.registerRoutes([
-      { path: '/', component: HomePage },
-      { path: '/pricing', component: PricingPage },
-      { path: '/contact', component: ContactPage },
-      { path: '/privacy', component: PrivacyPage },
-      { path: '/cookies', component: CookiesPage },
-      { path: '/terms', component: TermsPage },
-      { path: '/support', component: SupportPage },
-      { path: '/refund-policy', component: RefundPolicyPage },
-      { path: '/status', component: StatusPage },
-      { path: '/templates', component: TemplatesPage },
-      { path: '/*notfound', component: NotFoundPage },
-    ]);
-
-    const advertisedPaths = [
-      '/',
-      '/pricing',
-      '/contact',
-      '/privacy',
-      '/cookies',
-      '/terms',
-      '/support',
-      '/refund-policy',
-      '/status',
-      '/templates',
-    ];
-
-    for (const advertised of advertisedPaths) {
-      const match = router.match(advertised);
-      expect(match, `path ${advertised} did not match any route`).not.toBeNull();
+  it('discovers every active page through the sitemap and matches the actual App registry', () => {
+    const router = appRouter();
+    const redirects = readRedirects();
+    const sitemap = readFileSync(path.resolve(process.cwd(), 'public/sitemap.xml'), 'utf8');
+    const sitemapXml = new DOMParser().parseFromString(sitemap, 'application/xml');
+    const sitemapPaths = Array.from(
+      sitemapXml.getElementsByTagName('loc'),
+      (node) => new URL(node.textContent ?? '').pathname,
+    );
+    const activeRoutes = router
+      .getRoutes()
+      .filter(
+        (route) =>
+          route.meta?.description && !redirects.some((entry) => entry.source === route.path),
+      );
+    expect(sitemapPaths).toContain('/');
+    for (const route of activeRoutes) {
+      expect(sitemapPaths, `${route.path} is active but missing from discovery`).toContain(
+        route.path,
+      );
+    }
+    for (const advertised of sitemapPaths) {
+      expect(router.match(advertised)?.route.component).toBeDefined();
+      expect(router.match(advertised)?.route.component).not.toBe(NotFoundPage);
+      expect(redirects.find((entry) => entry.source === advertised)).toBeUndefined();
     }
   });
 
-  it('catches unknown paths via the wildcard 404 route', () => {
-    const router = new Router();
-    router.registerRoutes([
-      { path: '/', component: HomePage },
-      { path: '/*notfound', component: NotFoundPage },
-    ]);
+  it('keeps every registered moved page aligned with its hosting redirect', () => {
+    const router = appRouter();
+    const redirects = readRedirects();
+    for (const route of router.getRoutes()) {
+      if (route.meta?.title !== 'Moved | RevealUI' && route.path !== '/upgrade') continue;
+      const source = route.path === '/blog/:slug' ? '/blog/:path*' : route.path;
+      const redirect = redirects.find((entry) => entry.source === source);
+      // Legal procurement notices intentionally remain on this site.
+      if (route.path.startsWith('/legal/')) continue;
+      expect(redirect, `missing hosting redirect for ${route.path}`).toBeDefined();
+      if (!route.component) throw new Error(`missing moved component for ${route.path}`);
+      const page = render(
+        createElement(RouterProvider, { router, children: createElement(route.component) }),
+      );
+      expect(screen.getByRole('link', { name: 'Moved destination' }).getAttribute('href')).toBe(
+        route.path === '/blog/:slug' ? 'https://revealuistudio.com/blog' : redirect?.destination,
+      );
+      page.unmount();
+    }
+  });
 
-    const match = router.match('/nonexistent-path');
-    expect(match).not.toBeNull();
-    expect(match?.route.component).toBe(NotFoundPage);
+  it('keeps machine-readable local page links on active registered pages', () => {
+    const router = appRouter();
+    const llms = readFileSync(path.resolve(process.cwd(), 'public/llms.txt'), 'utf8');
+    const links = llms
+      .split('](')
+      .slice(1)
+      .map((part) => part.split(')')[0] ?? '')
+      .filter((href) => href.startsWith('https://revealui.com/'))
+      .map((href) => new URL(href).pathname);
+    expect(links).toContain('/claims');
+    expect(links).toContain('/templates');
+    for (const link of links) {
+      const match = router.match(link);
+      expect(match?.route.component, `undiscovered page ${link}`).toBeDefined();
+      expect(match?.route.component).not.toBe(NotFoundPage);
+      expect(readRedirects().find((entry) => entry.source === link)).toBeUndefined();
+    }
+  });
+
+  it('replaces homepage social-card metadata on an actual subpage', () => {
+    const previousHead = document.head.innerHTML;
+    try {
+      document.head.innerHTML = '';
+      for (const property of ['og:title', 'og:description', 'og:image', 'og:image:alt', 'og:url']) {
+        const meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        meta.content = 'Previous home preview';
+        document.head.appendChild(meta);
+      }
+      for (const name of ['description', 'twitter:title', 'twitter:description', 'twitter:image']) {
+        const meta = document.createElement('meta');
+        meta.name = name;
+        meta.content = 'Previous home preview';
+        document.head.appendChild(meta);
+      }
+      const canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      canonical.href = 'https://revealui.com';
+      document.head.appendChild(canonical);
+      window.history.replaceState({}, '', '/contact');
+      const router = new Router();
+      render(createElement(RouterProvider, { router, children: createElement(App) }));
+      const route = router.match('/contact')?.route;
+      expect(document.title).toBe('Contact | RevealUI');
+      expect(canonical.href).toBe('https://revealui.com/contact');
+      const image = document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
+      expect(new URL(image ?? '').searchParams.get('title')).toBe(route?.meta?.title);
+      expect(new URL(image ?? '').searchParams.get('description')).toBe(route?.meta?.description);
+      expect(
+        document.querySelector<HTMLMetaElement>('meta[property="og:image:alt"]')?.content,
+      ).toBe(document.title);
+      expect(document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]')?.content).toBe(
+        image,
+      );
+    } finally {
+      document.head.innerHTML = previousHead;
+    }
+  });
+
+  it('catches unknown paths through the actual App wildcard route', () => {
+    expect(appRouter().match('/nonexistent-path')?.route.component).toBe(NotFoundPage);
   });
 
   it('redirects the legacy /coming-soon path to /roadmap', () => {

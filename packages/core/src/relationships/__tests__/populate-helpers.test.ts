@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { afterRead } from '../../fields/hooks/afterRead/index.js';
 import type { PopulateRelationshipField } from '../populate-core.js';
 import {
   extractRelationInfo,
   shouldPopulateRelationship,
   updateDocumentWithPopulatedValue,
 } from '../populate-core.js';
+import { applyNestedPopulation } from '../populate-helpers.js';
 
 // ---------------------------------------------------------------------------
 // Tests  -  extractRelationInfo
@@ -349,5 +351,30 @@ describe('updateDocumentWithPopulatedValue', () => {
       const refs = dataReference.refs as Record<string, unknown>;
       expect(refs.value).toEqual({ id: 'page-1', title: 'Page' });
     });
+  });
+});
+
+vi.mock('../../fields/hooks/afterRead/index.js', () => ({
+  afterRead: vi.fn(async ({ doc }: { doc: unknown }) => doc),
+}));
+
+describe('nested population request context', () => {
+  it('retains the actor request and trusted context across nested reads', async () => {
+    const context = { requestId: 'owned-request' };
+    const req = { user: { id: 'owner', email: 'owner@example.test' }, context };
+    await applyNestedPopulation({
+      doc: { id: 'related-page' },
+      collectionConfig: { slug: 'pages', fields: [] },
+      currentDepth: 0,
+      depth: 1,
+      draft: false,
+      fallbackLocale: 'en',
+      locale: 'en',
+      overrideAccess: false,
+      populateArg: undefined,
+      showHiddenFields: false,
+      req,
+    });
+    expect(afterRead).toHaveBeenCalledWith(expect.objectContaining({ req, context }));
   });
 });

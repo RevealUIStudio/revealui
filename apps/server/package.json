@@ -20,9 +20,10 @@
     "@revealui/paywall": "workspace:*",
     "@revealui/secrets": "workspace:*",
     "@revealui/security": "workspace:*",
+    "@revealui/utils": "workspace:*",
     "@sentry/node": "^10.63.0",
     "drizzle-orm": "catalog:",
-    "hono": "4.13.8",
+    "hono": "4.13.11",
     "jose": "catalog:",
     "lib0": "^0.2.117",
     "pg": "catalog:",
@@ -34,13 +35,13 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@revealui/dev": "workspace:*",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:",
-    "@revealui/dev": "workspace:*"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

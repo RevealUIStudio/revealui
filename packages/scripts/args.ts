@@ -265,7 +265,13 @@ function parseValue(
 ): string | number | boolean {
   if (argDef.type === 'boolean') {
     if (inlineValue !== undefined) {
-      return inlineValue.toLowerCase() === 'true' || inlineValue === '1';
+      const value = inlineValue.toLowerCase();
+      if (value === 'true' || value === '1') return true;
+      if (value === 'false' || value === '0') return false;
+      throw new ScriptError(
+        `Argument --${argDef.name} requires true, false, 1 or 0`,
+        ErrorCode.VALIDATION_ERROR,
+      );
     }
     return true;
   }

@@ -9,7 +9,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-const mockFindFirst = vi.fn();
+const mockSelectLimit = vi.fn();
+const mockSelectWhere = vi.fn(() => ({ limit: mockSelectLimit }));
+const mockSelectFrom = vi.fn(() => ({ where: mockSelectWhere }));
+const mockSelect = vi.fn(() => ({ from: mockSelectFrom }));
 const mockInsertValues = vi.fn();
 const mockOnConflictDoUpdate = vi.fn();
 const mockDeleteWhere = vi.fn();
@@ -26,9 +29,7 @@ const mockDelete = vi.fn().mockReturnValue({
 });
 
 const mockDb = {
-  query: {
-    rateLimits: { findFirst: mockFindFirst },
-  },
+  select: mockSelect,
   insert: mockInsert,
   delete: mockDelete,
   transaction: mockTransaction,
@@ -39,7 +40,7 @@ vi.mock('@revealui/config', () => ({
 }));
 
 vi.mock('@revealui/db/client', () => ({
-  createClient: vi.fn(() => mockDb),
+  createRestClient: vi.fn(() => mockDb),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -63,22 +64,19 @@ describe('DatabaseStorage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSelectLimit.mockResolvedValue([]);
     storage = new DatabaseStorage('postgres://test:test@localhost/test');
   });
 
   describe('get', () => {
     it('returns value when key exists and not expired', async () => {
-      mockFindFirst.mockResolvedValue({
-        key: 'k',
-        value: '42',
-        resetAt: new Date(Date.now() + 60000),
-      });
+      mockSelectLimit.mockResolvedValue([{ value: '42' }]);
       const result = await storage.get('k');
       expect(result).toBe('42');
     });
 
     it('returns null when key does not exist', async () => {
-      mockFindFirst.mockResolvedValue(null);
+      mockSelectLimit.mockResolvedValue([]);
       const result = await storage.get('missing');
       expect(result).toBeNull();
     });
@@ -120,12 +118,12 @@ describe('DatabaseStorage', () => {
 
   describe('exists', () => {
     it('returns true when key exists', async () => {
-      mockFindFirst.mockResolvedValue({ value: 'x' });
+      mockSelectLimit.mockResolvedValue([{ value: 'x' }]);
       expect(await storage.exists('k')).toBe(true);
     });
 
     it('returns false when key does not exist', async () => {
-      mockFindFirst.mockResolvedValue(null);
+      mockSelectLimit.mockResolvedValue([]);
       expect(await storage.exists('missing')).toBe(false);
     });
   });
@@ -133,12 +131,13 @@ describe('DatabaseStorage', () => {
   describe('incr', () => {
     it('returns 1 for new key', async () => {
       // Transaction executes callback with tx that returns null (no existing entry)
+      mockSelectLimit.mockResolvedValue([]);
       mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
         const txOnConflict = vi.fn().mockResolvedValue(undefined);
         const txValues = vi.fn().mockReturnValue({ onConflictDoUpdate: txOnConflict });
         const txInsert = vi.fn().mockReturnValue({ values: txValues });
         const tx = {
-          query: { rateLimits: { findFirst: vi.fn().mockResolvedValue(null) } },
+          select: mockSelect,
           insert: txInsert,
         };
         await cb(tx);
@@ -149,18 +148,13 @@ describe('DatabaseStorage', () => {
     });
 
     it('increments existing value', async () => {
+      mockSelectLimit.mockResolvedValue([{ value: '5' }]);
       mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
         const txOnConflict = vi.fn().mockResolvedValue(undefined);
         const txValues = vi.fn().mockReturnValue({ onConflictDoUpdate: txOnConflict });
         const txInsert = vi.fn().mockReturnValue({ values: txValues });
         const tx = {
-          query: {
-            rateLimits: {
-              findFirst: vi
-                .fn()
-                .mockResolvedValue({ value: '5', resetAt: new Date(Date.now() + 60000) }),
-            },
-          },
+          select: mockSelect,
           insert: txInsert,
         };
         await cb(tx);
@@ -173,6 +167,7 @@ describe('DatabaseStorage', () => {
 
   describe('atomicUpdate  -  transaction path', () => {
     it('executes updater within transaction', async () => {
+      mockSelectLimit.mockResolvedValue([]);
       const updater = vi.fn().mockReturnValue({ value: 'new', ttlSeconds: 60 });
 
       mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
@@ -180,7 +175,7 @@ describe('DatabaseStorage', () => {
         const txValues = vi.fn().mockReturnValue({ onConflictDoUpdate: txOnConflict });
         const txInsert = vi.fn().mockReturnValue({ values: txValues });
         const tx = {
-          query: { rateLimits: { findFirst: vi.fn().mockResolvedValue(null) } },
+          select: mockSelect,
           insert: txInsert,
         };
         await cb(tx);
@@ -192,6 +187,7 @@ describe('DatabaseStorage', () => {
     });
 
     it('passes existing value to updater', async () => {
+      mockSelectLimit.mockResolvedValue([{ value: 'old' }]);
       const updater = vi.fn().mockReturnValue({ value: 'updated', ttlSeconds: 60 });
 
       mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
@@ -199,13 +195,7 @@ describe('DatabaseStorage', () => {
         const txValues = vi.fn().mockReturnValue({ onConflictDoUpdate: txOnConflict });
         const txInsert = vi.fn().mockReturnValue({ values: txValues });
         const tx = {
-          query: {
-            rateLimits: {
-              findFirst: vi
-                .fn()
-                .mockResolvedValue({ value: 'old', resetAt: new Date(Date.now() + 60000) }),
-            },
-          },
+          select: mockSelect,
           insert: txInsert,
         };
         await cb(tx);
@@ -216,6 +206,7 @@ describe('DatabaseStorage', () => {
     });
 
     it('treats expired entries as null', async () => {
+      mockSelectLimit.mockResolvedValue([]);
       const updater = vi.fn().mockReturnValue({ value: 'fresh', ttlSeconds: 60 });
 
       mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
@@ -223,11 +214,7 @@ describe('DatabaseStorage', () => {
         const txValues = vi.fn().mockReturnValue({ onConflictDoUpdate: txOnConflict });
         const txInsert = vi.fn().mockReturnValue({ values: txValues });
         const tx = {
-          query: {
-            rateLimits: {
-              findFirst: vi.fn().mockResolvedValue(null), // expired entries filtered by DB
-            },
-          },
+          select: mockSelect,
           insert: txInsert,
         };
         await cb(tx);
@@ -241,21 +228,21 @@ describe('DatabaseStorage', () => {
   describe('atomicUpdate  -  transaction fallback', () => {
     it('falls back to get+set when transaction is not supported', async () => {
       mockTransaction.mockRejectedValue(new Error('transaction is not supported'));
-      mockFindFirst.mockResolvedValue(null);
+      mockSelectLimit.mockResolvedValue([]);
       mockOnConflictDoUpdate.mockResolvedValue(undefined);
 
       const updater = vi.fn().mockReturnValue({ value: 'fallback', ttlSeconds: 60 });
 
       await storage.atomicUpdate('k', updater);
       expect(updater).toHaveBeenCalledWith(null);
-      // Should have called get (via findFirst) and set (via insert)
-      expect(mockFindFirst).toHaveBeenCalled();
+      // Should have called get (via select) and set (via insert)
+      expect(mockSelectLimit).toHaveBeenCalled();
       expect(mockInsert).toHaveBeenCalled();
     });
 
     it('falls back on "Transaction" (capitalized) error', async () => {
       mockTransaction.mockRejectedValue(new Error('Transaction not available in serverless'));
-      mockFindFirst.mockResolvedValue({ value: '3' });
+      mockSelectLimit.mockResolvedValue([{ value: '3' }]);
       mockOnConflictDoUpdate.mockResolvedValue(undefined);
 
       const updater = vi.fn().mockReturnValue({ value: '4', ttlSeconds: 60 });
@@ -310,7 +297,7 @@ describe('DatabaseStorage', () => {
         });
         const txInsert = vi.fn().mockReturnValue({ values: txValues });
         const tx = {
-          query: { rateLimits: { findFirst: vi.fn().mockResolvedValue(null) } },
+          select: mockSelect,
           insert: txInsert,
         };
         await cb(tx);

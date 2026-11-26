@@ -1,0 +1,101 @@
+# Compares the pull request's required result jobs and classifier to the
+# trusted scripts. pull_request_target runs this file from the commit that
+# supplied it, so a pull request cannot rewrite the comparison. The job
+# checks out github.workflow_sha, that same commit, so the scripts match the
+# workflow when the pull request's recorded base is stale. Head file text is
+# read through the API and is not executed.
+#
+# A locked path that differs from base clears only when the pull request
+# carries the review-controller receipt the security review gate already
+# verifies for this exact head. Comment signatures are not that receipt.
+#
+# The check name is "Trusted gate judge".
+
+name: Trusted gate judge
+
+on:
+  pull_request_target:
+    branches: [test, main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+
+concurrency:
+  group: trusted-gate-judge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  trusted-gate-judge:
+    name: Trusted gate judge
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Log judge provenance
+        run: |
+          set -euo pipefail
+          echo "event_name=${{ github.event_name }}"
+          echo "head_sha=${{ github.event.pull_request.head.sha }}"
+          echo "workflow_sha=${{ github.workflow_sha }}"
+          echo "pr_number=${{ github.event.pull_request.number }}"
+          echo "workflow_ref=${{ github.workflow_ref }}"
+
+      - name: Checkout base judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/trusted-gate-judge.mjs
+            scripts/ci/expensive-suite.mjs
+            scripts/ci/required-check-result.mjs
+            scripts/validate/security-review-gate.cjs
+            scripts/validate/guardrail2-verdict.cjs
+            scripts/validate/gates-resolver.cjs
+            scripts/validate/security-paths.shared.json
+            .github/workflows/ci.yml
+            .github/workflows/docker.yml
+            .github/workflows/ds.yml
+            .github/workflows/security.yml
+            .github/workflows/check-client-leaks.yml
+            .github/workflows/backflow-merge-method-guard.yml
+            .github/workflows/archive-check.yml
+            package.json
+            pnpm-workspace.yaml
+            pnpm-lock.yaml
+            .npmrc
+            packages/*/package.json
+            apps/*/package.json
+            packages/harnesses/
+            packages/dev/
+            packages/security/src/
+          sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          version: '10.28.2'
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+
+      - name: Build the shared owner-signature verifier
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --filter @revealui/harnesses --filter @revealui/dev
+          pnpm --filter @revealui/harnesses exec tsup --config tsup.gates-cjs.ts
+
+      - name: Compare head result jobs and classifier to base
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVEALFLEET_OVERRIDE_SIGNERS: ${{ vars.REVEALFLEET_OVERRIDE_SIGNERS }}
+          REVIEW_RECEIPT_REPO: ${{ vars.REVIEW_RECEIPT_REPO }}
+          REVIEW_RECEIPT_REF: ${{ vars.REVIEW_RECEIPT_REF }}
+          REVIEW_RECEIPT_SIGNERS: ${{ vars.REVIEW_RECEIPT_SIGNERS }}
+          REVIEW_RECEIPT_TOKEN: ${{ secrets.REVIEW_RECEIPT_TOKEN }}
+        run: node scripts/ci/trusted-gate-judge.mjs --base "$GITHUB_WORKSPACE"

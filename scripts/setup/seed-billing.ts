@@ -22,7 +22,7 @@ import { resolve } from 'node:path';
 import { getClient } from '@revealui/db';
 import { billingCatalog } from '@revealui/db/schema';
 import { getConfiguredStripeMode } from '@revealui/services/stripe/mode';
-import { config } from 'dotenv';
+import { assertSeedDatabaseReady, loadSeedEnv } from '../lib/seed-env.js';
 
 // ---------------------------------------------------------------------------
 // Environment
@@ -30,16 +30,14 @@ import { config } from 'dotenv';
 
 const rootDir = resolve(import.meta.dirname, '../..');
 
-for (const envFile of [
+loadSeedEnv(rootDir, [
   '.env',
   '.env.development.local',
   '.env.local',
   'apps/admin/.env.local',
   'apps/marketing/.env.local',
   'apps/server/.env.vercel',
-]) {
-  config({ path: resolve(rootDir, envFile), override: false });
-}
+]);
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,6 +144,7 @@ const log = {
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
+  await assertSeedDatabaseReady();
   log.header('Seed billing_catalog');
 
   const db = getClient();

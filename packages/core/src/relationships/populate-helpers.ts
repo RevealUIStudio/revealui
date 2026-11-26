@@ -13,7 +13,6 @@ import { afterRead } from '../fields/hooks/afterRead/index.js';
 import type {
   JsonObject,
   PopulateType,
-  RequestContext,
   RevealRequest,
   SanitizedCollectionConfig,
   SelectType,
@@ -166,7 +165,7 @@ export async function applyNestedPopulation(args: {
 
   return await afterRead({
     collection: sanitizedConfig,
-    context: {} as RequestContext,
+    context: req.context || {},
     currentDepth: currentDepth + 1,
     depth,
     doc: doc as JsonObject,

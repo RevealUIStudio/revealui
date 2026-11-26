@@ -45,6 +45,11 @@ vi.mock('@revealui/db', () => ({
     })),
   })),
 }));
+vi.mock('@revealui/db/queries/users', () => ({
+  withUserDomainCleanupAdmission: vi.fn(
+    async (_db: unknown, _userId: string, erase: () => Promise<unknown>) => erase(),
+  ),
+}));
 
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 

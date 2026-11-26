@@ -27,11 +27,16 @@ const logger = createLogger({ prefix: 'Backup' });
 
 async function main() {
   const args = process.argv.slice(2);
-  const format = args.includes('--sql') ? 'sql' : 'json';
-  const retainCount = parseInt(
-    args.find((a) => a.startsWith('--retain='))?.split('=')[1] || '5',
-    10,
+  const requestedFormat = args
+    .find((arg) => arg.startsWith('--format='))
+    ?.slice('--format='.length);
+  const format = requestedFormat ?? (args.includes('--sql') ? 'sql' : 'json');
+  if (format !== 'json' && format !== 'sql') throw new Error('Unsupported backup format');
+  const retainCount = Number(
+    args.find((arg) => arg.startsWith('--retain='))?.slice('--retain='.length) ?? '5',
   );
+  if (!Number.isSafeInteger(retainCount) || retainCount < 1)
+    throw new Error('Retention count must be a positive safe integer');
 
   logger.header('Database Backup');
 
@@ -46,7 +51,7 @@ async function main() {
 
   try {
     const result = await createBackup(connection, import.meta.url, {
-      format: format as 'json' | 'sql',
+      format,
       retainCount,
       logger,
     });
@@ -64,7 +69,8 @@ async function main() {
       }
     } else {
       logger.error(`Backup failed: ${result.error}`);
-      process.exit(ErrorCode.CONFIG_ERROR);
+      process.exitCode = ErrorCode.CONFIG_ERROR;
+      return;
     }
 
     // Show recent backups

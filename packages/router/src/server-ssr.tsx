@@ -48,7 +48,7 @@ export function createSSRHandler(
   </head>
   <body>
     <div id="root">${html}</div>
-    <script id="__REVEALUI_DATA__" type="application/json">${JSON.stringify(data || {})}</script>
+    <script id="__REVEALUI_DATA__" type="application/json">${JSON.stringify(data || {}).replace(/</g, '\\u003c')}</script>
     <script type="module" src="/src/client.tsx"></script>
   </body>
 </html>

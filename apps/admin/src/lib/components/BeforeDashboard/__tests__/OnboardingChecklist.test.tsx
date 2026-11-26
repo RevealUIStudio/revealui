@@ -63,6 +63,17 @@ beforeEach(() => {
 });
 
 describe('OnboardingChecklist', () => {
+  it('requests only the authenticated creator page signal for Free onboarding', async () => {
+    license('free');
+    global.fetch = mockFetchImpl({ pages: { ok: true, body: { docs: [] } } });
+    render(<OnboardingChecklist />);
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/collections/pages?limit=1&depth=0&createdByMe=true',
+        expect.objectContaining({ credentials: 'include' }),
+      ),
+    );
+  });
   it('renders nothing when previously dismissed', () => {
     localStorage.setItem(DISMISSED_KEY, '1');
     global.fetch = mockFetchImpl({});
@@ -125,7 +136,7 @@ describe('OnboardingChecklist', () => {
   it('shows a checkmark for live Pro signals and persists a billing visit', async () => {
     global.fetch = mockFetchImpl({
       agents: { ok: true, body: { agents: [{ name: 'demo' }] } },
-      agentTasks: { ok: true, body: { exists: true } },
+      agentTasks: { ok: true, body: { exists: true, completed: true } },
       pages: { ok: true, body: { docs: [] } },
     });
     render(<OnboardingChecklist />);
@@ -137,6 +148,29 @@ describe('OnboardingChecklist', () => {
     fireEvent.click(screen.getByText('Review account and billing'));
     expect(localStorage.getItem(ONBOARDING_WALK_KEY)).toContain('billing');
     expect(localStorage.getItem(ONBOARDING_WALK_KEY)).toContain('dashboard');
+  });
+
+  it('keeps paid action and receipt unchecked after navigation with only an agent catalog', async () => {
+    localStorage.setItem(
+      ONBOARDING_WALK_KEY,
+      JSON.stringify({
+        visited: { firstDayAction: true, receiptedAction: true },
+      }),
+    );
+    global.fetch = mockFetchImpl({
+      agents: { ok: true, body: { agents: [{ name: 'available-agent' }] } },
+      agentTasks: { ok: true, body: { exists: false } },
+    });
+    render(<OnboardingChecklist />);
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/a2a/agent-tasks/exists'),
+        expect.objectContaining({ credentials: 'include' }),
+      ),
+    );
+    fireEvent.click(screen.getByRole('link', { name: /Run an allowed agent/ }));
+    fireEvent.click(screen.getByRole('link', { name: /See the receipt/ }));
+    expect(screen.getAllByText('✓')).toHaveLength(1);
   });
 
   it('leaves receipt unchecked when a Pro source 403s (ungated miss)', async () => {

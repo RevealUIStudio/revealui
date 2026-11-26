@@ -29,7 +29,7 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
-import { getExecutionLogger } from '../audit/execution-logger.js';
+import { withExecutionLogger } from '../audit/execution-logger.js';
 import { ErrorCode, ScriptError } from '../errors.js';
 
 // =============================================================================
@@ -195,17 +195,17 @@ export class ScriptHealthMonitor {
    * Get current health status for a script
    */
   async getHealth(scriptName: string): Promise<HealthStatus> {
-    const logger = await getExecutionLogger();
-
     // Get execution history (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const executions = await logger.getHistory({
-      scriptName,
-      startDate: thirtyDaysAgo,
-      limit: 100,
-    });
+    const executions = await withExecutionLogger((logger) =>
+      logger.getHistory({
+        scriptName,
+        startDate: thirtyDaysAgo,
+        limit: 100,
+      }),
+    );
 
     if (executions.length === 0) {
       return {
@@ -318,10 +318,8 @@ export class ScriptHealthMonitor {
    * Get comprehensive health dashboard
    */
   async getDashboard(): Promise<HealthDashboard> {
-    const logger = await getExecutionLogger();
-
     // Get all unique script names from execution history
-    const stats = await logger.getStats({ days: 30 });
+    const stats = await withExecutionLogger((logger) => logger.getStats({ days: 30 }));
     const scriptNames = [...new Set(stats.topScripts.map((s) => s.scriptName))];
 
     // Get health for each script

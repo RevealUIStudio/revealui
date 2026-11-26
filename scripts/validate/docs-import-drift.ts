@@ -13,8 +13,8 @@
  *   pnpm validate:docs-imports --warn  # never exit nonzero (CI default)
  *
  * Exit codes:
- *   0 = every doc import matches a real workspace export (or --warn)
- *   1 = drift detected (list printed)
+ *   0 = every doc import matches a built workspace export (or --warn)
+ *   1 = drift detected or export verification is inconclusive (outputs unbuilt)
  *
  * NOTE: the initial scan (2026-04-16) reports ~225 findings against
  * existing docs. The check ships in CI as warn-only until that backlog
@@ -26,7 +26,8 @@
  *   own versioning.
  * - Reads the package's built `.d.ts` (from its `exports["."]["types"]`
  *   entry) to build the export manifest. This is the same surface users
- *   actually see; if the .d.ts isn't built the check is skipped (warn).
+ *   actually see. A declared but unbuilt .d.ts makes verification inconclusive;
+ *   build the owning package before running the strict check.
  * - Subpath imports (`@revealui/core/utils/deep-clone`) check against
  *   the matching `exports["./utils/deep-clone"]` entry when declared.
  * - Side-effect imports (`import '@revealui/pkg';`) are ignored.
@@ -170,11 +171,11 @@ function loadPackageExports(pkgName: string): PackageExports | null {
       else typesPath = target.types ?? target.import;
       if (!typesPath) continue;
       const abs = path.resolve(pkgDir, typesPath);
-      if (fs.existsSync(abs)) subpaths.set(subpath, abs);
+      subpaths.set(subpath, abs);
     }
   } else if (pkgJson.types) {
     const abs = path.resolve(pkgDir, pkgJson.types);
-    if (fs.existsSync(abs)) subpaths.set('.', abs);
+    subpaths.set('.', abs);
   }
 
   const result: PackageExports = { subpaths };
@@ -280,68 +281,69 @@ interface Finding {
   reason: 'unknown-package' | 'no-dts' | 'unknown-subpath' | 'not-exported';
 }
 
+function validateImports(refs: ImportRef[]): { findings: Finding[]; skippedNoDts: Set<string> } {
+  const findings: Finding[] = [];
+  const skippedNoDts = new Set<string>();
+  for (const ref of refs) {
+    const { pkg, subpath } = moduleSubpath(ref.module);
+    const exp = loadPackageExports(pkg);
+    if (!exp) {
+      for (const n of ref.names) {
+        findings.push({
+          file: ref.file,
+          line: ref.line,
+          module: ref.module,
+          missing: n,
+          reason: 'unknown-package',
+        });
+      }
+      continue;
+    }
+    const dts = exp.subpaths.get(subpath);
+    if (!dts) {
+      // Subpath not declared in exports — count as drift (user can't import this).
+      for (const n of ref.names) {
+        findings.push({
+          file: ref.file,
+          line: ref.line,
+          module: ref.module,
+          missing: n,
+          reason: 'unknown-subpath',
+        });
+      }
+      continue;
+    }
+    if (!fs.existsSync(dts)) {
+      skippedNoDts.add(pkg);
+      continue;
+    }
+    const names = loadExportsFromDts(dts);
+    for (const n of ref.names) {
+      if (!names.has(n)) {
+        findings.push({
+          file: ref.file,
+          line: ref.line,
+          module: ref.module,
+          missing: n,
+          reason: 'not-exported',
+        });
+      }
+    }
+  }
+  return { findings, skippedNoDts };
+}
+
 function main(): void {
   const jsonOutput = process.argv.includes('--json');
   const warnOnly = process.argv.includes('--warn');
   const files: string[] = [];
   walkDocs(DOCS_DIR, files);
-
-  const findings: Finding[] = [];
-  const skippedNoDts = new Set<string>();
-
-  for (const file of files) {
-    const md = fs.readFileSync(file, 'utf8');
-    const fences = extractFences(md);
-    for (const { startLine, code } of fences) {
-      const refs = parseImports(code, file, startLine);
-      for (const ref of refs) {
-        const { pkg, subpath } = moduleSubpath(ref.module);
-        const exp = loadPackageExports(pkg);
-        if (!exp) {
-          for (const n of ref.names) {
-            findings.push({
-              file: ref.file,
-              line: ref.line,
-              module: ref.module,
-              missing: n,
-              reason: 'unknown-package',
-            });
-          }
-          continue;
-        }
-        const dts = exp.subpaths.get(subpath);
-        if (!dts) {
-          // Subpath not declared in exports — count as drift (user can't import this).
-          for (const n of ref.names) {
-            findings.push({
-              file: ref.file,
-              line: ref.line,
-              module: ref.module,
-              missing: n,
-              reason: 'unknown-subpath',
-            });
-          }
-          continue;
-        }
-        if (!fs.existsSync(dts)) {
-          skippedNoDts.add(pkg);
-          continue;
-        }
-        const names = loadExportsFromDts(dts);
-        for (const n of ref.names) {
-          if (!names.has(n)) {
-            findings.push({
-              file: ref.file,
-              line: ref.line,
-              module: ref.module,
-              missing: n,
-              reason: 'not-exported',
-            });
-          }
-        }
-      }
-    }
-  }
+  const refs = files.flatMap((file) =>
+    extractFences(fs.readFileSync(file, 'utf8')).flatMap(({ startLine, code }) =>
+      parseImports(code, file, startLine),
+    ),
+  );
+  const { findings, skippedNoDts } = validateImports(refs);
 
   if (jsonOutput) {
     console.log(
@@ -359,32 +361,35 @@ function main(): void {
       console.log(
         `· Skipped ${skippedNoDts.size} package(s) with no built .d.ts: ${[...skippedNoDts].join(', ')}`,
       );
-      console.log('  (run `pnpm build` to include them)');
+      console.log('  Export verification is inconclusive until their declared outputs are built.');
     }
-    if (findings.length === 0) {
+    if (findings.length === 0 && skippedNoDts.size === 0) {
       console.log(
         `✓ Every @revealui/* import in docs/ resolves to a current export (${files.length} files scanned)`,
       );
       return;
     }
-    console.error(`✗ ${findings.length} doc import(s) reference missing exports:`);
+    if (findings.length > 0)
+      console.error(`✗ ${findings.length} doc import(s) reference missing exports:`);
     for (const f of findings) {
       const rel = path.relative(ROOT, f.file);
       console.error(
         `  ${rel}:${f.line} — import { ${f.missing} } from '${f.module}' [${f.reason}]`,
       );
     }
-    console.error('');
-    console.error('  Each of these is a stale doc sample. Either:');
-    console.error('    (a) update the doc to reference the current export, or');
-    console.error('    (b) ship a codemod if this was a recent rename (see §4.18 Phase B).');
+    if (findings.length > 0) {
+      console.error('');
+      console.error('  Each of these is a stale doc sample. Either:');
+      console.error('    (a) update the doc to reference the current export, or');
+      console.error('    (b) ship a codemod if this was a recent rename (see §4.18 Phase B).');
+    }
     if (warnOnly) {
       console.error('');
       console.error('  (running with --warn: not failing the build)');
     }
   }
 
-  if (findings.length > 0 && !warnOnly) process.exit(1);
+  if ((findings.length > 0 || skippedNoDts.size > 0) && !warnOnly) process.exit(1);
 }
 
 // Only run when invoked directly (not when imported by tests).
@@ -394,4 +399,11 @@ if (invokedPath === selfPath) {
   main();
 }
 
-export { extractFences, loadExportsFromDts, moduleSubpath, parseImports };
+export {
+  extractFences,
+  loadExportsFromDts,
+  loadPackageExports,
+  moduleSubpath,
+  parseImports,
+  validateImports,
+};

@@ -18,6 +18,7 @@ import { getClient } from '@revealui/db';
 import { accountEntitlements } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
+import { isHostedEntitlementUsable } from '../lib/hosted-entitlement.js';
 import { resolveActiveMembership } from '../lib/resolve-membership.js';
 
 export interface EntitlementContext {
@@ -26,8 +27,8 @@ export interface EntitlementContext {
   membershipRole: string | null;
   subscriptionStatus: string | null;
   /**
-   * When the paid grace window ends for a degraded subscription (past_due /
-   * canceled / revoked). Null when there is no grace window. Read at request
+   * When the paid grace window ends for a renewing subscription (past_due /
+   * canceled). Revocation never receives grace. Read at request
    * time so enforcement does not depend on the sweep-grace-periods cron.
    */
   graceUntil: Date | null;
@@ -65,15 +66,6 @@ function createFreeEntitlements(userId: string | null): EntitlementContext {
     limits: {},
     resolvedAt: new Date(),
   };
-}
-
-/**
- * A subscription status that still confers the paid tier. Anything else is a
- * degraded state (past_due / canceled / revoked / expired) that only retains
- * access while inside the grace window.
- */
-function isHealthyStatus(status: string | null): boolean {
-  return status === 'active' || status === 'trialing';
 }
 
 export const entitlementMiddleware = (): MiddlewareHandler => {
@@ -139,19 +131,15 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
 
     const status = entitlement?.status ?? null;
     const graceUntil = entitlement?.graceUntil ?? null;
-    const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
     const rawTier = (entitlement?.tier as EntitlementContext['tier'] | undefined) ?? 'free';
 
-    // Request-time fail-safe: a degraded subscription (not active/trialing) whose
-    // grace window has passed (or was never set) is treated as free HERE, without
-    // waiting for the sweep-grace-periods cron to flip the row. This prevents a
-    // delinquent account from retaining paid features indefinitely if the cron is
-    // paused, undeployed, or mis-secreted.
-    const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
-    const effectiveTier: EntitlementContext['tier'] = graceExpired ? 'free' : rawTier;
+    // Apply the same status policy as background feature gates. Revocation is
+    // immediate; renewal grace expires without depending on a cron transition.
+    const unavailable = !isHostedEntitlementUsable(status, graceUntil);
+    const effectiveTier: EntitlementContext['tier'] = unavailable ? 'free' : rawTier;
 
     const cogsTripped = effectiveTier === 'free' && entitlement?.cogsBreakerTrippedAt != null;
-    const baseLimits = graceExpired ? {} : (entitlement?.limits ?? {});
+    const baseLimits = unavailable ? {} : (entitlement?.limits ?? {});
     const limits = cogsTripped ? { ...baseLimits, maxAgentTasks: 0 } : baseLimits;
 
     c.set('entitlements', {
@@ -161,7 +149,7 @@ export const entitlementMiddleware = (): MiddlewareHandler => {
       subscriptionStatus: status,
       graceUntil,
       tier: effectiveTier,
-      features: graceExpired
+      features: unavailable
         ? {}
         : entitlement?.features && Object.keys(entitlement.features).length > 0
           ? toFeatureRecord(entitlement.features)

@@ -9,13 +9,20 @@
  * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/server/src/index.ts.
  */
 
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import type { DatabaseClient } from '@revealui/db/client';
 import { getRestClient } from '@revealui/db/client';
+import { getPagesBySite } from '@revealui/db/queries/pages';
+import {
+  actorCanManageSite,
+  actorCanReadSite,
+  getSiteContentActor,
+} from '@revealui/db/queries/sites';
 import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../lib/api-roles.js';
+import { noStoreCacheMiddleware } from '../middleware/cache-control.js';
 
 type Variables = {
   db: DatabaseClient;
@@ -23,19 +30,31 @@ type Variables = {
   user?: { id: string; role: string };
 };
 
-/** Verify the user is authenticated and the workspaceId matches the tenant context. */
-function assertWorkspaceAccess(
+/** Resolve current canonical membership; shell roles and tenant labels grant no access. */
+async function assertWorkspaceAccess(
+  db: DatabaseClient,
   user: { id: string; role: string } | undefined,
   workspaceId: string,
-  tenant: { id: string } | undefined,
-): void {
-  if (!user) {
-    throw new HTTPException(401, { message: 'Authentication required' });
-  }
-  // In multi-tenant mode, workspaceId must match the tenant context (admin bypass)
-  if (tenant && workspaceId !== tenant.id && !hasApiRole(user, 'admin')) {
-    throw new HTTPException(403, { message: 'Access denied for this workspace' });
-  }
+  write = false,
+): Promise<void> {
+  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+  const actor = await getSiteContentActor(db, user.id);
+  const mode = getExplicitDeploymentMode();
+  const allowed =
+    actor &&
+    (write
+      ? await actorCanManageSite(db, actor, workspaceId, mode, 'edit')
+      : await actorCanReadSite(db, actor, workspaceId, mode));
+  if (!allowed) throw new HTTPException(403, { message: 'Access denied for this workspace' });
+}
+
+async function readCondition(db: DatabaseClient, userId: string | undefined) {
+  const ingestion = await import('@revealui/ai/ingestion').catch(() => null);
+  if (!ingestion) throw new HTTPException(403, { message: 'RAG requires AI access' });
+  return ingestion.ragDocumentReadCondition(db, {
+    userId,
+    deploymentMode: getExplicitDeploymentMode(),
+  });
 }
 
 /** Validate collection name: alphanumeric, underscores, hyphens only */
@@ -51,6 +70,7 @@ function isValidCollectionName(name: string): boolean {
 }
 
 const app = new OpenAPIHono<{ Variables: Variables }>();
+app.use('*', noStoreCacheMiddleware());
 
 // =============================================================================
 // POST /api/rag/workspaces/:workspaceId/index/:collection
@@ -90,10 +110,6 @@ app.openapi(
         content: { 'application/json': { schema: z.unknown() } },
         description: 'Invalid collection name',
       },
-      502: {
-        content: { 'application/json': { schema: z.unknown() } },
-        description: 'Admin fetch error',
-      },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
         description: 'AI feature requires Pro or Enterprise license',
@@ -102,41 +118,18 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId, collection } = c.req.valid('param');
-    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+    const vectorDb = c.get('db') ?? getRestClient();
+    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId);
 
     if (!isValidCollectionName(collection)) {
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
     }
 
-    // Admin API client  -  requires NEXT_PUBLIC_ADMIN_URL or ADMIN_URL
-    const adminBaseUrl =
-      process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:4000';
-
-    let documents: Array<{ id: string; title?: string; content?: string; rawContent?: string }> =
-      [];
-
-    try {
-      // Paginated fetch from admin collection REST API
-      const res = await fetch(`${adminBaseUrl}/api/${collection}?limit=100&depth=0`, {
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(300_000), // 5 minute timeout
-      });
-
-      if (!res.ok) {
-        return c.json({ success: false, error: `Admin fetch failed: HTTP ${res.status}` }, 502);
-      }
-
-      const data = (await res.json()) as { docs?: typeof documents };
-      documents = data.docs ?? [];
-    } catch {
-      return c.json(
-        {
-          success: false,
-          error: 'Admin fetch error: upstream service unavailable',
-        },
-        502,
-      );
+    if (collection !== 'pages') {
+      return c.json({ success: false, error: 'Only site-backed pages support CMS indexing' }, 400);
     }
+    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId, true);
+    const documents = await getPagesBySite(vectorDb, workspaceId);
 
     const [embeddingsMod, ingestionMod] = await Promise.all([
       import('@revealui/ai/embeddings').catch(() => null),
@@ -155,8 +148,7 @@ app.openapi(
       );
     }
 
-    const vectorDb = getRestClient();
-    const restDb = getRestClient();
+    const restDb = vectorDb;
     const embeddingFn = async (text: string): Promise<number[]> => {
       const emb = await embeddingsMod.generateEmbedding(text);
       return emb.vector;
@@ -177,21 +169,12 @@ app.openapi(
 
     // Run indexing synchronously (background queue deferred)
     for (const doc of documents) {
-      const rawContent =
-        typeof doc.content === 'string'
-          ? doc.content
-          : typeof doc.rawContent === 'string'
-            ? doc.rawContent
-            : JSON.stringify(doc);
-
       const result = await pipeline.ingest({
         workspaceId,
         sourceType: 'admin_collection',
         sourceCollection: collection,
         sourceId: String(doc.id),
-        title: doc.title ?? `${collection}/${doc.id}`,
-        mimeType: 'text/plain',
-        rawContent,
+        rawContent: '', // Pipeline reads the canonical source from the database.
       });
 
       if (result.status === 'indexed') {
@@ -246,14 +229,18 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId } = c.req.valid('param');
-    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
-
-    const vectorDb = getRestClient();
+    const vectorDb = c.get('db') ?? getRestClient();
+    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId);
 
     const docs = await vectorDb
       .select()
       .from(ragDocuments)
-      .where(eq(ragDocuments.workspaceId, workspaceId));
+      .where(
+        and(
+          eq(ragDocuments.workspaceId, workspaceId),
+          await readCondition(vectorDb, c.get('user')?.id),
+        ),
+      );
 
     return c.json({ success: true, documents: docs, total: docs.length });
   },
@@ -295,40 +282,15 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId, documentId } = c.req.valid('param');
-    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+    const vectorDb = c.get('db') ?? getRestClient();
+    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId);
 
-    const [embeddingsMod, ingestionMod] = await Promise.all([
-      import('@revealui/ai/embeddings').catch(() => null),
-      import('@revealui/ai/ingestion').catch(() => null),
-    ]);
-
-    if (!(embeddingsMod && ingestionMod)) {
-      return c.json(
-        {
-          success: false,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
-          code: 'HTTP_403',
-        },
-        403,
-      );
-    }
-
-    const vectorDb = getRestClient();
-    const restDb = getRestClient();
-
-    const embeddingFn = async (text: string): Promise<number[]> => {
-      const emb = await embeddingsMod.generateEmbedding(text);
-      return emb.vector;
-    };
-    // Type assertion: workspace vs npm @revealui/db nominal type mismatch (structurally identical)
-    type PipelineDb = ConstructorParameters<typeof ingestionMod.IngestionPipeline>[0];
-    const pipeline = new ingestionMod.IngestionPipeline(
-      vectorDb as unknown as PipelineDb,
-      restDb as unknown as PipelineDb,
-      embeddingFn,
-    );
-    await pipeline.deleteDocument(documentId);
+    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId, true);
+    const deleted = await vectorDb
+      .delete(ragDocuments)
+      .where(and(eq(ragDocuments.id, documentId), eq(ragDocuments.workspaceId, workspaceId)))
+      .returning({ id: ragDocuments.id });
+    if (deleted.length === 0) throw new HTTPException(404, { message: 'Document not found' });
 
     return c.json({ success: true, documentId });
   },
@@ -369,29 +331,44 @@ app.openapi(
   }),
   async (c) => {
     const { workspaceId } = c.req.valid('param');
-    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
+    const vectorDb = c.get('db') ?? getRestClient();
+    await assertWorkspaceAccess(vectorDb, c.get('user'), workspaceId);
 
-    const vectorDb = getRestClient();
+    const readable = await readCondition(vectorDb, c.get('user')?.id);
 
     const [totalRow] = await vectorDb
       .select({ total: count() })
       .from(ragDocuments)
-      .where(eq(ragDocuments.workspaceId, workspaceId));
+      .where(and(eq(ragDocuments.workspaceId, workspaceId), readable));
 
     const [indexedRow] = await vectorDb
       .select({ total: count() })
       .from(ragDocuments)
-      .where(and(eq(ragDocuments.workspaceId, workspaceId), eq(ragDocuments.status, 'indexed')));
+      .where(
+        and(
+          eq(ragDocuments.workspaceId, workspaceId),
+          eq(ragDocuments.status, 'indexed'),
+          readable,
+        ),
+      );
 
     const [pendingRow] = await vectorDb
       .select({ total: count() })
       .from(ragDocuments)
-      .where(and(eq(ragDocuments.workspaceId, workspaceId), eq(ragDocuments.status, 'pending')));
+      .where(
+        and(
+          eq(ragDocuments.workspaceId, workspaceId),
+          eq(ragDocuments.status, 'pending'),
+          readable,
+        ),
+      );
 
     const [lastRow] = await vectorDb
       .select({ lastIndexedAt: max(ragDocuments.indexedAt) })
       .from(ragDocuments)
-      .where(and(eq(ragDocuments.workspaceId, workspaceId), isNotNull(ragDocuments.indexedAt)));
+      .where(
+        and(eq(ragDocuments.workspaceId, workspaceId), isNotNull(ragDocuments.indexedAt), readable),
+      );
 
     return c.json({
       success: true,

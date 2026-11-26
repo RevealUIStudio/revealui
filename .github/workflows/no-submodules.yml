@@ -5,6 +5,7 @@ on:
     branches: [main, test]
   pull_request:
     branches: [main, test]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
   schedule:
     - cron: '0 6 * * 0' # weekly Sunday 6 AM UTC
 

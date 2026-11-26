@@ -35,6 +35,7 @@ import {
   workspaceInferenceConfigs,
 } from '@revealui/db/schema';
 import { and, count, eq, isNull } from 'drizzle-orm';
+import { isHostedEntitlementUsable } from '../hosted-entitlement.js';
 import {
   AUDIT_EXPORT_METER_NAME,
   AUDIT_VIEW_METER_NAME,
@@ -43,10 +44,6 @@ import {
   type NudgeSignals,
   UPGRADE_INTENT_METER_NAME,
 } from './triggers.js';
-
-function isHealthyStatus(status: string | null): boolean {
-  return status === 'active' || status === 'trialing';
-}
 
 export interface NudgeContext {
   tier: LicenseTier;
@@ -88,11 +85,9 @@ async function resolveAccountAndTier(
 
   if (!entitlement) return { accountId: membership.accountId, tier: 'free' };
 
-  const status = entitlement.status ?? null;
-  const graceUntil = entitlement.graceUntil ?? null;
-  const graceActive = graceUntil != null && graceUntil.getTime() > Date.now();
-  const graceExpired = status !== null && !isHealthyStatus(status) && !graceActive;
-  if (graceExpired) return { accountId: membership.accountId, tier: 'free' };
+  if (!isHostedEntitlementUsable(entitlement.status, entitlement.graceUntil)) {
+    return { accountId: membership.accountId, tier: 'free' };
+  }
 
   const tier = (entitlement.tier as LicenseTier | undefined) ?? 'free';
   return { accountId: membership.accountId, tier };

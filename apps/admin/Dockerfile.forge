@@ -32,6 +32,7 @@ COPY packages/presentation/package.json  ./packages/presentation/
 COPY packages/resilience/package.json    ./packages/resilience/
 COPY packages/secrets/package.json       ./packages/secrets/
 COPY packages/router/package.json        ./packages/router/
+COPY packages/scripts/package.json ./packages/scripts/
 COPY packages/security/package.json      ./packages/security/
 COPY packages/services/package.json      ./packages/services/
 COPY packages/setup/package.json         ./packages/setup/
@@ -58,6 +59,7 @@ COPY packages ./packages
 COPY apps/admin ./apps/admin
 
 ENV NODE_ENV=production
+ENV REVEALUI_DEPLOYMENT_MODE=forge
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=true
 
@@ -69,6 +71,7 @@ RUN pnpm turbo run build --filter=admin...
 FROM node:24-alpine AS runner
 
 ENV NODE_ENV=production
+ENV REVEALUI_DEPLOYMENT_MODE=forge
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"

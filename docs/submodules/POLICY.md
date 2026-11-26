@@ -29,12 +29,20 @@ The `no-submodules.yml` GitHub Actions workflow runs:
 
 It executes `scripts/audit-no-submodules.sh`, which checks four vectors:
 
-1. **`.gitmodules` file** at repo root
-2. **`.git/modules/` directory** (stale artifacts from removed submodules)
+1. **`.gitmodules` presence** at repo root, including dangling links
+2. **Git modules storage** in Git's resolved worktree and common directories
+   (stale artifacts from removed submodules, including linked worktrees)
 3. **`git config` submodule entries** (config-level remnants)
 4. **Tree-object gitlinks** (mode 160000 entries in the git tree)
 
 Any hit fails the workflow and blocks the PR.
+
+The audit resolves the repository root and pins the current HEAD tree before
+inspection. A complete clean inspection exits 0, a detected artifact exits 1,
+and a failed repository, configuration, tree or storage inspection exits 2.
+Git or filesystem errors cannot certify that submodules are absent.
+Resolved repository and metadata paths preserve their original bytes, including
+trailing newlines, so inspection cannot silently select a different directory.
 
 ## Remediation
 

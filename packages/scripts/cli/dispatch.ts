@@ -14,6 +14,7 @@
  */
 
 import type { ParsedArgs } from '../args.js';
+import { DryRunEngine } from '../dry-run/dry-run-engine.js';
 import { ErrorCode, notFound, ScriptError } from '../errors.js';
 import { execCommand } from '../exec.js';
 
@@ -29,6 +30,7 @@ export type DispatchMode = 'import' | 'subprocess' | 'auto';
  * Options for command dispatch
  */
 export interface DispatchOptions {
+  dryRun?: boolean;
   /** Dispatch mode (default: 'auto') */
   mode?: DispatchMode;
   /** Working directory for subprocess mode */
@@ -47,6 +49,7 @@ export interface DispatchOptions {
  * Result from dispatching a command
  */
 export interface DispatchResult {
+  simulated?: boolean;
   /** Whether the command succeeded */
   success: boolean;
   /** Output from the command (if captureOutput was true) */
@@ -201,6 +204,20 @@ export async function dispatchCommand(
   scriptPath: string,
   options: DispatchOptions = {},
 ): Promise<DispatchResult> {
+  const simulation = DryRunEngine.activeSimulation();
+  if (simulation || options.dryRun || options.args?.flags['dry-run'] === true) {
+    (simulation ?? new DryRunEngine({ enabled: true })).recordCommand(
+      scriptPath,
+      options.args?.raw,
+    );
+    return {
+      success: true,
+      simulated: true,
+      mode: options.mode ?? 'auto',
+      scriptPath,
+      exitCode: 0,
+    };
+  }
   const { mode = 'auto' } = options;
 
   // Determine dispatch mode

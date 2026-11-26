@@ -681,28 +681,31 @@ export class LLMClient {
  *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
  *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)
  */
-export function createLLMClientFromEnv(): LLMClient {
+export function createLLMClientFromEnv(
+  options: { profilePath?: string; env?: NodeJS.ProcessEnv } = {},
+): LLMClient {
+  const env = options.env ?? process.env;
   // Self-host profile (idle/daily/snaps) fills missing LLM_* only; explicit env wins.
   // Hosted (VERCEL / REVEALUI_HOSTED) never loads the profile.
-  applyLocalAiProfileToEnv();
+  applyLocalAiProfileToEnv(env, undefined, options.profilePath);
 
   // Auto-detect provider when LLM_PROVIDER is not explicitly set. The existing
   // priority order (INFERENCE_SNAPS → GROQ → OLLAMA) is preserved so existing
   // deployments resolve identically; the frontier providers are appended after.
   let provider: LLMProviderType;
-  if (process.env.LLM_PROVIDER) {
-    provider = process.env.LLM_PROVIDER as LLMProviderType;
-  } else if (process.env.INFERENCE_SNAPS_BASE_URL) {
+  if (env.LLM_PROVIDER) {
+    provider = env.LLM_PROVIDER as LLMProviderType;
+  } else if (env.INFERENCE_SNAPS_BASE_URL) {
     provider = 'inference-snaps';
-  } else if (process.env.GROQ_API_KEY) {
+  } else if (env.GROQ_API_KEY) {
     provider = 'groq';
-  } else if (process.env.OLLAMA_BASE_URL) {
+  } else if (env.OLLAMA_BASE_URL) {
     provider = 'ollama';
-  } else if (process.env.ANTHROPIC_API_KEY) {
+  } else if (env.ANTHROPIC_API_KEY) {
     provider = 'anthropic';
-  } else if (process.env.OPENAI_API_KEY) {
+  } else if (env.OPENAI_API_KEY) {
     provider = 'openai';
-  } else if (process.env.XAI_API_KEY) {
+  } else if (env.XAI_API_KEY) {
     provider = 'xai';
   } else {
     // Zero-config Ubuntu default: assume Inference Snaps on the standard local
@@ -724,28 +727,28 @@ export function createLLMClientFromEnv(): LLMClient {
   let defaultModel: string | undefined;
 
   if (provider === 'anthropic') {
-    apiKey = process.env.ANTHROPIC_API_KEY;
-    baseURL = process.env.ANTHROPIC_BASE_URL ?? defaultBaseURLForProvider('anthropic');
+    apiKey = env.ANTHROPIC_API_KEY;
+    baseURL = env.ANTHROPIC_BASE_URL ?? defaultBaseURLForProvider('anthropic');
     defaultModel = defaultModelForProvider('anthropic');
   } else if (provider === 'openai') {
-    apiKey = process.env.OPENAI_API_KEY;
-    baseURL = process.env.OPENAI_BASE_URL ?? defaultBaseURLForProvider('openai');
+    apiKey = env.OPENAI_API_KEY;
+    baseURL = env.OPENAI_BASE_URL ?? defaultBaseURLForProvider('openai');
     defaultModel = defaultModelForProvider('openai');
   } else if (provider === 'xai') {
-    apiKey = process.env.XAI_API_KEY;
-    baseURL = process.env.XAI_BASE_URL ?? defaultBaseURLForProvider('xai');
+    apiKey = env.XAI_API_KEY;
+    baseURL = env.XAI_BASE_URL ?? defaultBaseURLForProvider('xai');
     defaultModel = defaultModelForProvider('xai');
   } else if (provider === 'huggingface') {
-    apiKey = process.env.HF_TOKEN;
-    baseURL = process.env.HF_MODEL_URL;
+    apiKey = env.HF_TOKEN;
+    baseURL = env.HF_MODEL_URL;
   } else if (provider === 'groq') {
-    apiKey = process.env.GROQ_API_KEY;
-    baseURL = process.env.GROQ_BASE_URL ?? defaultBaseURLForProvider('groq');
+    apiKey = env.GROQ_API_KEY;
+    baseURL = env.GROQ_BASE_URL ?? defaultBaseURLForProvider('groq');
     defaultModel = defaultModelForProvider('groq');
   } else if (provider === 'ollama') {
     apiKey = 'ollama'; // Ollama ignores the API key
     // Ollama's OpenAI-compatible endpoint lives at /v1
-    const ollamaBase = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
+    const ollamaBase = env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
     baseURL = ollamaBase.endsWith('/v1') ? ollamaBase : `${ollamaBase}/v1`;
     defaultModel = defaultModelForProvider('ollama');
   } else if (provider === 'inference-snaps') {
@@ -753,19 +756,19 @@ export function createLLMClientFromEnv(): LLMClient {
     // Defaults to Canonical's Inference Snap local service on port 9090; override
     // via INFERENCE_SNAPS_BASE_URL when the snap listens on a non-default port.
     // Model defaults to the US-origin allowlist default (asserted in provider ctor).
-    baseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? defaultBaseURLForProvider('inference-snaps');
+    baseURL = env.INFERENCE_SNAPS_BASE_URL ?? defaultBaseURLForProvider('inference-snaps');
     defaultModel = defaultModelForProvider('inference-snaps');
   }
 
   const route = resolveInferenceRoute({
     provider,
-    model: process.env.LLM_MODEL ?? defaultModel,
+    model: env.LLM_MODEL ?? defaultModel,
     baseURL,
-    groqCredentialAvailable: Boolean(process.env.GROQ_API_KEY),
+    groqCredentialAvailable: Boolean(env.GROQ_API_KEY),
   });
 
   if (route.provider === 'groq' && provider !== 'groq') {
-    apiKey = process.env.GROQ_API_KEY;
+    apiKey = env.GROQ_API_KEY;
   }
 
   if (!apiKey) {
@@ -781,16 +784,13 @@ export function createLLMClientFromEnv(): LLMClient {
     apiKey,
     baseURL: route.baseURL,
     model: route.model,
-    temperature: process.env.LLM_TEMPERATURE ? parseFloat(process.env.LLM_TEMPERATURE) : undefined,
-    maxTokens: process.env.LLM_MAX_TOKENS ? parseInt(process.env.LLM_MAX_TOKENS, 10) : undefined,
-    enableCacheByDefault:
-      process.env.LLM_ENABLE_CACHE === 'true' || process.env.ANTHROPIC_ENABLE_CACHE === 'true',
+    temperature: env.LLM_TEMPERATURE ? parseFloat(env.LLM_TEMPERATURE) : undefined,
+    maxTokens: env.LLM_MAX_TOKENS ? parseInt(env.LLM_MAX_TOKENS, 10) : undefined,
+    enableCacheByDefault: env.LLM_ENABLE_CACHE === 'true' || env.ANTHROPIC_ENABLE_CACHE === 'true',
     enableResponseCache:
-      process.env.LLM_ENABLE_RESPONSE_CACHE === 'true' ||
-      process.env.RESPONSE_CACHE_ENABLED === 'true',
+      env.LLM_ENABLE_RESPONSE_CACHE === 'true' || env.RESPONSE_CACHE_ENABLED === 'true',
     enableSemanticCache:
-      process.env.LLM_ENABLE_SEMANTIC_CACHE === 'true' ||
-      process.env.SEMANTIC_CACHE_ENABLED === 'true',
+      env.LLM_ENABLE_SEMANTIC_CACHE === 'true' || env.SEMANTIC_CACHE_ENABLED === 'true',
   });
 }
 

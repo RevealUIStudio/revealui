@@ -5,3 +5,11 @@
  */
 
 export { type Password, passwordSchema } from './password-schema.js';
+export {
+  ADMIN_ROLES,
+  canAdministerAllContent,
+  canManageSiteContent,
+  isAdminRole,
+  isPlatformSuperAdmin,
+  type PlatformAuthUser,
+} from './platform-roles.js';

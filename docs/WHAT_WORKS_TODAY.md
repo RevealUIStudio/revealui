@@ -25,7 +25,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **68 native React components in `@revealui/presentation`** (plus admin and rich-text UI in `@revealui/core`), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn). Just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**124 PostgreSQL tables** with Drizzle ORM, **110 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
+**124 PostgreSQL tables** with Drizzle ORM, **111 CHECK constraints** enforced at the database level. NeonDB is the sole primary database (REST, agent memories, and RAG via pgvector on Neon). Supabase is not an internal datastore (ADR `2026-05-01-supabase-removal`); the customer-facing Supabase MCP adapter was removed (use Neon MCP). ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -75,7 +75,7 @@ JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-faci
 **License generation and enforcement work in tests. Not yet tested with paying customers.**
 
 ### Knowledge Graph
-`@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Proof Sprint / Launch stay the Studio ladder). Admin / licensed **RevMind** can export 2D diagrams from the graph (`POST /api/kg/diagram`, Mermaid SoT). That is architecture from the knowledge graph — **not** a public Architecture SKU.
+`@revealui/knowledge-graph` is a first-class Electric+CRDT contract surface (`revkg` CLI). Honest naming is correct in runtime, docs, and admin. It is **not** a Studio cash SKU and is not sold as Fleet KG on public pricing (Consultation / Pilot / Launch stay the Studio ladder). Admin / licensed **RevMind** can export 2D diagrams from the graph (`POST /api/kg/diagram`, Mermaid SoT). That is architecture from the knowledge graph. It is **not** a public Architecture SKU.
 
 ### Fleet runtime images (GHCR)
 `ghcr.io/revealuistudio/revealui-api:latest`, `revealui-admin:latest`, and `revealui-migrate:latest` are published. Re-verified 2026-08-17: the GHCR anonymous token endpoint plus an OCI index GET returns HTTP 200 for those tags. A bare curl of the manifest URL without that token is 401 (GHCR default). RevForge stamps those tags. A stamped kit still needs a license JWT and operator env. This is not a sold customer walk.
@@ -112,21 +112,21 @@ Honest list of things that are not done, not deployed, or not verified.
 
 | Metric | Value | Verified |
 |--------|-------|----------|
-| Workspaces (apps + packages) | 39 | Yes |
-| Apps | 6 (`admin`, `server`, `docs`, `marketing`, `license-signer`, `rsc-poc`) | Yes |
+| Workspaces (apps + packages) | 40 | Yes |
+| Apps | 7 (`admin`, `server`, `docs`, `marketing`, `license-signer`, `rsc-poc`, `review-controller`) | Yes |
 | OSS packages (MIT) | 26 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | Internal packages | 2 (`@revealui/scripts`, `@revealui/apify-actor-governed-run`) | Yes |
 | UI components | 68 in `@revealui/presentation` | Yes |
 | Database tables | 124 | Yes (`countDbTables` in `@revealui/claim-gates`) |
-| CHECK constraints | 110 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
+| CHECK constraints | 111 | Yes (`countCheckConstraints` in `@revealui/claim-gates`) |
 | MCP servers | 14 | Yes (run `ls packages/mcp/src/servers/*.ts` and count non-`_` files) |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
 | API route files | run `find apps/server/src/routes -name '*.ts' -not -name '*.test.ts' \| wc -l` | Reproducible |
 | Real production users | 0 | Yes |
 
-> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (14). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (32 + 6 = 38). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
+> Counting rules (enforced in CI by `pnpm validate:claims`, canonical values in `apps/marketing/app/content/site.ts` `METRICS`): **UI components** counts `.tsx` files in `packages/presentation/src/components/` excluding `_`-prefixed helpers. **MCP servers** counts `.ts` files in `packages/mcp/src/servers/` excluding `index*` and `_`-prefixed helpers, and includes the `adapter.ts` framework module (14). **Workspaces** counts `packages/*` plus `apps/*` that carry a `package.json` (33 + 6 = 39). `license-signer` and `rsc-poc` are in-tree apps, not customer-facing products. **Database tables** counts `pgTable(` CallExpressions; **CHECK constraints** counts `check(` CallExpressions; the **license split** is read from each `packages/*/package.json` `license` field.
 
 ---
 
@@ -140,7 +140,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 39 workspaces
+pnpm typecheck:all       # Typecheck all 40 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 

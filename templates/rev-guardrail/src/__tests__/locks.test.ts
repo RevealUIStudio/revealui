@@ -9,8 +9,8 @@ describe('REV Guardrail lock file', () => {
   it('ships non-empty cash ladder, required snapshot, deny-list, and allowlisted verbs', () => {
     const locks = loadLocks(EXAMPLE);
     expect(locks.cash_ladder.consultation.price_usd).toBe(300);
-    expect(locks.cash_ladder.pilot.price_usd).toBe(1500);
-    expect(locks.cash_ladder.launch.price_usd).toBe(7500);
+    expect(locks.cash_ladder.pilot.price_usd).toBe(3997);
+    expect(locks.cash_ladder.launch.price_usd).toBe(14500);
     expect(locks.snapshot_before_checkpoint).toBe('required');
     expect(locks.overclaim.deny_patterns.length).toBeGreaterThan(0);
     expect(locks.overclaim.vendor_soc2_allow_patterns.length).toBeGreaterThan(0);

@@ -18,6 +18,7 @@ on:
     branches: [main, test]
   pull_request:
     branches: [test]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 # Serialize land (push) separately from the PR gate so a feature PR check
 # cannot queue behind or delay auto-backflow.
@@ -29,7 +30,9 @@ jobs:
   backflow:
     # Pinned to a SHA — org-shared reusable was referenced by the mutable @main.
     # Bump this deliberately when the reusable changes.
-    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@f9bbdd1c4303a4cd544dbe33e411e85923739357 # org .github#20 merge — App no longer stamps the human ack label
+    uses: RevealUIStudio/.github/.github/workflows/backflow-reusable.yml@b4f23b3aabd617bdf3729b669811fa4444593b3e # pin is the merged fix
+    with:
+      backflow_bot_login: revealfleet-backflow[bot]
     # Scope to ONLY the two secrets the reusable declares (its workflow_call.secrets
     # block documents this exact form) instead of `secrets: inherit`, which would
     # forward every caller secret (VERCEL_TOKEN, PROD_POSTGRES_URL, …) into it.

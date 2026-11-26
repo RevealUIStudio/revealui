@@ -5,7 +5,7 @@
  * Validates critical environment variables at startup.
  */
 
-import { isHostedDeployment } from '@revealui/core/deployment-mode';
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 
 /**
  * Literal hex-set check (no regex). Returns true when value is exactly 64
@@ -50,17 +50,9 @@ export function validateRequiredEnvVars(
 
   const isFleetMode = Boolean(process.env.REVEALUI_FLEET_MODE);
 
-  // A RevealUI Studio hosted-SaaS deployment is the ONLY posture that uses
-  // self-billing (Stripe checkout), cross-subdomain session cookies, and the
-  // Workspace-backed signup verification email. Every other posture — a
-  // RevForge-stamped Fleet kit (isFleetMode) AND a plain OSS/unlicensed
-  // self-host or marketplace-template deploy (GAP-430/GAP-440) — never uses
-  // any of those, so requiring their env vars in "production" mode blocks a
-  // stranger's fresh deploy for no reason. isHostedDeployment() defaults to
-  // false whenever REVEALUI_LICENSE_PRIVATE_KEY is absent (the normal case
-  // for a self-host template with no license key at all), so this needs no
-  // new env var from the deploying operator.
-  const isSaasHosted = isHostedDeployment(process.env);
+  // Billing requirements and content authority use explicit deployment posture.
+  const deploymentMode = getExplicitDeploymentMode(process.env);
+  const isSaasHosted = deploymentMode === 'hosted';
 
   // Base required variables — apply in all environments (hosted + Fleet).
   //
@@ -78,6 +70,9 @@ export function validateRequiredEnvVars(
 
   const missing: string[] = [];
   const warnings: string[] = [];
+  if (environment === 'production' && !deploymentMode) {
+    missing.push('REVEALUI_DEPLOYMENT_MODE (must be explicitly hosted or forge)');
+  }
 
   // Check required variables
   for (const key of baseRequired) {

@@ -21,7 +21,9 @@ vi.stubGlobal('fetch', mockFetch);
 import { getSession } from '@revealui/auth/server';
 
 vi.mock('@revealui/auth/server', () => ({
-  getSession: vi.fn().mockResolvedValue({ userId: 'test-user', token: 'tok' }),
+  getSession: vi
+    .fn()
+    .mockResolvedValue({ userId: 'test-user', user: { id: 'test-user' }, token: 'tok' }),
 }));
 
 const mockGetSession = vi.mocked(getSession);
@@ -36,9 +38,10 @@ vi.mock('@revealui/utils/logger', () => ({
 
 // Pages are site-scoped: the list/create proxy resolves the default site
 // server-side. Mock the resolver so the target URL is deterministic.
-import { resolveDefaultSiteId } from '@/lib/db/defaultSite';
+import { resolveDefaultSiteId, SiteSelectionRequiredError } from '@/lib/db/defaultSite';
 
 vi.mock('@/lib/db/defaultSite', () => ({
+  SiteSelectionRequiredError: class extends Error {},
   resolveDefaultSiteId: vi.fn().mockResolvedValue('fleet-marketing'),
 }));
 
@@ -185,6 +188,33 @@ describe('GET /api/collections/[collection]', () => {
     expect(Array.isArray(body.docs)).toBe(true);
   });
 
+  it('preserves site pagination totals instead of mistaking one returned row for one owned site', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({
+        data: [{ id: 'site-second', name: 'Second' }],
+        totalDocs: 3,
+        totalPages: 3,
+        limit: 1,
+        offset: 1,
+      }),
+    );
+    const res = await collectionsGet(
+      new NextRequest('http://localhost/api/collections/sites?limit=1&offset=1'),
+      {
+        params: Promise.resolve({ collection: 'sites' }),
+      },
+    );
+    expect(await res.json()).toEqual({
+      docs: [{ id: 'site-second', name: 'Second' }],
+      totalDocs: 3,
+      totalPages: 3,
+      limit: 1,
+      offset: 1,
+      page: 2,
+    });
+    expect(mockFetch.mock.calls[0]?.[0]).toContain('/api/content/sites?limit=1&offset=1');
+  });
+
   it('returns 503 when fetch throws (network error)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
     const req = new NextRequest('http://localhost/api/collections/posts');
@@ -278,9 +308,9 @@ describe('POST /api/collections/[collection]', () => {
 
 // ---------------------------------------------------------------------------
 // Tests  -  pages are site-scoped (default-site convention)
-// The API exposes page list/create only under /sites/:siteId/pages. The proxy
-// supplies the site scope: an explicit siteId when selected, otherwise the
-// server-resolved default site. Every other collection stays on the flat path.
+// Authenticated lists use the shared flat query; creation keeps its site path.
+// Normal CRUD uses explicit selection or an owned default. Creator completion
+// spans owned sites without resolving a default. Other collections are unchanged.
 // ---------------------------------------------------------------------------
 
 describe('pages site-scoping', () => {
@@ -289,28 +319,69 @@ describe('pages site-scoping', () => {
     mockResolveDefaultSiteId.mockResolvedValue('fleet-marketing');
   });
 
+  it('forwards creator completion across owned sites without resolving a default site', async () => {
+    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
+    const res = await collectionsGet(
+      new NextRequest('http://localhost/api/collections/pages?createdByMe=true'),
+      { params: Promise.resolve({ collection: 'pages' }) },
+    );
+    expect(res.status).toBe(200);
+    expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
+    expect(String(mockFetch.mock.calls[0]?.[0])).toContain('/api/content/pages?createdByMe=true');
+  });
+  it('unresolved owned site requires selection without forwarding to a global fallback', async () => {
+    mockResolveDefaultSiteId.mockRejectedValueOnce(
+      new SiteSelectionRequiredError('Select a site you own'),
+    );
+    const res = await collectionsGet(new NextRequest('http://localhost/api/collections/pages'), {
+      params: Promise.resolve({ collection: 'pages' }),
+    });
+    expect(res.status).toBe(409);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
   it('GET pages lists the default site and preserves other query params', async () => {
     mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
     const req = new NextRequest('http://localhost/api/collections/pages?limit=1&depth=0');
     const res = await collectionsGet(req, { params: Promise.resolve({ collection: 'pages' }) });
     expect(res.status).toBe(200);
     const url = String(mockFetch.mock.calls[0]?.[0]);
-    expect(url).toContain('/api/content/sites/fleet-marketing/pages');
+    expect(new URL(url).pathname).toBe('/api/content/pages');
+    expect(new URL(url).searchParams.get('siteId')).toBe('fleet-marketing');
     expect(url).toContain('limit=1');
     expect(url).toContain('depth=0');
-    // The { data } envelope from the site-scoped list normalizes to { docs }.
+    // The authenticated list envelope normalizes to { docs }.
     const body = await res.json();
     expect(Array.isArray(body.docs)).toBe(true);
   });
 
-  it('GET pages honors an explicit siteId without forwarding it as a query param', async () => {
-    mockFetch.mockResolvedValueOnce(makeUpstreamOk({ success: true, data: [] }));
-    const req = new NextRequest('http://localhost/api/collections/pages?siteId=acme');
+  it('GET pages preserves explicit site selection and actual second-page metadata', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeUpstreamOk({
+        success: true,
+        data: [{ id: 'p2' }],
+        totalDocs: 3,
+        totalPages: 3,
+        limit: 1,
+        offset: 1,
+      }),
+    );
+    const req = new NextRequest(
+      'http://localhost/api/collections/pages?siteId=acme&limit=1&offset=1&page=2',
+    );
     const res = await collectionsGet(req, { params: Promise.resolve({ collection: 'pages' }) });
     expect(res.status).toBe(200);
     const url = String(mockFetch.mock.calls[0]?.[0]);
-    expect(url).toContain('/api/content/sites/acme/pages');
-    expect(url).not.toContain('siteId');
+    expect(new URL(url).pathname).toBe('/api/content/pages');
+    expect(new URL(url).searchParams.get('siteId')).toBe('acme');
+    expect(new URL(url).searchParams.get('offset')).toBe('1');
+    expect(await res.json()).toMatchObject({
+      docs: [{ id: 'p2' }],
+      totalDocs: 3,
+      totalPages: 3,
+      limit: 1,
+      offset: 1,
+      page: 2,
+    });
     expect(mockResolveDefaultSiteId).not.toHaveBeenCalled();
   });
 

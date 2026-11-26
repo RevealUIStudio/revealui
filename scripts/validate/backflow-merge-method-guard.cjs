@@ -1,20 +1,21 @@
 #!/usr/bin/env node
-// backflow-merge-method-guard.cjs — soft-enforce merge-commit for main→test backflow.
+// backflow-merge-method-guard.cjs
 //
-// GitHub cannot set a per-PR-class default merge method (squash remains allowed
-// for feature→test). This guard:
+// Feature PRs into test use merge commits only, never squash. Repository
+// settings cannot set a per-PR-class default merge method, so this guard:
 //
-//   1. PR mode (base=test, backflow-shaped title/head): fail until the PR carries
-//      the human acknowledgment label `backflow:merge-commit`, and print UI
-//      instructions to use **Create a merge commit** (not Squash / Rebase).
+//   1. PR mode (base=test, feature PR): print merge-commit-only instructions
+//      (`gh pr merge --merge`; never --squash, --rebase, --admin, or --auto)
+//      and exit 0. Non-backflow PRs stay green so this check can run on every
+//      PR into test (skipped-logic is "pass", not "job skipped").
+//   2. PR mode (base=test, backflow-shaped title/head): fail until the PR carries
+//      the human acknowledgment label `backflow:merge-commit`, and print
+//      instructions to use a merge commit (not squash or rebase).
 //      The configured backflow App on the canonical head
 //      `chore/backflow-main-into-test` passes without that label. Auto-applying
 //      it would forge the human ack. Squash still fails ancestry mode.
-//   2. Ancestry mode (push to test / offline): fail if origin/main is not an
-//      ancestor of HEAD — catches a squash-merged backflow after the fact.
-//
-// Non-backflow PRs exit 0 immediately so this check is safe to require on every
-// PR into test (skipped-logic is "pass", not "job skipped").
+//   3. Ancestry mode (push to test / offline): fail if origin/main is not an
+//      ancestor of HEAD. That catches a squash-merged backflow after the fact.
 //
 // Zero authored regex (fleet no-regex). Dependency-free (Node + git).
 //
@@ -141,6 +142,12 @@ async function runPrMode() {
   const eventLabels = parseLabels(process.env.PR_LABELS || '');
 
   if (!isBackflowPr(title, headRef, baseRef)) {
+    if (baseRef === 'test') {
+      console.log(`Feature PR into test (head=${headRef || '?'}): merge commits only.`);
+      console.log('  gh pr merge <N> --repo RevealUIStudio/revealui --merge');
+      console.log('  Never pass --squash, --rebase, --admin, or --auto.');
+      process.exit(0);
+    }
     console.log(
       `Not a backflow PR (base=${baseRef || '?'}, head=${headRef || '?'}) — policy N/A.`,
     );
@@ -155,8 +162,9 @@ async function runPrMode() {
 
   console.log('Backflow PR detected (main → test ancestry path).');
   console.log('');
-  console.log('HARDLINE: merge with Create a merge commit only.');
+  console.log('HARDLINE: merge commits only.');
   console.log('  Squash or rebase strips main parentage and breaks the next promote.');
+  console.log('  Never pass --squash, --rebase, --admin, or --auto.');
   console.log('');
   console.log('GitHub UI: open the merge dropdown → "Create a merge commit" → Merge.');
   console.log('CLI:');
@@ -197,7 +205,7 @@ async function runPrMode() {
   }
 
   console.error(
-    `::error title=Backflow merge method::Add label "${ACK_LABEL}" and merge with Create a merge commit (not Squash).`,
+    `::error title=Backflow merge method::Add label "${ACK_LABEL}" and merge with a merge commit. Never pass --squash, --rebase, --admin, or --auto.`,
   );
   process.exit(1);
 }
@@ -240,9 +248,11 @@ function runAncestryMode() {
     console.error('  git fetch origin');
     console.error('  git checkout test');
     console.error('  git merge --no-ff origin/main');
-    console.error('  git push origin test');
+    console.error('  pnpm push test origin');
     console.error('');
-    console.error('Or open/merge the automated backflow PR with --merge (not --squash).');
+    console.error(
+      'Or open/merge the automated backflow PR with --merge. Never pass --squash, --rebase, --admin, or --auto.',
+    );
     process.exit(1);
   }
 }

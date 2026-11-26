@@ -36,16 +36,34 @@ import { EmbeddedCheckout } from '@revealui/paywall/client';
 
 ```tsx
 import { PaymentElement, usePaymentIntent } from '@revealui/paywall/client';
+import { PAID_SUPPORT_POLICY } from '@revealui/contracts/public-catalog';
+import { useState } from 'react';
 
-const { clientSecret } = usePaymentIntent();
-{clientSecret ? (
-  <PaymentElement
-    clientSecret={clientSecret}
-    publishableKey={publishableKey}
-    returnUrl="https://admin.example/welcome"
-  />
-) : null}
+function Purchase() {
+  const [accepted, setAccepted] = useState(false);
+  const { clientSecret } = usePaymentIntent({
+    tier: 'pro',
+    enabled: accepted,
+    acceptedSupportPolicyRevision: accepted ? PAID_SUPPORT_POLICY.revision : undefined,
+  });
+  return <>
+    <p>{PAID_SUPPORT_POLICY.summary}. {PAID_SUPPORT_POLICY.coverage}</p>
+    <label><input type="checkbox" checked={accepted}
+      onChange={(event) => setAccepted(event.target.checked)} />
+      I accept the <a href="https://revealui.com/support">support policy</a>
+      {' '}and <a href="https://revealui.com/terms">terms</a> for this purchase.
+    </label>
+    {clientSecret && <PaymentElement clientSecret={clientSecret}
+      publishableKey={publishableKey} returnUrl="https://admin.example/welcome" />}
+  </>;
+}
 ```
+
+The RevealUI billing endpoint requires the current accepted support policy
+revision for inline subscriptions. Display the policy and collect acceptance
+before enabling the hook; do not fill the revision automatically. Hosted and
+embedded Checkout display the same revision beside the payment button. Existing
+agreements retain their earlier commitments.
 
 3DS / SCA uses Stripe's default inline challenge. Test card `4000 0027 6000 3184`.
 

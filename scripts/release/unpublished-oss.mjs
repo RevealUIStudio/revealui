@@ -4,8 +4,8 @@
  *
  * OIDC trusted publishing and `npm stage publish` both require the package
  * name to already exist (npm docs 2026-09). A brand-new name cannot be
- * created by release.yml. First publish is owner-gated: interactive 2FA
- * once, then register the GitHub Actions trusted publisher, then OIDC.
+ * created by release.yml. The missing canonical first-publication contract is
+ * owner work under GAP-501; this command reports availability only.
  *
  *   node scripts/release/unpublished-oss.mjs          # report, exit 0
  *   node scripts/release/unpublished-oss.mjs --strict # exit 1 if any unpublished
@@ -43,15 +43,5 @@ if (unpublished.length === 0) {
 
 console.log('[unpublished-oss] packages not on npm (OIDC/stage cannot create them):');
 for (const name of unpublished) console.log(`  - ${name}`);
-console.log(`
-First-publish bootstrap (owner, 2FA, no long-lived NPM_TOKEN):
-  1. From a built checkout of main: npm login (interactive 2FA)
-  2. pnpm --filter <pkg> publish --access public --provenance
-  3. On npmjs.com → package Settings → Trusted Publisher:
-       GitHub Actions / RevealUIStudio / revealui / release.yml / env npm-publish
-       After 2026-09-03, new configs default to npm stage publish; also allow
-       npm publish only if this package must skip staging.
-  4. Publishing access: require 2FA and disallow tokens
-  5. Further versions: gh workflow run release.yml --ref main
-`);
+console.log('\nCanonical first-publication capability is unavailable (GAP-501 owner work). release.yml cannot create these package names. This read-only report does not publish packages or provide a parallel bootstrap path.');
 process.exit(STRICT ? 1 : 0);

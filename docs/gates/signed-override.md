@@ -30,7 +30,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_revealfleet_override -C override@revealui.com
 Return only the contents of `~/.ssh/id_revealfleet_override.pub` or the public
 allowed-signers entry. The `.pub` suffix matters.
 
-Set the repository Actions variable `REVFLEET_OVERRIDE_SIGNERS` to the public
+Set the repository Actions variable `REVEALFLEET_OVERRIDE_SIGNERS` to the public
 allowed-signers entry. It has this shape (replace the placeholder with the
 owner's real public key; this is not an activation value):
 
@@ -41,6 +41,28 @@ owner@revealui.com namespaces="revealfleet-override" ssh-ed25519 PUBLIC_KEY_BASE
 An absent trust anchor denies override authorization. The signature cannot
 supply its own trust anchor. Repository-variable administration remains an
 owner action; code delivery does not activate the key or change rulesets.
+
+### Canonical configuration cutover
+
+Repository-variable administration owns the configuration migration. Rename the
+existing GitHub Actions repository variable to `REVEALFLEET_OVERRIDE_SIGNERS`
+through the supported repository-variable editor/API, preserving the identical
+public allowed-signers entry. Coordinate this cutover with every consuming
+repository's security-gate workflow and CLI source. Do not create a second
+variable or key. There is no legacy-variable fallback in the verifier; a
+consumer that has not completed its cutover remains blocked.
+
+Validation requires each consumer's deployed workflow to supply the canonical
+variable, a current exact-head owner grant to verify using the unchanged public
+anchor, and legacy-only or missing configuration to deny authorization. Record
+the actual repository-variable change and fresh gate results before claiming the
+cutover is complete. Source tests and a merged code change do not establish
+GitHub settings activation.
+
+This is a configuration identifier migration. It does not change the canonical
+payload bytes, SSHSIG namespace, comment envelope, key, owner identity, expiry,
+or exact-head binding. Existing valid owner signatures remain bound to their
+original context; a different PR head still requires its own owner signature.
 
 ## Prepare, sign and attach
 
@@ -64,6 +86,7 @@ ssh-keygen -Y sign -f ~/.ssh/id_revealfleet_override \
 Only the public payload and signature return to the helper. Posting checks that
 the PR still has the signed head, then wraps the signature in the existing
 `REVEALFLEET-OVERRIDE-BEGIN` and `REVEALFLEET-OVERRIDE-END` comment envelope.
+That posted comment does not clear the security review gate.
 
 ```bash
 pnpm exec tsx scripts/gates/signed-override/cli.ts post \
@@ -72,7 +95,15 @@ pnpm exec tsx scripts/gates/signed-override/cli.ts post \
   --signature-file /tmp/owner-override.payload.sig
 ```
 
-Request the normal gate reevaluation through its supported PR label event.
+The security review gate reads this same envelope as a review-controller
+receipt for the pull request's exact head. It does not read it from pull
+request comments. Labels and reviews do not grant clearance. A live
+request-changes hold still wins. Receipt mode uses `REVIEW_RECEIPT_REPO` and
+`REVIEW_RECEIPT_REF`. While either is unset, no receipt is loaded. Signer
+bytes come from `REVIEW_RECEIPT_SIGNERS`, or from `REVEALFLEET_OVERRIDE_SIGNERS`
+when that dedicated variable is unset. The object path is
+`receipts/<owner>/<name>/<pr>/<head>` on the configured ref.
+
 A new head requires a new owner signature. These payload files are disposable
 public authorization artifacts, not an operational workaround.
 

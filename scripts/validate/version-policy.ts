@@ -167,7 +167,9 @@ if (violations.length === 0) {
   console.log('\nAll version changes must go through changesets:');
   console.log('  pnpm changeset          # create a changeset');
   console.log('  pnpm changeset:version  # apply version bumps');
-  console.log('  pnpm release:oss        # publish OSS packages');
-  console.log('  pnpm release:pro        # publish Pro packages');
+  console.log(
+    '  OSS publication: owner runs Actions > Release OSS Packages (release.yml on main, OIDC/npm-publish)',
+  );
+  console.log('  Pro publication: canonical OIDC capability remains tracked under GAP-501');
   process.exit(1);
 }

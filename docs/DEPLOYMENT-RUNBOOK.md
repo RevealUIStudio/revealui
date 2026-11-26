@@ -150,7 +150,7 @@ For urgent production fixes that cannot wait for the standard test-to-main flow.
    git checkout test
    git pull origin test
    git merge main
-   git push origin test
+   pnpm push test origin
    ```
 
 ---
@@ -183,7 +183,7 @@ If a code-level revert is needed:
 ```bash
 git checkout main
 git revert <commit-sha>    # revert the problematic merge commit
-git push origin main        # triggers deploy.yml with the reverted code
+pnpm push main origin        # triggers deploy.yml with the reverted code
 ```
 
 ### Database Rollback
@@ -426,7 +426,7 @@ For security incidents, data breaches, or critical production failures, follow t
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
 | CI | `ci.yml` | Push/PR to test, main | Quality gate (lint, typecheck, test, build) |
-| Deploy | `deploy.yml` | Push to main, manual | Production deployment to Vercel |
+| Deploy | `deploy.yml` | Push to main; manual dispatch of refs/heads/main only | Production deployment to Vercel |
 | Deploy Test | `deploy-test.yml` | Manual (workflow_dispatch) | Preview deployment for QA |
 | Release OSS | `release.yml` | Manual (workflow_dispatch) | Production npm publish with provenance |
 | Security | `security.yml` | Scheduled, manual | CodeQL, Gitleaks, dependency audit |

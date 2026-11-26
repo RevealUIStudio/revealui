@@ -10,6 +10,10 @@
  * Session path already returns full DB user (includes `_json` + `emailVerified`).
  * Device-token path selects the same load-bearing fields.
  */
+import { isPlatformSuperAdmin } from '@revealui/utils/validation';
+
+export { isPlatformSuperAdmin } from '@revealui/utils/validation';
+
 export interface ApiAuthUser {
   id: string;
   email?: string | null;
@@ -17,28 +21,6 @@ export interface ApiAuthUser {
   role: string;
   emailVerified?: boolean | null;
   _json?: unknown;
-}
-
-function rolesFromJson(json: unknown): string[] {
-  if (!json || typeof json !== 'object' || Array.isArray(json)) {
-    return [];
-  }
-  const roles = (json as { roles?: unknown }).roles;
-  if (!Array.isArray(roles)) {
-    return [];
-  }
-  return roles.filter((role): role is string => typeof role === 'string');
-}
-
-/**
- * Platform founder / super-admin from the admin engine's `_json.roles` plane.
- * Not a tenant `owner` — out-of-band platform elevation (GAP-444 A2).
- * Requires verified email so an unverified row cannot elevate.
- */
-export function isPlatformSuperAdmin(user: ApiAuthUser | null | undefined): boolean {
-  if (!user) return false;
-  if (user.emailVerified !== true) return false;
-  return rolesFromJson(user._json).includes('super-admin');
 }
 
 /**

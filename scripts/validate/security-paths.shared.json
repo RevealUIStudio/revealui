@@ -43,6 +43,11 @@
     "scripts/validate/sec-audit-label-decision",
     "scripts/validate/guardrail2-verdict",
     "scripts/validate/security-paths",
+    "scripts/git-hooks/",
+    "packages/scripts/exec.ts",
+    "scripts/gates/",
+    ".husky/pre-push",
+    "package.json",
     ".github/workflows/security-review-gate",
     ".github/workflows/sec-audit-label-guard",
     ".github/workflows/security.yml",
@@ -53,6 +58,10 @@
     "packages/db/src/schema/audit-log",
     "packages/db/src/audit-store",
     "packages/db/migrations/",
-    "packages/apify-actor-governed-run/"
+    "packages/apify-actor-governed-run/",
+    "scripts/validate/raw-sql-allowlist.json",
+    "scripts/sync/secret-paths.ts",
+    "scripts/ci/run-base-validators.mjs",
+    ".github/workflows/ci.yml"
   ]
 }

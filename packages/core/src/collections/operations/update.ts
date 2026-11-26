@@ -323,7 +323,7 @@ export async function update(
     }
 
     // Return updated document (use idString for consistency)
-    const updatedDoc = await findByID(config, db, { id: idString });
+    const updatedDoc = await findByID(config, db, { id: idString, req: options.req });
     if (!updatedDoc) {
       throw new Error(`Document with id ${idString} not found after update`);
     }

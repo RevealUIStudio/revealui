@@ -1,14 +1,52 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   extractFences,
   loadExportsFromDts,
+  loadPackageExports,
   moduleSubpath,
   parseImports,
+  validateImports,
 } from '../docs-import-drift.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../../..');
+
+describe('declared package paths without build outputs', () => {
+  it('retains supported subpaths for inconclusive build detection while rejecting undeclared imports', () => {
+    const exists = fs.existsSync;
+    const missingBuild = vi
+      .spyOn(fs, 'existsSync')
+      .mockImplementation((file) => (String(file).includes('/dist/') ? false : exists(file)));
+    try {
+      const manifest = loadPackageExports('@revealui/router');
+      const supported = manifest?.subpaths.get('./server-ssr');
+      expect(supported).toBe(path.join(ROOT, 'packages/router/dist/server-ssr.d.ts'));
+      expect(supported && fs.existsSync(supported)).toBe(false);
+      expect(manifest?.subpaths.has('./unpublished-server')).toBe(false);
+      const result = validateImports(
+        parseImports(
+          [
+            "import { createSSRHandler } from '@revealui/router/server-ssr';",
+            "import { createSSRHandler } from '@revealui/router/unpublished-server';",
+          ].join('\n'),
+          'fixture.md',
+          1,
+        ),
+      );
+      expect([...result.skippedNoDts]).toEqual(['@revealui/router']);
+      expect(result.findings).toEqual([
+        expect.objectContaining({
+          module: '@revealui/router/unpublished-server',
+          missing: 'createSSRHandler',
+          reason: 'unknown-subpath',
+        }),
+      ]);
+    } finally {
+      missingBuild.mockRestore();
+    }
+  });
+});
 
 describe('extractFences', () => {
   it('pulls out ts/tsx/typescript fences with line numbers', () => {
@@ -88,12 +126,30 @@ describe('moduleSubpath', () => {
 describe('loadExportsFromDts — against real workspace', () => {
   const securityDts = path.join(ROOT, 'packages/security/dist/index.d.ts');
 
-  it('loads a real dist .d.ts and extracts a non-trivial set of exports', () => {
-    // Skip if dist hasn't been built (e.g. fresh clone).
-    if (!fs.existsSync(securityDts)) return;
+  it('checks the real client-safe and server security exports independently', () => {
+    expect(fs.existsSync(securityDts)).toBe(true);
     const names = loadExportsFromDts(securityDts);
     expect(names.size).toBeGreaterThan(10);
-    // AuditSystem is a stable public export that should persist across refactors.
-    expect(names.has('AuditSystem')).toBe(true);
+    expect(names.has('AuthorizationSystem')).toBe(true);
+    expect(names.has('AuditSystem')).toBe(false);
+
+    const result = validateImports(
+      parseImports(
+        [
+          "import { AuditSystem } from '@revealui/security/server';",
+          "import { AuditSystem } from '@revealui/security';",
+        ].join('\n'),
+        'fixture.md',
+        1,
+      ),
+    );
+    expect(result.skippedNoDts.size).toBe(0);
+    expect(result.findings).toEqual([
+      expect.objectContaining({
+        module: '@revealui/security',
+        missing: 'AuditSystem',
+        reason: 'not-exported',
+      }),
+    ]);
   });
 });

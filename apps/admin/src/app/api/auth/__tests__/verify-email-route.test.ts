@@ -376,6 +376,7 @@ describe('GET /api/auth/verify-email', () => {
         emailVerified: true,
         emailVerificationToken: null,
       }),
+      { verificationTokenHash: createHash('sha256').update('valid-token').digest('hex') },
     );
   });
 

@@ -7,23 +7,28 @@
 
 import { validateBlocks } from '@revealui/contracts/content-validation';
 import { PAGE_STATUSES } from '@revealui/contracts/entities';
+import { getExplicitDeploymentMode } from '@revealui/core/deployment-mode';
 import * as pageQueries from '@revealui/db/queries/pages';
 import * as siteQueries from '@revealui/db/queries/sites';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { hasApiRole } from '../../lib/api-roles.js';
 import { asNonEmptyTuple } from '../../lib/type-guards.js';
+import { noStoreCacheMiddleware } from '../../middleware/cache-control.js';
 import {
   ErrorSchema,
   IdParam,
+  PageCreateSchema,
+  PagePatchSchema,
   SiteIdParam,
-  SlugField,
   ValidationErrorSchema,
 } from '../_helpers/content-schemas.js';
 import { dateToString, nullableDateToString } from '../_helpers/serialize.js';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
+
+// Publication can change audience at any time; authenticated content is never shared-cacheable.
+app.use('*', noStoreCacheMiddleware());
 
 // =============================================================================
 // Page Schemas
@@ -77,6 +82,79 @@ function serializePage(
 // Page Routes
 // =============================================================================
 
+// Collection read spans the authenticated owner's sites. Onboarding therefore
+// observes a creator's first page even when another owned site is selected.
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/pages',
+    tags: ['content'],
+    summary: 'List pages across owned sites',
+    request: {
+      query: z.object({
+        siteId: z.string().min(1).optional(),
+        status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
+        createdByMe: z.enum(['true', 'false']).optional(),
+        limit: z.coerce.number().int().min(1).max(100).default(50),
+        offset: z.coerce.number().int().min(0).default(0),
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(PageSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
+          },
+        },
+        description: 'Page list',
+      },
+      401: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Authentication required',
+      },
+      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
+      404: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Site not found',
+      },
+    },
+  }),
+  async (c) => {
+    const db = c.get('db');
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Authentication required' });
+    const { siteId, status, createdByMe, limit, offset } = c.req.valid('query');
+    const scope = {
+      siteId,
+      status,
+      access: { actor: user, mode: getExplicitDeploymentMode() },
+      ...(createdByMe === 'true' ? { createdBy: user.id } : {}),
+    };
+    const [data, totalDocs] = await Promise.all([
+      pageQueries.getPages(db, { ...scope, limit, offset }),
+      pageQueries.countPages(db, scope),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data: data.map(serializePage),
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
+  },
+);
+
 // GET /sites/:siteId/pages
 app.openapi(
   createRoute({
@@ -88,6 +166,7 @@ app.openapi(
       params: SiteIdParam,
       query: z.object({
         status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional().openapi({ example: 'published' }),
+        createdByMe: z.enum(['true', 'false']).optional(),
       }),
     },
     responses: {
@@ -109,21 +188,23 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     const { siteId } = c.req.valid('param');
-    const { status } = c.req.valid('query');
+    const { status, createdByMe } = c.req.valid('query');
     const site = await siteQueries.getSiteById(db, siteId);
     if (!site) throw new HTTPException(404, { message: 'Site not found' });
-    if (!user) {
-      // Public access: only published pages from published sites
-      if (site.status !== 'published') {
-        throw new HTTPException(404, { message: 'Site not found' });
-      }
-      const data = await pageQueries.getPagesBySite(db, siteId, { status: 'published' });
-      return c.json({ success: true as const, data: data.map(serializePage) }, 200);
+    if (!user && createdByMe === 'true')
+      throw new HTTPException(401, { message: 'Authentication required' });
+    if (
+      !(await siteQueries.actorCanReadSite(db, user ?? null, siteId, getExplicitDeploymentMode(), {
+        includePublic: true,
+      }))
+    ) {
+      throw new HTTPException(404, { message: 'Site not found' });
     }
-    if (!hasApiRole(user, 'admin') && site.ownerId !== user.id) {
-      throw new HTTPException(403, { message: 'Forbidden' });
-    }
-    const data = await pageQueries.getPagesBySite(db, siteId, { status });
+    const data = await pageQueries.getPagesBySite(db, siteId, {
+      status,
+      access: { actor: user ?? null, mode: getExplicitDeploymentMode(), includePublic: true },
+      ...(createdByMe === 'true' && user ? { createdBy: user.id } : {}),
+    });
     return c.json({ success: true as const, data: data.map(serializePage) }, 200);
   },
 );
@@ -140,16 +221,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              title: z.string().min(1).max(500),
-              slug: SlugField,
-              path: z.string().min(1).max(500),
-              status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
-              parentId: z.string().optional(),
-              templateId: z.string().optional(),
-              blocks: z.array(z.unknown()).optional(),
-              seo: z.record(z.string(), z.unknown()).optional(),
-            }),
+            schema: PageCreateSchema,
           },
         },
       },
@@ -186,13 +258,21 @@ app.openapi(
     }
     const existingSite = await siteQueries.getSiteById(db, siteId);
     if (!existingSite) throw new HTTPException(404, { message: 'Site not found' });
-    if (!hasApiRole(user, 'admin') && existingSite.ownerId !== user.id) {
+    if (
+      !(await siteQueries.actorCanManageSite(
+        db,
+        user,
+        existingSite.id,
+        getExplicitDeploymentMode(),
+      ))
+    ) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     const page = await pageQueries.createPage(db, {
       id: crypto.randomUUID(),
       siteId,
       ...body,
+      createdBy: user.id,
     });
     // biome-ignore lint/style/noNonNullAssertion: createPage always returns the created row
     return c.json({ success: true as const, data: serializePage(page!) }, 201);
@@ -221,21 +301,12 @@ app.openapi(
     const db = c.get('db');
     const user = c.get('user');
     const { id } = c.req.valid('param');
-    const page = await pageQueries.getPageById(db, id);
+    const page = await pageQueries.getPageById(db, id, {
+      actor: user ?? null,
+      mode: getExplicitDeploymentMode(),
+      includePublic: true,
+    });
     if (!page) throw new HTTPException(404, { message: 'Page not found' });
-    if (!user) {
-      // Public access: only published pages
-      if (page.status !== 'published') {
-        throw new HTTPException(404, { message: 'Page not found' });
-      }
-      return c.json({ success: true as const, data: serializePage(page) }, 200);
-    }
-    if (!hasApiRole(user, 'admin')) {
-      const site = await siteQueries.getSiteById(db, page.siteId);
-      if (!site || site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
-    }
     return c.json({ success: true as const, data: serializePage(page) }, 200);
   },
 );
@@ -252,17 +323,7 @@ app.openapi(
       body: {
         content: {
           'application/json': {
-            schema: z.object({
-              title: z.string().min(1).max(500).optional(),
-              slug: SlugField.optional(),
-              path: z.string().min(1).max(500).optional(),
-              status: z.enum(asNonEmptyTuple(PAGE_STATUSES)).optional(),
-              parentId: z.string().nullable().optional(),
-              templateId: z.string().nullable().optional(),
-              blocks: z.array(z.unknown()).optional(),
-              seo: z.record(z.string(), z.unknown()).nullable().optional(),
-              publishedAt: z.string().datetime().nullable().optional(),
-            }),
+            schema: PagePatchSchema,
           },
         },
       },
@@ -288,11 +349,10 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
-    if (!hasApiRole(user, 'admin')) {
-      const site = await siteQueries.getSiteById(db, existing.siteId);
-      if (!site || site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
+    const site = await siteQueries.getSiteById(db, existing.siteId);
+    if (!site) throw new HTTPException(404, { message: 'Page not found' });
+    if (!(await siteQueries.actorCanManageSite(db, user, site.id, getExplicitDeploymentMode()))) {
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
     const body = c.req.valid('json');
     // Validate blocks for dangerous URLs, excessive nesting, and payload size
@@ -343,11 +403,10 @@ app.openapi(
     const { id } = c.req.valid('param');
     const existing = await pageQueries.getPageById(db, id);
     if (!existing) throw new HTTPException(404, { message: 'Page not found' });
-    if (!hasApiRole(user, 'admin')) {
-      const site = await siteQueries.getSiteById(db, existing.siteId);
-      if (!site || site.ownerId !== user.id) {
-        throw new HTTPException(403, { message: 'Forbidden' });
-      }
+    const site = await siteQueries.getSiteById(db, existing.siteId);
+    if (!site) throw new HTTPException(404, { message: 'Page not found' });
+    if (!(await siteQueries.actorCanManageSite(db, user, site.id, getExplicitDeploymentMode()))) {
+      throw new HTTPException(403, { message: 'Forbidden' });
     }
     await pageQueries.deletePage(db, id);
     return c.json({ success: true as const, message: 'Page deleted' }, 200);

@@ -37,11 +37,9 @@ const dirname = path.dirname(filename);
 
 // Get shared config as fallback for serverURL and secret
 const sharedConfig = getSharedCMSConfig();
-// Share the Drizzle client's pg.Pool with the CMS adapter so both systems
-// use a single connection pool. This eliminates dual-pool issues where env
-// overrides (probe DB, custom DBs) only reach one system.
-// Resolved lazily via poolFactory to avoid pulling @revealui/db/client into
-// the top-level module graph (causes Turbopack async module init issues).
+// Share the Drizzle owner's captured database configuration and transaction
+// lease with the CMS adapter through the maintained pool. Resolve the pool and
+// context lazily because eager DB imports cause Turbopack async initialization issues.
 const dbAdapter =
   process.env.NODE_ENV === 'test'
     ? universalPostgresAdapter({
@@ -53,10 +51,14 @@ const dbAdapter =
           const { getRestPool } = await import('@revealui/db/client');
           return getRestPool();
         },
+        transactionContext: async (pool) => {
+          const { getTransactionContext } = await import('@revealui/db/client');
+          return getTransactionContext(pool);
+        },
       });
 // Lazy typed-storage seam: resolve on each call, not at module load.
-// CLI seeds call loadSeedEnv() after importing this config module; if we
-// snapshot createTypedCollectionStorage() here, POSTGRES_URL is often still
+// Some consumers load their environment after importing this module; if we
+// snapshot createTypedCollectionStorage() here, POSTGRES_URL can still be
 // unset and pages writes fall through to dynamic SQL (which expects a Payload-
 // style `_status` column the canonical `pages.status` table does not have).
 type TypedStorage = NonNullable<ReturnType<typeof createTypedCollectionStorage>>;

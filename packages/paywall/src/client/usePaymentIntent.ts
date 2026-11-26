@@ -6,6 +6,12 @@ export interface UsePaymentIntentOptions {
   amount?: number;
   currency?: string;
   fetchImpl?: typeof fetch;
+  /** Defer intent creation until the buyer has accepted the displayed policy. */
+  enabled?: boolean;
+  tier?: 'pro' | 'max' | 'enterprise';
+  interval?: 'month' | 'year';
+  priceId?: string;
+  acceptedSupportPolicyRevision?: string;
 }
 
 export interface UsePaymentIntentResult {
@@ -26,7 +32,14 @@ export function usePaymentIntent(opts: UsePaymentIntentOptions = {}): UsePayment
 
   useEffect(() => {
     let cancelled = false;
+    if (opts.enabled === false) {
+      setLoading(false);
+      setClientSecret(null);
+      setError(null);
+      return;
+    }
     setLoading(true);
+    setClientSecret(null);
     void (async () => {
       try {
         const res = await fetchImpl(endpoint, {
@@ -36,6 +49,10 @@ export function usePaymentIntent(opts: UsePaymentIntentOptions = {}): UsePayment
             subscriptionId: opts.subscriptionId,
             amount: opts.amount,
             currency: opts.currency,
+            tier: opts.tier,
+            interval: opts.interval,
+            priceId: opts.priceId,
+            acceptedSupportPolicyRevision: opts.acceptedSupportPolicyRevision,
           }),
         });
         if (!res.ok) {
@@ -56,7 +73,18 @@ export function usePaymentIntent(opts: UsePaymentIntentOptions = {}): UsePayment
     return () => {
       cancelled = true;
     };
-  }, [endpoint, opts.subscriptionId, opts.amount, opts.currency, fetchImpl]);
+  }, [
+    endpoint,
+    opts.subscriptionId,
+    opts.amount,
+    opts.currency,
+    opts.tier,
+    opts.interval,
+    opts.priceId,
+    opts.acceptedSupportPolicyRevision,
+    opts.enabled,
+    fetchImpl,
+  ]);
 
   return { clientSecret, loading, error };
 }

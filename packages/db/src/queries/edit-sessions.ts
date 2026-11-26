@@ -9,7 +9,7 @@
  * the note in `core/collections/operations/snapshot.ts`.
  */
 
-import { and, asc, desc, eq, gt, inArray, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, ne, or } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import {
   type EditSession,
@@ -20,6 +20,7 @@ import {
   editSessions,
 } from '../schema/edit-sessions.js';
 import { type Page, pageRevisions, pages } from '../schema/pages.js';
+import { getSiteIdsForContentRead, type SiteReadAccess } from './sites.js';
 
 // =============================================================================
 // Sessions
@@ -40,9 +41,17 @@ export async function getEditSessionById(db: Database, id: string): Promise<Edit
 
 export async function listEditSessions(
   db: Database,
-  filter: { status?: string; siteId?: string } = {},
+  filter: { status?: string; siteId?: string; access?: SiteReadAccess } = {},
 ): Promise<EditSession[]> {
   const conditions = [
+    ...(filter.access
+      ? [
+          inArray(
+            editSessions.siteId,
+            getSiteIdsForContentRead(db, filter.access.actor, filter.access.mode, { draft: true }),
+          ),
+        ]
+      : []),
     ...(filter.status ? [eq(editSessions.status, filter.status)] : []),
     ...(filter.siteId ? [eq(editSessions.siteId, filter.siteId)] : []),
   ];
@@ -94,6 +103,24 @@ export async function getSessionDocs(db: Database, sessionId: string): Promise<E
     .from(editSessionDocs)
     .where(eq(editSessionDocs.sessionId, sessionId))
     .orderBy(asc(editSessionDocs.docType), asc(editSessionDocs.docId));
+}
+
+/** Old overlays and moved/deleted pages cannot cross the session's site boundary. */
+export async function sessionHasValidPageScope(db: Database, sessionId: string): Promise<boolean> {
+  const [invalid] = await db
+    .select({ id: editSessionDocs.id })
+    .from(editSessionDocs)
+    .leftJoin(editSessions, eq(editSessionDocs.sessionId, editSessions.id))
+    .leftJoin(pages, eq(editSessionDocs.docId, pages.id))
+    .where(
+      and(
+        eq(editSessionDocs.sessionId, sessionId),
+        eq(editSessionDocs.docType, 'page'),
+        or(isNull(pages.id), isNotNull(pages.deletedAt), ne(pages.siteId, editSessions.siteId)),
+      ),
+    )
+    .limit(1);
+  return !invalid;
 }
 
 export async function insertSessionDoc(

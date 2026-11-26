@@ -29,6 +29,21 @@ export type HostedTier = 'free' | LicenseTier;
 export type EntitlementSource = 'stripe' | 'grant' | 'reconciler' | 'signup';
 
 /**
+ * Shared read policy for account entitlements. Only renewal-related states
+ * receive grace; a recorded revocation or terminal expiry is never extended
+ * by a leftover graceUntil value. Missing and unknown statuses fail closed.
+ */
+export function isHostedEntitlementUsable(
+  status: string | null | undefined,
+  graceUntil: Date | null | undefined,
+  nowMs = Date.now(),
+): boolean {
+  if (status === 'active' || status === 'trialing') return true;
+  if (status !== 'past_due' && status !== 'canceled') return false;
+  return graceUntil != null && graceUntil.getTime() > nowMs;
+}
+
+/**
  * Known feature keys, derived from the canonical `FeatureFlags` record. Used
  * to warn on unexpected keys. Derived rather than listed: a hardcoded copy
  * drifted when vaultDesktop/vaultRotation/devkitProfiles shipped, making

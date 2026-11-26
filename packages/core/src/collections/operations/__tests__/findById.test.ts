@@ -5,7 +5,11 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { DatabaseResult, RevealCollectionConfig } from '../../../types/index.js';
+import type {
+  DatabaseResult,
+  RevealCollectionConfig,
+  RevealRequest,
+} from '../../../types/index.js';
 import { findByID } from '../findById.js';
 
 describe('findByID operation', () => {
@@ -117,6 +121,18 @@ describe('findByID operation', () => {
     expect(result).toEqual({ id: 'typed-1', title: 'Typed Doc' });
     expect(typedDb.collectionStorage.findByID).toHaveBeenCalledWith(mockConfig, { id: 'typed-1' });
     expect(typedDb.query).not.toHaveBeenCalled();
+  });
+
+  it('forwards the trusted request to direct typed ID reads', async () => {
+    const req: RevealRequest = {
+      user: { id: 'owner', email: 'owner@example.test' },
+      context: { requestId: 'read-owner' },
+    };
+    const read = vi.fn().mockResolvedValue({ id: 'owned' });
+    const db = { query: vi.fn(), collectionStorage: { findByID: read } };
+    await findByID(mockConfig, db as never, { id: 'owned', req });
+    expect(read).toHaveBeenCalledWith(mockConfig, { id: 'owned', req });
+    expect(db.query).not.toHaveBeenCalled();
   });
 
   it('should fall back to SQL when typed collection storage opts out', async () => {
