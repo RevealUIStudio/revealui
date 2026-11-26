@@ -79,7 +79,7 @@
       "qs": ">=6.16.0",
       "axios": ">=1.20.0",
       "apify>@crawlee/core": "3.18.2",
-      "follow-redirects": ">=1.16.1 <2",
+      "follow-redirects": ">=1.16.2 <2",
       "h3": ">=1.15.5",
       "on-headers": ">=1.1.0",
       "tmp": ">=0.2.6",
