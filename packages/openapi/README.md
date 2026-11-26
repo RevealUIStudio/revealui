@@ -73,16 +73,25 @@ app.openapi(route, (c) => c.json({ id: '1', name: 'test' }, 201));
 
 ## Contracts mirror — cross-language codegen pipeline (F8 Phase 3)
 
-The package also ships a build-time emitter that mirrors every `@revealui/contracts` Zod schema as an OpenAPI 3.1 doc, suitable for `oapi-codegen` (Go) and `progenitor` (Rust) consumers.
+The package also ships a build-time emitter that mirrors the registered `@revealui/contracts` Zod schemas as an OpenAPI 3.1 document. Go and Rust consumers must qualify their pinned generators against this dialect and the actual schema features before adopting a refreshed mirror.
 
 ```bash
 pnpm --filter @revealui/openapi emit:contracts        # write contracts.openapi.json
 pnpm --filter @revealui/openapi check:contracts       # exit non-zero on drift (CI gate)
 ```
 
-The committed `contracts.openapi.json` is the single source of truth — Go and Rust clients regenerate type bindings from it, replacing per-language hand-mirrors with codegen from the canonical contracts. The CI gate `Contracts OpenAPI mirror drift` re-runs the emitter and fails if the regenerated output differs from the committed reference, ensuring the file stays in sync with `@revealui/contracts` schema changes.
+The committed `contracts.openapi.json` is the versioned mirror for cross-language consumers. The CI gate `Contracts OpenAPI mirror drift` re-runs the emitter and fails if the regenerated output differs from the committed reference. Review schema semantics and consumer compatibility before refreshing that reference; passing emitter tests alone does not qualify generated Go or Rust bindings.
 
 The emitter consumes `@revealui/mcp/contracts-server`'s `getContractsCatalog()` helper (added in the same PR) so the schema list is single-sourced via the contracts MCP server's registry — no risk of the OpenAPI mirror drifting from the MCP server's resource list.
+
+### Conversion and refresh policy
+
+- Request and database-insert schemas use Zod input conversion. Response and entity schemas use output conversion. Input conversion preserves pre-transform constraints; it does not implement normalization. Ordinary Zod objects accept and strip unknown input keys, so input JSON Schema does not impose output's `additionalProperties: false`.
+- The ten explicitly selected Date-bearing schemas describe `Date.toJSON()` strings. They keep nullable/optional structure and use a syntax pattern, with `x-revealui-runtime-type: Date`. JavaScript supports signed six-digit years, so this projection deliberately omits RFC3339 `format: date-time`. Calendar validity, Date bounds and business refinements require runtime validation. This is a serialization description: `validatePayload` still requires Date objects and retains its refinements. Other unsupported types and unreviewed Date checks remain conversion failures.
+- Component-local pointers and recursion are rebased to their owning component. Identified `$id` resources keep their base; external references remain unchanged and are not fetched. Only schema-valued keywords are traversed, leaving example/default data intact. Unresolved local pointers, serialization-error placeholders and unsupported dynamic-reference keywords stop emission.
+- Site output requires `visibility`; a JSON Schema `default` does not supply a missing property. Tighter timestamp patterns, request input openness, Date projections, primitive unions and added fields need consumer review. In particular, verify the pinned generator's OpenAPI 3.1 support, recursion/`$defs`, string Date handling, optionality and unknown-field behavior.
+
+The generator repair does not refresh the committed contract. The drift gate remains active until the semantic and consumer checks support a separate reference update.
 
 See the internal contracts-protocol-pyramid ADR (2026-05-03) §"Phase 3" for the full L3-OpenAPI rationale within the protocol-pyramid (L1 Zod → L2 MCP+A2A → L3 OpenAPI).
 
