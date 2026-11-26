@@ -850,7 +850,7 @@ export const claimsPart4: readonly ClaimEntry[] = [
   {
     file: 'legal/security.ts',
     exportPath: 'SECURITY_SECTIONS[1].paragraphs[0]',
-    text: 'We do not currently run a paid bug-bounty program. We are pre-revenue and cannot honestly promise bounty payouts that we may not be able to fund. If you find a material issue we will discuss recognition, swag, or (once we are revenue-generating) a discretionary reward.',
+    text: 'We do not currently run a paid bug-bounty program. Submitting a report does not guarantee compensation. If you find a material issue, we may discuss recognition or a discretionary reward.',
     evidence: [LEGAL_SECURITY_CONTENT],
   },
   {

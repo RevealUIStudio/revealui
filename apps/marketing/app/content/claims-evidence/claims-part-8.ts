@@ -107,7 +107,7 @@ export const claimsPart8: readonly ClaimEntry[] = [
   {
     file: 'status.ts',
     exportPath: 'STATUS_MONITOR.watching',
-    text: 'A separate public uptime history with subscribable incident channels is queued for after we have paying customers. Until then, this live-probe page is the honest interim.',
+    text: 'A separate public uptime history with subscribable incident channels is planned. This page currently reports live probes; it does not provide a complete incident history.',
     evidence: [STATUS_CONTENT],
   },
   {
