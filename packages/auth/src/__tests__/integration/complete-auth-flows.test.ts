@@ -131,8 +131,11 @@ describe('Complete Authentication Flow Tests', { timeout: 60_000 }, () => {
           updatedAt: new Date(),
         };
 
-        // Mock: No existing user with this email
+        // Mock: No existing user with this email, no OAuth identity, then an
+        // active account so createSession can mint.
         mockDb.limit.mockResolvedValueOnce([]);
+        mockDb.limit.mockResolvedValueOnce([]);
+        mockDb.limit.mockResolvedValueOnce([{ status: 'active', deletedAt: null }]);
 
         // Mock: Insert returns the new user
         mockDb.returning.mockResolvedValueOnce([mockUser]);
@@ -215,8 +218,11 @@ describe('Complete Authentication Flow Tests', { timeout: 60_000 }, () => {
           updatedAt: new Date(),
         };
 
-        // Mock: No existing user with this email
+        // Mock: No existing user with this email, no OAuth identity, then an
+        // active account so createSession can mint.
         mockDb.limit.mockResolvedValueOnce([]);
+        mockDb.limit.mockResolvedValueOnce([]);
+        mockDb.limit.mockResolvedValueOnce([{ status: 'active', deletedAt: null }]);
 
         // Mock: Insert returns the new user
         mockDb.returning.mockResolvedValueOnce([mockUser]);
@@ -294,12 +300,17 @@ describe('Complete Authentication Flow Tests', { timeout: 60_000 }, () => {
           id: 'user_3',
           email,
           password: hashedPassword,
+          status: 'active',
+          emailVerified: true,
+          mfaEnabled: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        // Mock: User exists with correct password
+        // Mock: User exists with correct password, then the account-status read
+        // inside createSession.
         mockDb.limit.mockResolvedValueOnce([mockUser]);
+        mockDb.limit.mockResolvedValueOnce([{ status: 'active', deletedAt: null }]);
 
         // Mock: Session creation (insert into sessions table)
         mockDb.returning.mockResolvedValueOnce([

@@ -76,6 +76,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         rate_limited: 429,
         account_locked: 423,
         email_not_verified: 403,
+        account_inactive: 403,
         database_error: 500,
         session_error: 500,
         unexpected_error: 500,

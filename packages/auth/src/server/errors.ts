@@ -41,6 +41,13 @@ export class DatabaseError extends AuthError {
   }
 }
 
+export class AccountInactiveError extends AuthError {
+  constructor(message: string = 'Account is not active') {
+    super(message, 'ACCOUNT_INACTIVE', 403);
+    this.name = 'AccountInactiveError';
+  }
+}
+
 export class TokenError extends AuthError {
   constructor(message: string = 'Token error', statusCode: number = 401) {
     super(message, 'TOKEN_ERROR', statusCode);

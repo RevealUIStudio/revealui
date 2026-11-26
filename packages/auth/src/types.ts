@@ -90,6 +90,7 @@ export type SignInResult =
         | 'database_error'
         | 'session_error'
         | 'email_not_verified'
+        | 'account_inactive'
         | 'unexpected_error';
       error: string;
     };

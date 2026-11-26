@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AccountInactiveError } from '../server/errors.js';
 import { createSession, deleteSession, getSession } from '../server/session.js';
 import { hashToken } from '../utils/token.js';
 
@@ -12,12 +13,13 @@ import { hashToken } from '../utils/token.js';
 const mockInsert = vi.fn();
 const mockDeleteWhere = vi.fn();
 const mockDeleteReturning = vi.fn();
+const mockLimit = vi.fn(() => []);
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
       from: vi.fn(() => ({
         where: vi.fn(() => ({
-          limit: vi.fn(() => []),
+          limit: mockLimit,
         })),
       })),
     })),
@@ -47,6 +49,8 @@ describe('Session Management', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset mocks to default behavior
+    mockLimit.mockReset();
+    mockLimit.mockReturnValue([]);
     mockDeleteWhere.mockReturnValue({ returning: mockDeleteReturning });
     mockDeleteReturning.mockResolvedValue([{ tokenHash: 'hashed-token' }]);
     mockInsert.mockReturnValue({
@@ -67,6 +71,7 @@ describe('Session Management', () => {
 
   describe('createSession', () => {
     it('should create a session with token', async () => {
+      mockLimit.mockReturnValueOnce([{ status: 'active', deletedAt: null }]);
       const result = await createSession('user-123', {
         persistent: true,
         userAgent: 'test-agent',
@@ -125,9 +130,11 @@ describe('Session Management', () => {
       });
 
       // Create regular session first
+      mockLimit.mockReturnValueOnce([{ status: 'active', deletedAt: null }]);
       const regular = await createSession('user-123', { persistent: false });
 
       // Create persistent session
+      mockLimit.mockReturnValueOnce([{ status: 'active', deletedAt: null }]);
       const persistent = await createSession('user-123', { persistent: true });
 
       // Verify expiration times
@@ -139,6 +146,13 @@ describe('Session Management', () => {
       // Allow some tolerance for timing
       expect(daysDifference).toBeGreaterThan(5.5); // Should be ~6 days
       expect(daysDifference).toBeLessThan(6.5); // Should be less than 7 days
+    });
+
+    it('refuses to mint a session for an inactive account', async () => {
+      mockLimit.mockReturnValueOnce([{ status: 'suspended', deletedAt: null }]);
+
+      await expect(createSession('user-123')).rejects.toBeInstanceOf(AccountInactiveError);
+      expect(mockInsert).not.toHaveBeenCalled();
     });
   });
 

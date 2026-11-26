@@ -7,6 +7,7 @@
 import bcrypt from 'bcryptjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { signIn, signUp } from '../server/auth.js';
+import { rotateSession } from '../server/session.js';
 
 // Mock database client
 const mockUser = {
@@ -140,6 +141,32 @@ describe('Authentication', () => {
         expect(result.requiresPasswordRotation).toBe(true);
         expect(result.sessionToken).toBeDefined();
       }
+    });
+
+    it('does not mint a session when the account is inactive', async () => {
+      const hashedPassword = await bcrypt.hash('correct-password', 12);
+      mockDb.select.mockReturnValue({
+        from: vi.fn(() => ({
+          where: vi.fn(() => ({
+            limit: vi.fn(() => [
+              {
+                ...mockUser,
+                password: hashedPassword,
+                emailVerified: true,
+                mfaEnabled: false,
+                status: 'suspended',
+              },
+            ]),
+          })),
+        })),
+      });
+
+      const result = await signIn('test@example.com', 'correct-password');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.reason).toBe('account_inactive');
+      }
+      expect(rotateSession).not.toHaveBeenCalled();
     });
 
     it('should return error if user has no password hash', async () => {

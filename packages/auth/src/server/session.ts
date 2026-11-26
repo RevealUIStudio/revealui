@@ -11,7 +11,7 @@ import { sessions, users } from '@revealui/db/schema';
 import { and, eq, gt, inArray, isNull, ne } from 'drizzle-orm';
 import type { Session, User } from '../types.js';
 import { hashToken } from '../utils/token.js';
-import { DatabaseError, TokenError } from './errors.js';
+import { AccountInactiveError, DatabaseError, TokenError } from './errors.js';
 import { ensureShellAdminIfAccountOwner } from './platform-roles.js';
 
 // ---------------------------------------------------------------------------
@@ -286,6 +286,24 @@ export async function createSession(
       throw new DatabaseError('Database connection failed', error);
     }
 
+    // Refuse before shell-role repair. An inactive account must not receive a
+    // session, and must not be promoted back to admin by an owner seat.
+    let account: { status: string; deletedAt: Date | null } | undefined;
+    try {
+      const [row] = await db
+        .select({ status: users.status, deletedAt: users.deletedAt })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      account = row;
+    } catch (error: unknown) {
+      logger.error('Error reading account status before session mint');
+      throw new DatabaseError('Failed to read account status', error);
+    }
+    if (!account || account.deletedAt !== null || account.status !== 'active') {
+      throw new AccountInactiveError();
+    }
+
     // GAP-473: membership owner + stale users.role=viewer must not mint a
     // session that still fails the proxy admin shell gate. Best-effort only —
     // never fail session mint if role repair fails.
@@ -349,7 +367,11 @@ export async function createSession(
     };
   } catch (err: unknown) {
     // Re-throw known errors
-    if (err instanceof DatabaseError || err instanceof TokenError) {
+    if (
+      err instanceof AccountInactiveError ||
+      err instanceof DatabaseError ||
+      err instanceof TokenError
+    ) {
       throw err;
     }
     // Wrap unknown errors
