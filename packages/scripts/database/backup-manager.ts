@@ -616,10 +616,15 @@ export async function restoreBackup(
           if (!available.includes(table)) throw new Error(`Restore table does not exist: ${table}`);
           const fields = await columns(client, table);
           schemas.set(table, fields);
-          for (const row of rows)
+          const identities = fields.filter(isIdentityColumn);
+          for (const row of rows) {
             for (const column of Object.keys(row))
               if (!fields.some((field) => field.name === column))
                 throw new Error(`Restore column does not exist: ${table}.${column}`);
+            for (const field of identities)
+              if (!Object.hasOwn(row, field.name) || row[field.name] == null)
+                throw new Error(`Missing explicit restore identity: ${table}.${field.name}`);
+          }
         }
         const ordered = await restoreOrder(client, names, clearTables);
         // Validate PostgreSQL input conversion before clearing any table.
@@ -707,38 +712,62 @@ async function syncIdentitySequences(
   fields: Column[],
   clearTables: boolean,
 ): Promise<void> {
-  const identities = fields.filter(isIdentityColumn);
-  if (!identities.length) return;
-  const relation = `${escapeIdentifier('public')}.${escapeIdentifier(table)}`;
-  const qualified = tableName(table);
-  for (const field of identities) {
+  const relation = tableName(table);
+  for (const field of fields.filter(isIdentityColumn)) {
     const column = escapeIdentifier(field.name);
-    if (clearTables) {
-      const present = await client.query<{ present: boolean }>(
-        `SELECT EXISTS (SELECT 1 FROM ONLY ${qualified}) AS present`,
-      );
-      if (present.rows[0]?.present === true) {
-        await client.query(
-          `SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence($1, $2), (SELECT MAX(${column}) FROM ONLY ${qualified}), true)`,
-          [relation, field.name],
-        );
-      } else {
-        await client.query(`ALTER TABLE ${qualified} ALTER COLUMN ${column} RESTART`);
-      }
-      continue;
-    }
-    await client.query(
-      `SELECT pg_catalog.setval(
-         pg_catalog.pg_get_serial_sequence($1, $2),
-         GREATEST(
-           (SELECT MAX(${column}) FROM ONLY ${qualified}),
-           COALESCE(pg_catalog.pg_sequence_last_value(pg_catalog.pg_get_serial_sequence($1, $2)::regclass), 0)
-         ),
-         true
-       )
-       WHERE (SELECT MAX(${column}) FROM ONLY ${qualified}) IS NOT NULL`,
+    const {
+      rows: [sequence],
+    } = await client.query<{
+      schema: string;
+      name: string;
+      start: string;
+      step: string;
+      minimum: string;
+      maximum: string;
+      supported: boolean;
+    }>(
+      `SELECT n.nspname AS schema, c.relname AS name, s.seqstart::text AS start,
+              s.seqincrement::text AS step, s.seqmin::text AS minimum,
+              s.seqmax::text AS maximum, NOT s.seqcycle AND s.seqcache = 1 AS supported
+       FROM pg_catalog.pg_sequence s
+       JOIN pg_catalog.pg_class c ON c.oid = s.seqrelid
+       JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+       WHERE s.seqrelid = pg_catalog.pg_get_serial_sequence($1, $2)::regclass`,
       [relation, field.name],
     );
+    if (!sequence?.supported)
+      throw new Error(`Missing or unsupported restore identity sequence: ${table}.${field.name}`);
+    const step = BigInt(sequence.step);
+    const increasing = step > 0n;
+    let next = BigInt(sequence.start);
+    if (!clearTables) {
+      const identifier = `${escapeIdentifier(sequence.schema)}.${escapeIdentifier(sequence.name)}`;
+      const {
+        rows: [state],
+      } = await client.query<{ value: string; is_called: boolean }>(
+        `SELECT last_value::text AS value, is_called FROM ${identifier}`,
+      );
+      if (!state) throw new Error(`Missing restore identity state: ${table}.${field.name}`);
+      next = BigInt(state.value) + (state.is_called ? step : 0n);
+    }
+    const {
+      rows: [extent],
+    } = await client.query<{ edge: string | null }>(
+      `SELECT ${increasing ? 'MAX' : 'MIN'}(${column})::text AS edge FROM ONLY ${relation}`,
+    );
+    if (!extent) throw new Error(`Missing restore identity extent: ${table}.${field.name}`);
+    if (!clearTables && extent.edge === null) continue;
+    if (extent.edge !== null) {
+      const edge = BigInt(extent.edge);
+      const distance = increasing ? edge - next : next - edge;
+      const stride = increasing ? step : -step;
+      if (distance >= 0n) next += (distance / stride + 1n) * step;
+    }
+    if (next < BigInt(sequence.minimum) || next > BigInt(sequence.maximum))
+      throw new Error(`Restore identity sequence is exhausted: ${table}.${field.name}`);
+    // RESTART is transactional, unlike setval. Identity data is always explicit,
+    // so INSERT cannot allocate from these sequences ahead of the restart.
+    await client.query(`ALTER TABLE ${relation} ALTER COLUMN ${column} RESTART WITH ${next}`);
   }
 }
 async function inputSearchPath(client: PoolClient): Promise<string> {
