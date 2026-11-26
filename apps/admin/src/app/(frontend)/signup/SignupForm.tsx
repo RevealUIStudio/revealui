@@ -1,11 +1,16 @@
 'use client';
 
 import { usePasskeyRegister } from '@revealui/auth/react';
+import {
+  SIGNUP_PASSWORD_MIN_LENGTH,
+  SignUpRequestSchema,
+  signupPasswordChecklist,
+} from '@revealui/contracts/api/auth';
 import { perpetualLicenseCheckoutPath, perpetualLicenseLabel } from '@revealui/contracts/pricing';
 import { CheckboxCVA } from '@revealui/presentation/client';
 import {
   Button,
-  FormLabel,
+  FormField,
   Heading,
   InputCVA as Input,
   PasskeyIcon,
@@ -14,9 +19,29 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { messageForPath } from '@/lib/utils/auth-field-errors';
 import { navigateAfterAuthChange } from '@/lib/utils/auth-navigation';
-import { parseLicense } from '@/lib/utils/auth-redirect';
+import { buildAuthPageHref, readAuthIntent } from '@/lib/utils/auth-redirect';
 import { apiFetch } from '@/lib/utils/csrf';
+
+function PasswordChecklist({ password, announced }: { password: string; announced: boolean }) {
+  const items = signupPasswordChecklist(password);
+  return (
+    <ul className="space-y-1 text-xs" aria-live={announced ? 'polite' : undefined}>
+      {items.map((item) => (
+        <li
+          key={item.id}
+          className={
+            item.met ? 'text-foreground' : announced ? 'text-destructive' : 'text-muted-foreground'
+          }
+        >
+          <span aria-hidden="true">{item.met ? 'Met. ' : 'Not yet. '}</span>
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 interface SignupFormProps {
   /** API base URL resolved server-side to avoid build-time env inlining. */
@@ -50,19 +75,17 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   const searchParams = useSearchParams();
   // Paid-tier deep link from marketing (?plan=pro|max|enterprise).
   // Unknown values are ignored. Enterprise is accepted but is not a
-  // self-serve trial; 2669 restricted the 7-day trial to Pro and Max.
+  // self-serve trial; the 7-day trial is Pro and Max only.
   // Perpetual Buy uses ?license= (not ?plan=) so it cannot start a trial.
-  const planParam = searchParams.get('plan');
-  const plan: 'pro' | 'max' | 'enterprise' | null =
-    planParam === 'pro' || planParam === 'max' || planParam === 'enterprise' ? planParam : null;
+  // `upgrade` is accepted as an alias. Redirects must be same-origin.
+  const { upgrade: plan, license, redirect } = readAuthIntent(searchParams);
   const trialPlan: 'pro' | 'max' | null = plan === 'pro' || plan === 'max' ? plan : null;
-  const license = parseLicense(searchParams.get('license'));
   const afterAuthDest = license
     ? perpetualLicenseCheckoutPath(license)
     : trialPlan
       ? `/account/billing?upgrade=${trialPlan}`
-      : '/welcome';
-  const loginHref = license ? `/login?license=${license}` : '/login';
+      : (redirect ?? '/welcome');
+  const loginHref = buildAuthPageHref('/login', searchParams);
   const {
     register: registerPasskey,
     isLoading: isPasskeyLoading,
@@ -73,6 +96,8 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showFieldErrors, setShowFieldErrors] = useState(false);
+  const [touched, setTouched] = useState({ name: false, email: false, password: false });
   const [tosAccepted, setTosAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
@@ -86,8 +111,22 @@ function SignupContent({ apiUrl }: SignupFormProps) {
     e.preventDefault();
     setError(null);
 
+    const passwordReady = signupPasswordChecklist(password).every((item) => item.met);
+    const parsed = SignUpRequestSchema.safeParse({
+      email,
+      password,
+      name,
+      tosAccepted,
+    });
+
     if (!tosAccepted) {
+      setShowFieldErrors(true);
       setError('You must accept the Terms of Service to create an account.');
+      return;
+    }
+
+    if (!(parsed.success && passwordReady)) {
+      setShowFieldErrors(true);
       return;
     }
 
@@ -139,16 +178,19 @@ function SignupContent({ apiUrl }: SignupFormProps) {
     setError(null);
 
     if (!email.trim()) {
+      setShowFieldErrors(true);
       setError('Please enter your email address before signing up with a passkey.');
       return;
     }
 
     if (!name.trim()) {
+      setShowFieldErrors(true);
       setError('Please enter your name before signing up with a passkey.');
       return;
     }
 
     if (!tosAccepted) {
+      setShowFieldErrors(true);
       setError('You must accept the Terms of Service to create an account.');
       return;
     }
@@ -243,6 +285,19 @@ function SignupContent({ apiUrl }: SignupFormProps) {
   }
 
   const displayError = error ?? passkeyError;
+  const fieldParsed = SignUpRequestSchema.safeParse({
+    email,
+    password,
+    name,
+    tosAccepted: true,
+  });
+  const fieldIssues = fieldParsed.success ? [] : fieldParsed.error.issues;
+  const nameError =
+    showFieldErrors || touched.name ? messageForPath(fieldIssues, 'name') : undefined;
+  const emailError =
+    showFieldErrors || touched.email ? messageForPath(fieldIssues, 'email') : undefined;
+  const showPasswordFeedback = showFieldErrors || touched.password;
+  const passwordUnmet = signupPasswordChecklist(password).some((item) => !item.met);
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -252,13 +307,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
 
       {license ? (
         <p className="text-sm text-muted-foreground">
-          Sign up to buy {perpetualLicenseLabel(license)}. Already have an account?{' '}
-          <Link
-            href={loginHref}
-            className="text-[var(--tenant-brand,#2563eb)] underline hover:opacity-80"
-          >
-            Sign in
-          </Link>
+          Sign up to buy {perpetualLicenseLabel(license)}.
         </p>
       ) : trialPlan ? (
         <p className="text-sm text-muted-foreground">
@@ -268,17 +317,16 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         <p className="text-sm text-muted-foreground">
           Enterprise is sold through sales, not a 7-day trial.
         </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Already have an account?{' '}
-          <Link
-            href="/login"
-            className="text-[var(--tenant-brand,#2563eb)] underline hover:opacity-80"
-          >
-            Sign in
-          </Link>
-        </p>
-      )}
+      ) : null}
+      <p className="text-sm text-muted-foreground">
+        Already have an account?{' '}
+        <Link
+          href={loginHref}
+          className="text-[var(--tenant-brand,#2563eb)] underline hover:opacity-80"
+        >
+          Sign in
+        </Link>
+      </p>
 
       {displayError && (
         <div
@@ -289,59 +337,56 @@ function SignupContent({ apiUrl }: SignupFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <FormLabel htmlFor="name" required>
-            Name
-          </FormLabel>
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <FormField id="name" label="Name" required error={nameError}>
           <Input
             id="name"
             type="text"
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+            onBlur={() => setTouched((current) => ({ ...current, name: true }))}
             disabled={anyLoading}
             autoComplete="name"
             required
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <FormLabel htmlFor="email" required>
-            Email
-          </FormLabel>
+        <FormField id="email" label="Email" required error={emailError}>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onBlur={() => setTouched((current) => ({ ...current, email: true }))}
             disabled={anyLoading}
             autoComplete="email"
             required
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <FormLabel htmlFor="password" required>
-            Password
-          </FormLabel>
+        <FormField
+          id="password"
+          label="Password"
+          required
+          invalid={showPasswordFeedback && passwordUnmet}
+          description={<PasswordChecklist password={password} announced={showPasswordFeedback} />}
+        >
           <PasswordInput visible={showPassword} onToggle={() => setShowPassword((v) => !v)}>
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              onBlur={() => setTouched((current) => ({ ...current, password: true }))}
               disabled={anyLoading}
               autoComplete="new-password"
               className="pr-10"
               aria-label="Password"
-              minLength={12}
+              minLength={SIGNUP_PASSWORD_MIN_LENGTH}
               required
             />
           </PasswordInput>
-          <p className="text-xs text-zinc-600">
-            Min 12 characters, uppercase, lowercase, and a number
-          </p>
-        </div>
+        </FormField>
 
         <div className="flex items-start gap-2">
           <CheckboxCVA

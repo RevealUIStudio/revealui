@@ -478,6 +478,7 @@ export {
   type SignUpRequest,
   SignUpRequestContract,
   SignUpRequestSchema,
+  signupPasswordChecklist,
 } from './api/auth.js';
 export {
   type ChatMessage,
@@ -494,6 +495,16 @@ export {
   GDPRExportRequestContract,
   GDPRExportRequestSchema,
 } from './api/gdpr.js';
+export {
+  PASSWORD_STRENGTH_MAX_LENGTH,
+  PASSWORD_STRENGTH_MIN_LENGTH,
+  type PasswordChecklistItem,
+  type PasswordValidationResult,
+  passwordStrengthChecklist,
+  SIGNUP_PASSWORD_MIN_LENGTH,
+  SIGNUP_PASSWORD_MIN_MESSAGE,
+  validatePasswordStrength,
+} from './api/password-policy.js';
 
 // =============================================================================
 // LLM Providers
