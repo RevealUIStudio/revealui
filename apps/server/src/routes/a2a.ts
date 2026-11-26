@@ -52,6 +52,7 @@ import {
   buildPaymentRequired,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
+  getX402Config,
   verifyPayment,
 } from '../middleware/x402.js';
 
@@ -408,11 +409,71 @@ app.openapi(
 );
 
 /**
+ * Commercial terms stay in code and are copied onto the discovery document
+ * only while marketplace payments are enabled (`X402_ENABLED=true`).
+ * The default posture is preview: no split and no payment method.
+ */
+const MARKETPLACE_REVENUE_SHARE = {
+  platform: 0.2,
+  developer: 0.8,
+} as const;
+
+const MARKETPLACE_PAYMENT_METHODS = ['x402-usdc'] as const;
+
+interface MarketplaceServerSummary {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  pricePerCallUsdc: string;
+  invokeUrl: string;
+}
+
+interface MarketplaceDiscoveryDocument {
+  version: string;
+  platform: string;
+  status: 'preview' | 'live';
+  paymentsEnabled: boolean;
+  registryUrl: string;
+  publishUrl: string;
+  servers: MarketplaceServerSummary[];
+  revenueShare?: { platform: number; developer: number };
+  paymentMethods?: string[];
+}
+
+function marketplaceDiscoveryDocument(
+  baseUrl: string,
+  servers: MarketplaceServerSummary[],
+  paymentsEnabled: boolean,
+): MarketplaceDiscoveryDocument {
+  const document: MarketplaceDiscoveryDocument = {
+    version: '1.0',
+    platform: 'revealui',
+    status: paymentsEnabled ? 'live' : 'preview',
+    paymentsEnabled,
+    registryUrl: `${baseUrl}/api/marketplace/servers`,
+    publishUrl: `${baseUrl}/api/marketplace/servers`,
+    servers,
+  };
+  if (paymentsEnabled) {
+    document.revenueShare = {
+      platform: MARKETPLACE_REVENUE_SHARE.platform,
+      developer: MARKETPLACE_REVENUE_SHARE.developer,
+    };
+    document.paymentMethods = [...MARKETPLACE_PAYMENT_METHODS];
+  }
+  return document;
+}
+
+/**
  * MCP Marketplace discovery (Phase 5.5).
  * GET /.well-known/marketplace.json
  *
  * Returns marketplace metadata and the registry URL for agent discovery.
  * Includes a lightweight summary of active servers for quick enumeration.
+ * While payments are off the document reports preview status and omits
+ * revenue share and payment methods. Those fields return when payments
+ * are enabled.
  */
 app.openapi(
   createRoute({
@@ -427,10 +488,12 @@ app.openapi(
             schema: z.object({
               version: z.string(),
               platform: z.string(),
+              status: z.enum(['preview', 'live']),
+              paymentsEnabled: z.boolean(),
               registryUrl: z.string(),
               publishUrl: z.string(),
-              revenueShare: z.object({ platform: z.number(), developer: z.number() }),
-              paymentMethods: z.array(z.string()),
+              revenueShare: z.object({ platform: z.number(), developer: z.number() }).optional(),
+              paymentMethods: z.array(z.string()).optional(),
               servers: z.array(
                 z.object({
                   id: z.string(),
@@ -452,14 +515,7 @@ app.openapi(
     const baseUrl = getBaseUrl(c.req.raw);
 
     // Fetch active server summaries (name, category, price only  -  not internal URLs)
-    let servers: Array<{
-      id: string;
-      name: string;
-      description: string;
-      category: string;
-      pricePerCallUsdc: string;
-      invokeUrl: string;
-    }> = [];
+    let servers: MarketplaceServerSummary[] = [];
     try {
       const db = getClient();
       const rows = await db
@@ -482,19 +538,9 @@ app.openapi(
       // DB unavailable  -  return metadata without server list
     }
 
-    return c.json(
-      {
-        version: '1.0',
-        platform: 'revealui',
-        registryUrl: `${baseUrl}/api/marketplace/servers`,
-        publishUrl: `${baseUrl}/api/marketplace/servers`,
-        revenueShare: { platform: 0.2, developer: 0.8 },
-        paymentMethods: ['x402-usdc'],
-        servers,
-      },
-      200,
-      { 'Cache-Control': 'public, max-age=60' },
-    );
+    return c.json(marketplaceDiscoveryDocument(baseUrl, servers, getX402Config().enabled), 200, {
+      'Cache-Control': 'public, max-age=60',
+    });
   },
 );
 
