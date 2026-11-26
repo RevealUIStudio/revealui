@@ -1,10 +1,32 @@
 import { useEffect } from 'react';
 import { HOME_HERO } from '../content/home';
 import type { Audience } from './audience';
+import { publishDocumentHead } from './document-head';
 import type { HomeHeroVariant } from './hero-variant';
+import { marketingCanonical } from './route-heads';
 
-function setMeta(selector: string, attr: string, value: string): void {
-  document.querySelector<HTMLElement>(selector)?.setAttribute(attr, value);
+function upsertMeta(selector: string, attr: string, value: string): void {
+  let el = document.querySelector<HTMLElement>(selector);
+  if (el === null) {
+    if (selector.startsWith('meta[')) {
+      el = document.createElement('meta');
+    } else if (selector.startsWith('link[')) {
+      el = document.createElement('link');
+    } else {
+      return;
+    }
+    const open = selector.indexOf('[');
+    const close = selector.lastIndexOf(']');
+    if (open !== -1 && close !== -1) {
+      const inner = selector.slice(open + 1, close);
+      const eq = inner.indexOf('=');
+      if (eq !== -1) {
+        el.setAttribute(inner.slice(0, eq), inner.slice(eq + 1).replaceAll('"', ''));
+      }
+    }
+    document.head.appendChild(el);
+  }
+  el.setAttribute(attr, value);
 }
 
 /** Homepage metadata follows the selected hero and restores the home canonical. */
@@ -21,20 +43,23 @@ export function useAudienceHead(audience: Audience, hero: HomeHeroVariant = HOME
     const image = `https://api.revealui.com/api/og?title=RevealUI&description=${encodeURIComponent(audience === 'technical' ? hero.h1 : description)}`;
 
     document.title = title;
-    setMeta('meta[name="description"]', 'content', description);
-    setMeta('meta[property="og:title"]', 'content', title);
-    setMeta('meta[property="og:description"]', 'content', description);
-    setMeta('meta[property="og:image"]', 'content', image);
-    setMeta('meta[property="og:image:alt"]', 'content', title);
-    setMeta('meta[name="twitter:title"]', 'content', title);
-    setMeta('meta[name="twitter:description"]', 'content', description);
-    setMeta('meta[name="twitter:image"]', 'content', image);
-    setMeta('link[rel="canonical"]', 'href', 'https://revealui.com');
-    setMeta('meta[property="og:url"]', 'content', 'https://revealui.com');
+    upsertMeta('meta[name="description"]', 'content', description);
+    upsertMeta('meta[property="og:title"]', 'content', title);
+    upsertMeta('meta[property="og:description"]', 'content', description);
+    upsertMeta('meta[property="og:image"]', 'content', image);
+    upsertMeta('meta[property="og:image:alt"]', 'content', title);
+    upsertMeta('meta[name="twitter:title"]', 'content', title);
+    upsertMeta('meta[name="twitter:description"]', 'content', description);
+    upsertMeta('meta[name="twitter:image"]', 'content', image);
+    const canonical = marketingCanonical('/');
+    upsertMeta('link[rel="canonical"]', 'href', canonical);
+    upsertMeta('meta[property="og:url"]', 'content', canonical);
+    document.head.querySelector('meta[name="robots"]')?.remove();
 
     document.documentElement.dataset.audience = audience;
     document.dispatchEvent(
       new CustomEvent('revealui:audience', { detail: { audience }, bubbles: false }),
     );
+    publishDocumentHead();
   }, [audience, hero]);
 }

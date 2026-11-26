@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { applyDocHead, buildOgUrl } from '../head';
+import { applyDocHead, buildOgUrl, docsCanonicalUrl, setRobotsNoindex } from '../head';
 
 function metaContent(attr: 'name' | 'property', key: string): string | null {
   return document.head.querySelector(`meta[${attr}="${key}"]`)?.getAttribute('content') ?? null;
@@ -19,6 +19,26 @@ describe('applyDocHead', () => {
     expect(metaContent('property', 'og:title')).toBe('Quick Start · RevealUI Docs');
     expect(metaContent('property', 'og:image')).toContain('title=Quick+Start');
     expect(metaContent('name', 'twitter:image')).toContain('title=Quick+Start');
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://docs.revealui.com/',
+    );
+    expect(metaContent('property', 'og:url')).toBe('https://docs.revealui.com/');
+  });
+
+  it('sets a self-referencing canonical for the page pathname', () => {
+    applyDocHead({ title: 'Admin Guide', pathname: '/admin-guide' });
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://docs.revealui.com/admin-guide',
+    );
+    expect(metaContent('property', 'og:url')).toBe('https://docs.revealui.com/admin-guide');
+  });
+
+  it('drops the canonical and sets noindex for not-found pages', () => {
+    applyDocHead({ title: 'Admin Guide', pathname: '/admin-guide' });
+    applyDocHead({ title: 'Not Found', noindex: true, pathname: '/missing' });
+    expect(document.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(metaContent('property', 'og:url')).toBeNull();
+    expect(metaContent('name', 'robots')).toBe('noindex, nofollow');
   });
 
   it('restores the site defaults when fields are omitted', () => {
@@ -40,6 +60,22 @@ describe('applyDocHead', () => {
     applyDocHead({ title: '   ', description: '  ' });
     expect(document.title).toBe('RevealUI Documentation');
     expect(metaContent('name', 'description') ?? '').toContain('agentic business runtime');
+  });
+});
+
+describe('docsCanonicalUrl', () => {
+  it('uses the docs origin and strips a trailing slash', () => {
+    expect(docsCanonicalUrl('/pricing/')).toBe('https://docs.revealui.com/pricing');
+    expect(docsCanonicalUrl('/')).toBe('https://docs.revealui.com/');
+  });
+});
+
+describe('setRobotsNoindex', () => {
+  it('removes the canonical while noindex is on', () => {
+    document.head.innerHTML = '<link rel="canonical" href="https://docs.revealui.com/" />';
+    setRobotsNoindex(true);
+    expect(document.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(metaContent('name', 'robots')).toBe('noindex, nofollow');
   });
 });
 

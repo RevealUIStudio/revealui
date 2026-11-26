@@ -4,6 +4,7 @@ import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { showcaseEntries } from '@/components/showcase/registry.js';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 import { useWildcardPath } from '@/hooks/useWildcardPath';
+import { applyDocHead } from '@/lib/head';
 
 const ShowcaseShell = lazy(() =>
   import('@/components/showcase/ShowcaseShell.js').then((mod) => ({
@@ -111,6 +112,33 @@ function StoryLoader({ loader }: { loader: () => Promise<{ default: ShowcaseStor
 
 export function ShowcasePage() {
   const path = useWildcardPath();
+
+  useEffect(() => {
+    if (!path || path === '') {
+      applyDocHead({
+        title: 'Component Showcase',
+        description:
+          'Interactive explorer for RevealUI presentation components, props, and variants.',
+      });
+      return;
+    }
+    if (path === 'tokens') {
+      applyDocHead({
+        title: 'Design Tokens',
+        description: 'Color, spacing, typography, radius, shadow, and motion tokens for RevealUI.',
+      });
+      return;
+    }
+    const entry = showcaseEntries.find((item) => item.slug === path);
+    if (!entry) {
+      applyDocHead({ title: 'Not Found', noindex: true });
+      return;
+    }
+    applyDocHead({
+      title: entry.name,
+      description: `${entry.name} in the RevealUI component showcase.`,
+    });
+  }, [path]);
 
   if (!path || path === '') {
     return <ShowcaseOverview />;
