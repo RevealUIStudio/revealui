@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -39,6 +39,7 @@ vi.mock('node:child_process', () => ({
 }));
 
 let output: string;
+let scratchDirectory: string | undefined;
 beforeEach(() => {
   vi.resetModules();
   state.calls = [];
@@ -57,13 +58,16 @@ beforeEach(() => {
       openApiConfiguration: {},
     };
   });
-  output = join(mkdtempSync(join(tmpdir(), 'revealui-api-bootstrap-')), 'nested', 'README.md');
+  scratchDirectory = mkdtempSync(join(tmpdir(), 'revealui-api-bootstrap-'));
+  output = join(scratchDirectory, 'nested', 'README.md');
   vi.stubEnv('DOCS_API_OUT', output);
   vi.spyOn(process, 'availableMemory').mockReturnValue(4 * 1024 ** 3);
 });
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+  if (scratchDirectory) rmSync(scratchDirectory, { recursive: true, force: true });
+  scratchDirectory = undefined;
 });
 
 describe('API documentation supported bootstrap', () => {
