@@ -38,7 +38,7 @@ const story: ShowcaseStory = {
   a11y: {
     conformance: ['WCAG 1.3.1 Info and Relationships', 'WCAG 3.3.2 Labels or Instructions'],
     notes:
-      'Always set htmlFor to the id of the control the label describes. The required asterisk is a visual cue only — also convey required state on the control itself (e.g. aria-required).',
+      'Always set htmlFor to the id of the control the label describes. The required asterisk is a visual cue only. Also convey required state on the control itself (e.g. aria-required).',
   },
 
   code: (props: Record<string, unknown>) => {

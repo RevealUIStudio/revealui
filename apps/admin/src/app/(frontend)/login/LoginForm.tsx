@@ -38,8 +38,8 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 // Success notices surfaced from query params. The email-verification link
 // (GET /api/auth/verify-email) redirects here with ?message=email_verified.
 const SUCCESS_MESSAGES: Record<string, string> = {
-  email_verified: 'Your email is verified — sign in to continue.',
-  already_verified: 'Your email is already verified — sign in to continue.',
+  email_verified: 'Your email is verified. Sign in to continue.',
+  already_verified: 'Your email is already verified. Sign in to continue.',
 };
 
 // Sign-in error code (from the API `code` field) that the login form can
