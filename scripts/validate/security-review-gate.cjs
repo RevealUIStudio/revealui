@@ -2,8 +2,11 @@
 // security-review-gate.cjs — review-before-merge gate for security-sensitive PRs.
 //
 // Policy: a pull request that touches a security-sensitive surface must carry a
-// RECORDED owner SSHSIG bound to its exact head and a request label before merge. PRs that do not touch such a surface
-// pass immediately, so this check is safe to require on every PR.
+// review-controller receipt bound to its exact head before merge. The receipt
+// is the existing owner SSHSIG envelope, verified by the shared comment
+// verifier, and it is loaded from the configured receipt object. Pull request
+// comments are not a receipt. PRs that do not touch such a surface pass
+// immediately, so this check is safe to require on every PR.
 //
 // A live guardrail-2 REQUEST-CHANGES verdict OVERRIDES the label. Verdicts are
 // posted as comments/reviews carrying a machine-parseable marker
@@ -19,8 +22,8 @@
 //                   <base> (git only; cannot see review state).
 //   (default)       --diff origin/test.
 //
-// Exit 0 = no security-sensitive change, or an owner-signed direct/covered grant.
-// Exit 1 = HOLD (live reviewer rejection, missing/invalid grant, or incomplete evidence).
+// Exit 0 = no security-sensitive change, or an exact-head review receipt.
+// Exit 1 = HOLD (live reviewer rejection, missing/invalid receipt, or incomplete evidence).
 //
 // Uses the existing shared gates resolver/build and OpenSSH verification.
 // No local signing, private-key handling, or label-only grant.
@@ -70,6 +73,107 @@ const SEC_REVIEW_LABELS = new Set([
   'security-reviewed',
   'coordinator-approved',
 ]);
+
+const REVIEW_RECEIPT_ROOT = 'receipts';
+const REVIEW_RECEIPT_MAX_BYTES = 65536;
+const RECEIPT_GATE_ID = 'sec-review';
+
+function isReceiptToken(value, max) {
+  if (typeof value !== 'string' || value.length === 0 || value.length > max) return false;
+  if (value.includes('..')) return false;
+  for (const c of value) {
+    const code = c.codePointAt(0);
+    const digit = code >= 48 && code <= 57;
+    const upper = code >= 65 && code <= 90;
+    const lower = code >= 97 && code <= 122;
+    if (!(digit || upper || lower || c === '-' || c === '_' || c === '.' || c === '/')) return false;
+  }
+  return true;
+}
+
+function isReceiptRepo(value) {
+  if (!isReceiptToken(value, 200)) return false;
+  const slash = value.indexOf('/');
+  return slash > 0 && slash === value.lastIndexOf('/') && slash < value.length - 1;
+}
+
+function isReceiptHead(value) {
+  if (typeof value !== 'string' || value.length !== 40) return false;
+  for (const c of value) {
+    const code = c.codePointAt(0);
+    const digit = code >= 48 && code <= 57;
+    const lower = code >= 97 && code <= 102;
+    if (!(digit || lower)) return false;
+  }
+  return true;
+}
+
+function receiptSigners(env = process.env) {
+  const dedicated = String(env.REVIEW_RECEIPT_SIGNERS || '').trim();
+  if (dedicated) return dedicated;
+  return String(env.REVEALFLEET_OVERRIDE_SIGNERS || '').trim();
+}
+
+function receiptModeConfig(env = process.env) {
+  const repo = String(env.REVIEW_RECEIPT_REPO || '').trim();
+  const ref = String(env.REVIEW_RECEIPT_REF || '').trim();
+  const signers = receiptSigners(env);
+  if (!repo && !ref) return { enabled: false, repo: '', ref: '', signers, reason: 'receipt-mode-unset' };
+  if (!isReceiptRepo(repo) || !isReceiptToken(ref, 200) || ref.includes('?')) {
+    return { enabled: false, repo: '', ref: '', signers, reason: 'invalid-receipt-mode' };
+  }
+  return { enabled: true, repo, ref, signers, reason: '' };
+}
+
+function reviewReceiptObjectPath(targetRepo, prNumber, head) {
+  const pr = Number(prNumber);
+  if (!isReceiptRepo(targetRepo) || !Number.isSafeInteger(pr) || pr <= 0 || !isReceiptHead(head)) return '';
+  const slash = targetRepo.indexOf('/');
+  return [REVIEW_RECEIPT_ROOT, targetRepo.slice(0, slash), targetRepo.slice(slash + 1), String(pr), head].join('/');
+}
+
+function buildReviewReceiptRequest(targetRepo, prNumber, head, env = process.env) {
+  const mode = receiptModeConfig(env);
+  if (!mode.enabled) return { enabled: false, reason: mode.reason, path: '', url: '', signers: mode.signers };
+  if (mode.ref === head) return { enabled: false, reason: 'receipt-ref-is-head', path: '', url: '', signers: mode.signers };
+  const objectPath = reviewReceiptObjectPath(targetRepo, prNumber, head);
+  if (!objectPath) return { enabled: false, reason: 'invalid-receipt-context', path: '', url: '', signers: mode.signers };
+  const apiPath = `repos/${mode.repo}/contents/${objectPath}?ref=${encodeURIComponent(mode.ref)}`;
+  return {
+    enabled: true,
+    reason: '',
+    path: apiPath,
+    url: `https://api.github.com/${apiPath}`,
+    signers: mode.signers,
+  };
+}
+
+function ghReceipt(args, token) {
+  const env = { ...process.env };
+  if (token) env.GH_TOKEN = token;
+  return execFileSync('gh', args, {
+    encoding: 'utf8',
+    timeout: 15000,
+    env,
+    maxBuffer: REVIEW_RECEIPT_MAX_BYTES + 1024,
+  });
+}
+
+function fetchReviewReceipt(targetRepo, prNumber, head, ghImpl, env = process.env) {
+  const request = buildReviewReceiptRequest(targetRepo, prNumber, head, env);
+  if (!request.enabled) return { body: '', reason: request.reason };
+  const token = String(env.REVIEW_RECEIPT_TOKEN || '').trim();
+  const run = ghImpl || ghReceipt;
+  try {
+    const body = run(['api', '--header', 'Accept: application/vnd.github.raw', request.path], token);
+    if (typeof body !== 'string' || body.length === 0 || body.length > REVIEW_RECEIPT_MAX_BYTES) {
+      return { body: '', reason: 'invalid-review-receipt' };
+    }
+    return { body, reason: '' };
+  } catch {
+    return { body: '', reason: 'missing-review-receipt' };
+  }
+}
 
 function gh(args) {
   return execFileSync('gh', args, { encoding: 'utf8', timeout: 15000 });
@@ -121,14 +225,13 @@ function classifyFiles(files) {
   return hits;
 }
 
-/** Labels/reviews request clearance; only the owner signature grants it. */
-function decideReviewGate({ verdict, labels = [], ownerVerification = { ok: false } }) {
+/** Labels and reviews do not grant clearance. Only an exact-head receipt does. */
+function decideReviewGate({ verdict, ownerVerification = { ok: false } }) {
   if (verdict && verdict.status === 'hold') {
     return { action: 'hold', kind: 'request-changes', reviewer: verdict.reviewer, timestamp: verdict.timestamp };
   }
-  const requested = labels.some((label) => SEC_REVIEW_LABELS.has(label));
-  if (requested && ownerVerification.ok === true) return { action: 'clear', kind: 'owner-signature', url: ownerVerification.url };
-  return { action: 'hold', kind: 'no-owner-signature', reason: ownerVerification.reason || (requested ? 'missing-owner-signature' : 'missing-request-label') };
+  if (ownerVerification.ok === true) return { action: 'clear', kind: 'review-receipt', url: ownerVerification.url };
+  return { action: 'hold', kind: 'no-review-receipt', reason: ownerVerification.reason || 'missing-review-receipt' };
 }
 
 /** REST pagination supplies complete discussion history, or throws closed. */
@@ -144,15 +247,23 @@ function fetchPrDiscussion(prNumber, repo, ghImpl = gh) {
   return { comments: list('comments'), reviews: list('reviews') };
 }
 
-function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners = process.env.REVEALFLEET_OVERRIDE_SIGNERS || '', verifyImpl) {
+function verifyPrOwnerRecord(data, prNumber, repo, discussion, allowedSigners, verifyImpl, receiptBody) {
   const verdict = evaluateGuardrail2({ ...discussion, authorLogin: data.author?.login || '' });
   if (verdict.status === 'hold') return decideReviewGate({ verdict });
-  const labels = (data.labels || []).map((label) => typeof label === 'string' ? label : label.name);
-  if (!labels.some((label) => SEC_REVIEW_LABELS.has(label))) return decideReviewGate({ verdict, labels });
+  const loaded = typeof receiptBody === 'string'
+    ? (receiptBody.length > 0 ? { body: receiptBody, reason: '' } : { body: '', reason: 'missing-review-receipt' })
+    : fetchReviewReceipt(repo, prNumber, data.headRefOid);
+  const signers = typeof allowedSigners === 'string' ? allowedSigners : receiptSigners();
+  if (!loaded.body) return decideReviewGate({ verdict, ownerVerification: { ok: false, reason: loaded.reason || 'missing-review-receipt' } });
   const verifier = verifyImpl || resolveGatesModule()?.verifyOwnerOverrideComments;
   if (typeof verifier !== 'function') throw new Error('shared owner-signature verifier unavailable');
-  const ownerVerification = verifier({ comments: discussion.comments, allowedSigners, expected: { repo, pr: Number(prNumber), head: data.headRefOid, gate: 'sec-review' } });
-  return decideReviewGate({ verdict, labels, ownerVerification });
+  // Discussion comments stay out of this call. The receipt text is the only envelope.
+  const ownerVerification = verifier({
+    comments: [{ body: loaded.body }],
+    allowedSigners: signers,
+    expected: { repo, pr: Number(prNumber), head: data.headRefOid, gate: RECEIPT_GATE_ID },
+  });
+  return decideReviewGate({ verdict, ownerVerification });
 }
 
 /**
@@ -236,7 +347,10 @@ function fetchCommitPulls(sha, repo, excludePrNumber, ghImpl = gh, options = {})
     if (!cache.has(number)) {
       const data = JSON.parse(ghImpl(['pr', 'view', String(number), '--repo', repo, '--json', 'labels,author,headRefOid,mergedAt']));
       const discussion = fetchPrDiscussion(number, repo, ghImpl);
-      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners ?? undefined, options.verifyImpl);
+      const receiptBody = Object.hasOwn(options, 'receiptBody')
+        ? options.receiptBody
+        : fetchReviewReceipt(repo, number, data.headRefOid, ghImpl).body;
+      const decision = verifyPrOwnerRecord(data, number, repo, discussion, options.allowedSigners, options.verifyImpl, receiptBody);
       cache.set(number, { head: data.headRefOid, merged: Boolean(data.mergedAt), decision, commits: fetchPrCommitShas(number, repo, ghImpl) });
     }
     const record = cache.get(number);
@@ -317,25 +431,25 @@ function runPrMode(prNumber, repo) {
     const discussion = fetchPrDiscussion(prNumber, target);
     const decision = verifyPrOwnerRecord(data, prNumber, target, discussion);
     if (decision.action === 'clear') {
-      process.stdout.write(`PR #${prNumber}: verified exact-head owner sec-review signature (${decision.url || 'recorded comment'}).\n`);
+      process.stdout.write(`PR #${prNumber}: verified review-controller receipt for the exact head.\n`);
       process.exitCode = 0;
       return;
     }
     if (decision.kind === 'request-changes') {
-      process.stderr.write(`HOLD — live REQUEST-CHANGES by ${decision.reviewer || 'unknown'} at ${decision.timestamp || 'unknown time'}; owner signature cannot override it.\n`);
+      process.stderr.write(`HOLD: live REQUEST-CHANGES by ${decision.reviewer || 'unknown'} at ${decision.timestamp || 'unknown time'}. A review receipt cannot clear it.\n`);
       process.exitCode = 1;
       return;
     }
     if (data.isCrossRepository === false && isPromotePr(data.baseRefName, data.headRefName)) {
       const upstream = decidePromoteUpstreamCoverage(buildPromoteCoverage(prNumber, target));
       if (upstream.action === 'clear') {
-        process.stdout.write(`PR #${prNumber}: ${upstream.coveredCount} security commits have current, signed merged-feature coverage.\n`);
+        process.stdout.write(`PR #${prNumber}: ${upstream.coveredCount} security commits have exact-head review receipts on their merged features.\n`);
         process.exitCode = 0;
         return;
       }
-      process.stderr.write(`HOLD — unsigned or expired feature coverage: ${(upstream.uncovered || []).join(', ') || upstream.kind}.\n`);
+      process.stderr.write(`HOLD: feature commits lack an exact-head review receipt: ${(upstream.uncovered || []).join(', ') || upstream.kind}.\n`);
     }
-    process.stderr.write(`HOLD — PR #${prNumber} requires a request label and an unexpired owner SSHSIG over its exact repo/PR/head/sec-review context (${decision.reason || decision.kind}). Labels and reviews alone cannot clear it.\n`);
+    process.stderr.write(`HOLD: PR #${prNumber} has no review-controller receipt for its exact head (${decision.reason || decision.kind}). Labels, reviews, and comment signatures do not clear it.\n`);
     process.exitCode = 1;
   } catch (error) {
     process.stderr.write(`HOLD — security review evidence unavailable: ${error instanceof Error ? error.message : 'unknown failure'}.\n`);
@@ -366,7 +480,7 @@ function runDiffMode(base) {
   }
   process.stderr.write(
     `Current branch is SECURITY-SENSITIVE (vs ${base}). Touched: ${[...new Set(hits)].join(', ')}\n` +
-      `   The PR will need a request label and an exact-head owner SSHSIG before merge.\n`,
+      `   The pull request needs a review-controller receipt for its exact head before merge.\n`,
   );
   process.exit(1);
 }
@@ -399,6 +513,11 @@ module.exports = {
   prRecordHasVerdict,
   fetchPrDiscussion,
   verifyPrOwnerRecord,
+  fetchReviewReceipt,
+  reviewReceiptObjectPath,
+  buildReviewReceiptRequest,
+  receiptSigners,
+  REVIEW_RECEIPT_MAX_BYTES,
   fetchCommitPulls,
   fetchPrCommitShas,
   fetchPrFiles,

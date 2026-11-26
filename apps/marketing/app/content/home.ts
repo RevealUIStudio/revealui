@@ -47,7 +47,7 @@ export const HOME_HERO = {
       'Use accounts and infrastructure you control. Hosting, database services, and model usage are separate costs.',
   },
   cta: {
-    primary: { label: 'Create a RevealUI account', href: SITE.urls.signup } satisfies Cta,
+    primary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
     secondary: { label: 'Inspect the source', href: SITE.urls.repo, external: true } satisfies Cta,
   },
 } as const;
@@ -238,8 +238,8 @@ export const HOME_GET_STARTED = {
   heading: 'Start on your machine today.',
   body: 'Create a local app with npx create-revealui@latest or a public GitHub template. Configure the services your template needs before testing your workflow. The Apify actor is a separate pay-per-event agent run, not an app installer.',
   cta: {
-    primary: { label: 'Create a RevealUI account', href: SITE.urls.signup } satisfies Cta,
-    secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
+    primary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
+    secondary: { label: 'License account', href: SITE.urls.signup } satisfies Cta,
   },
   // CLI quick-start, moved here from the hero (frontend-excellence Phase 1
   // hero declutter): a fresh stack in one command belongs next to the closing

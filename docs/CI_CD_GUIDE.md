@@ -75,7 +75,7 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 |------|---------|---------|
 | [`ci.yml`](../.github/workflows/ci.yml) | push/PR to `test`/`main` | Two-tier CI gate: quality + typecheck + tests + build (test); + integration + E2E + coverage (main) |
 | [`security.yml`](../.github/workflows/security.yml) | push/PR + weekly Mon 09:00 UTC | Native security gate: `pnpm audit`, custom secret/credential checks |
-| [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`, workflow_dispatch | Production deploy: validate → migrate → detect-affected → matrix deploy → smoke test → auto-rollback on failure |
+| [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`; `workflow_dispatch` only for `refs/heads/main` | Production deploy: validate → migrate → detect-affected → matrix deploy → smoke test → auto-rollback on failure |
 | [`deploy-test.yml`](../.github/workflows/deploy-test.yml) | workflow_dispatch | On-demand QA preview deploys (Vercel preview env, manual only) |
 | [`release.yml`](../.github/workflows/release.yml) | workflow_dispatch | OSS npm publish via OIDC trusted publishing (SLSA Build Level 2 provenance) |
 | [`docker.yml`](../.github/workflows/docker.yml) | workflow_dispatch | Build & push Fleet self-hosted Docker images (`server` + `admin`) to GHCR |
@@ -92,6 +92,8 @@ Pinned action versions and SHAs are kept in lockstep with Renovate (`renovate.js
 
 ## Production deploy (`deploy.yml`)
 
+Production jobs run only when `github.ref` is `refs/heads/main`. A manual dispatch from any other ref fails in Production ref guard before validate, migrate, or deploy. Validate, migrate, deploy, and smoke test read production secrets from the `production` environment. Keep the repository copies of `PROD_POSTGRES_URL`, `VERCEL_TOKEN`, and `VERCEL_ORG_ID` until this workflow is on `main`, then move those copies into the Production environment and limit that environment to `main`.
+
 The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workflows/deploy.yml):
 
 1. **`validate`** — install, build `@revealui/db`, run `drizzle-kit generate` to detect uncommitted schema drift; pull Vercel `production` env for the `api` project; run `pnpm validate:prod-env` (mirrors `validateStartup` in [`apps/server/src/lib/validate-startup.ts`](../apps/server/src/lib/validate-startup.ts) — presence + format checks for every required var, including the `sk_test_` / live-mode mismatch trap and the `REVEALUI_CRON_SECRET ≥ 32 chars` rule that closed GAP-125).
@@ -105,10 +107,10 @@ The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workfl
 
 | Secret | Used by | Source of truth |
 |--------|---------|-----------------|
-| `VERCEL_TOKEN` | every Vercel-touching job | revvault `revealui/prod/vercel/api-token` |
-| `VERCEL_ORG_ID` | env var | revvault |
-| `PROD_POSTGRES_URL` | `migrate` job (mirrored from Vercel `api` project's `POSTGRES_URL` because `vercel env pull` returns empty string for Sensitive vars) | revvault `revealui/prod/db/postgres-url` |
-| `TURBO_TOKEN` | turbo remote cache (falls back to `VERCEL_TOKEN`) | revvault |
+| `VERCEL_TOKEN` | validate, deploy, and smoke test, via the `production` environment | revvault `revealui/prod/vercel/api-token` |
+| `VERCEL_ORG_ID` | validate, deploy, and smoke test, via the `production` environment | revvault |
+| `PROD_POSTGRES_URL` | `migrate` job, via the `production` environment (mirrored from Vercel `api` project's `POSTGRES_URL` because `vercel env pull` returns empty string for Sensitive vars) | revvault `revealui/prod/db/postgres-url` |
+| `TURBO_TOKEN` | turbo remote cache on validate, migrate, and deploy (falls back to `VERCEL_TOKEN` on those jobs) | revvault |
 | `GITHUB_TOKEN` | provided automatically; used by `docker.yml` to push to GHCR | n/a |
 
 GitHub Actions secrets are downstream mirrors of revvault — never primary. Rotation = `revvault set --force <path>` then re-publish to GitHub Actions / Vercel.

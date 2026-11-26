@@ -38,6 +38,11 @@ Follow these conventions for ALL code in the RevealUI monorepo.
 - Bugfix: `fix/<short-description>`
 - Chore: `chore/<short-description>`
 
+### Merging into test
+- Feature pull requests into `test` use merge commits only.
+- Use `gh pr merge <number> --merge` only.
+- Never pass `--squash`, `--rebase`, `--admin`, or `--auto`.
+
 ### Identity
 - Commit as your own GitHub noreply address: `<ID>+<username>@users.noreply.github.com`. A signed commit only verifies when the committer email is a verified email on the account that holds the signing key.
 

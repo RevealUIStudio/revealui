@@ -161,7 +161,7 @@ function servicesHowWeDeliverBlock(): SectionBlock {
 }
 
 function servicesPricingIntroBlock(): SectionBlock {
-  // Engagement ladder rungs stay in EngagementPricing (prices from contracts).
+  // Studio prices stay off this product block. The button links to revealuistudio.com.
   return createSectionBlock(SERVICES_PRICING_INTRO_BLOCK_ID, FOR_OPERATORS_PRICING.heading, {
     eyebrow: FOR_OPERATORS_PRICING.eyebrow,
     body: FOR_OPERATORS_PRICING.body,

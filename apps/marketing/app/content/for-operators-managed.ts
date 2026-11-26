@@ -19,8 +19,6 @@
 import { SITE } from './site';
 import type { Cta } from './types';
 
-const AGENCY_CONTACT = `${SITE.urls.agency}/contact` as const;
-
 export const FO_MANAGED_HERO = {
   eyebrow: 'Roadmap',
   h1Lines: ['RevealUI Cloud.', 'On the roadmap.'] as const,
@@ -110,16 +108,16 @@ export const FO_MANAGED_PREREQS = {
 
 export const FO_MANAGED_TODAY = {
   eyebrow: 'If you want it today',
-  heading: 'Book the agency engagement.',
-  body: 'The path that ships, today, is the RevealUI Studio agency engagement. Discovery call → fixed-scope proposal → we build it → you get the keys. Weeks, not quarters.',
+  heading: 'Cloud is not for sale.',
+  body: 'RevealUI Cloud does not ship. Studio does not operate a customer VM. There is no booking on this page.',
   primaryCta: {
-    label: 'Book a build call',
-    href: AGENCY_CONTACT,
+    label: 'Read the roadmap',
+    href: `${SITE.urls.docs}/roadmap`,
     external: true,
   } satisfies Cta,
   detailLink: {
-    label: 'Read how the engagement works →',
-    href: '/for-operators/how-it-works',
+    label: 'Back to licenses',
+    href: '/pricing',
   } satisfies Cta,
 } as const;
 

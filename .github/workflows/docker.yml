@@ -213,6 +213,49 @@ jobs:
   # succeeded or was skipped as image-irrelevant, failure on any build
   # failure or cancellation. Required-checks live on this single context
   # because skipped matrix jobs never expand into their per-app contexts.
+
+  # The isolated review controller is never published by this workflow. Pull
+  # requests build its final image so the production dependency assembly is verified.
+  review-controller-image:
+    name: Review controller image
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Detect review controller paths
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          review_controller=false
+          while IFS= read -r f; do
+            case "$f" in
+              apps/review-controller/*|packages/harnesses/*)
+                review_controller=true
+                ;;
+            esac
+          done < <(git diff --name-only "$BASE_SHA"...HEAD)
+          echo "review_controller=$review_controller" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        if: steps.diff.outputs.review_controller == 'true'
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Build review controller image without publishing
+        if: steps.diff.outputs.review_controller == 'true'
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: apps/review-controller/Dockerfile
+          push: false
+          tags: revealui-review-controller:pr-${{ github.event.pull_request.number }}
+
   docker-images:
     name: Docker images
     runs-on: ubuntu-latest
@@ -220,15 +263,34 @@ jobs:
     needs: [changes, build-and-push]
     if: always()
     steps:
+      - name: Checkout introducing result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: head-result
+      - name: Checkout trusted result judge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            scripts/ci/required-check-result.mjs
+          sparse-checkout-cone-mode: false
+          path: trusted-result
       - name: Evaluate build matrix result
         env:
+          CHECK: docker
           RESULT: ${{ needs.build-and-push.result }}
         run: |
-          case "$RESULT" in
-            success) echo "image builds green" ;;
-            skipped) echo "image-irrelevant diff, builds skipped" ;;
-            *)
-              echo "build-and-push result: $RESULT"
-              exit 1
-              ;;
-          esac
+          set -euo pipefail
+          if [ -f trusted-result/scripts/ci/required-check-result.mjs ]; then
+            node trusted-result/scripts/ci/required-check-result.mjs
+          else
+            echo "base commit has no result judge; using the introducing copy"
+            node head-result/scripts/ci/required-check-result.mjs
+          fi

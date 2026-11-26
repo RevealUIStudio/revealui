@@ -442,6 +442,8 @@ The flow is `feature/* → test → main`:
 
 **Important**: Do NOT push directly to `test` or `main`, and do NOT open a feature PR against `main`. Base your branch on `test`, open the PR against `test`, and let a maintainer promote `test` to `main`. The promotion gate rejects any PR to `main` whose head is not `test`.
 
+Feature pull requests into `test` use merge commits only: `gh pr merge <number> --merge`. Never pass `--squash`, `--rebase`, `--admin`, or `--auto`.
+
 ## Pull Request Process
 
 1. Update the README.md with details of changes if applicable

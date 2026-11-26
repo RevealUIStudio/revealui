@@ -1,0 +1,188 @@
+import { createPrivateKey } from 'node:crypto';
+import {
+  hasReviewReceiptCiCheck,
+  hasReviewReceiptSecurityChecks,
+  type ReviewCheckSelector,
+  validReviewCheckSelector,
+} from '@revealui/security/review-receipt';
+import { validGateReceiptRef } from './gate-receipt.js';
+
+export interface ReceiptPolicy {
+  mode: 'shadow' | 'publish';
+  publicationScope?: { repositoryId: number; repositoryFullName: string; pullRequests: number[] };
+  repositoryFullName: string;
+  keyId: string;
+  privateKey: string;
+  version: string;
+  maxLifetimeMs: number;
+  requiredChecks: ReviewCheckSelector[];
+  trustedReviewer?: { login: string; id: number; policyVersion: string; model: string };
+  receiptRef?: string;
+}
+
+/** Missing mode keeps the receipt evaluator disabled; partial opt-in fails closed. */
+export function readReceiptPolicy(env: NodeJS.ProcessEnv): ReceiptPolicy | undefined {
+  const mode = env.REVIEW_RECEIPT_MODE?.trim();
+  if (!mode) {
+    if (Object.keys(env).some((name) => name.startsWith('REVIEW_RECEIPT_') && env[name]?.trim()))
+      throw new Error('REVIEW_RECEIPT_MODE is required when receipt settings are present');
+    return undefined;
+  }
+  if (mode !== 'shadow' && mode !== 'publish')
+    throw new Error('REVIEW_RECEIPT_MODE must be shadow or publish');
+
+  const keyId = required(env, 'REVIEW_RECEIPT_KEY_ID');
+  if (keyId.length > 128) throw new Error('REVIEW_RECEIPT_KEY_ID exceeds size limit');
+  const repositoryFullName = required(env, 'GITHUB_REPOSITORY_FULL_NAME');
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repositoryFullName))
+    throw new Error('GITHUB_REPOSITORY_FULL_NAME must be owner/repository');
+  let publicationScope: ReceiptPolicy['publicationScope'];
+  if (mode === 'publish') {
+    let parsedScope: unknown;
+    try {
+      parsedScope = JSON.parse(required(env, 'REVIEW_RECEIPT_PUBLICATION_SCOPE'));
+    } catch {
+      throw new Error('publish mode requires a valid REVIEW_RECEIPT_PUBLICATION_SCOPE');
+    }
+    if (typeof parsedScope !== 'object' || parsedScope === null || Array.isArray(parsedScope))
+      throw new Error('invalid receipt publication scope');
+    const scope = parsedScope as Record<string, unknown>;
+    const repositoryId = Number(env.GITHUB_REPOSITORY_ID);
+    if (
+      Object.keys(scope).sort().join(',') !== 'pullRequests,repositoryFullName,repositoryId' ||
+      !Number.isSafeInteger(repositoryId) ||
+      repositoryId <= 0 ||
+      scope.repositoryId !== repositoryId ||
+      scope.repositoryFullName !== repositoryFullName ||
+      !Array.isArray(scope.pullRequests) ||
+      scope.pullRequests.length < 1 ||
+      scope.pullRequests.length > 16 ||
+      scope.pullRequests.some((number) => !Number.isSafeInteger(number) || number <= 0) ||
+      new Set(scope.pullRequests).size !== scope.pullRequests.length
+    )
+      throw new Error('invalid receipt publication scope');
+    publicationScope = { repositoryId, repositoryFullName, pullRequests: [...scope.pullRequests] };
+  } else if (env.REVIEW_RECEIPT_PUBLICATION_SCOPE?.trim()) {
+    throw new Error('publication scope requires publish mode');
+  }
+  const privateKey = required(env, 'REVIEW_RECEIPT_PRIVATE_KEY').replace(/\\n/g, '\n');
+  if (Buffer.byteLength(privateKey, 'utf8') > 16 * 1024)
+    throw new Error('REVIEW_RECEIPT_PRIVATE_KEY exceeds size limit');
+  try {
+    if (createPrivateKey(privateKey).asymmetricKeyType !== 'ed25519')
+      throw new Error('wrong key type');
+  } catch {
+    throw new Error('REVIEW_RECEIPT_PRIVATE_KEY must be an Ed25519 private key');
+  }
+  const version = required(env, 'REVIEW_RECEIPT_POLICY_VERSION');
+  if (version.length > 128) throw new Error('REVIEW_RECEIPT_POLICY_VERSION exceeds size limit');
+  const maxLifetimeMs = Number(required(env, 'REVIEW_RECEIPT_MAX_LIFETIME_MS'));
+  if (!Number.isSafeInteger(maxLifetimeMs) || maxLifetimeMs < 60_000 || maxLifetimeMs > 86_400_000)
+    throw new Error('REVIEW_RECEIPT_MAX_LIFETIME_MS must be between 60000 and 86400000');
+
+  const rawChecks = required(env, 'REVIEW_RECEIPT_REQUIRED_CHECKS');
+  if (Buffer.byteLength(rawChecks, 'utf8') > 16 * 1024)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS exceeds size limit');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawChecks);
+  } catch {
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS must be valid JSON');
+  }
+  if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > 64)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS must contain 1 to 64 entries');
+  const requiredChecks = parsed.map((item) => {
+    if (!validReviewCheckSelector(item))
+      throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains an invalid selector');
+    return item;
+  });
+  const selectorKeys = requiredChecks.map((check) => `${check.appId}:${check.name}`);
+  if (new Set(selectorKeys).size !== selectorKeys.length)
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS contains duplicate selectors');
+  if (!hasReviewReceiptSecurityChecks(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits a mandatory security check');
+  if (!hasReviewReceiptCiCheck(requiredChecks))
+    throw new Error('REVIEW_RECEIPT_REQUIRED_CHECKS omits the trusted CI check');
+
+  const reviewerLogin = env.REVIEW_RECEIPT_REVIEWER_LOGIN?.trim();
+  const reviewerIdText = env.REVIEW_RECEIPT_REVIEWER_ID?.trim();
+  const reviewerPolicyVersion = env.REVIEW_RECEIPT_REVIEWER_POLICY_VERSION?.trim();
+  const reviewerModel = env.REVIEW_RECEIPT_REVIEWER_MODEL?.trim();
+  const reviewerFields = [reviewerLogin, reviewerIdText, reviewerPolicyVersion, reviewerModel];
+  if (reviewerFields.some(Boolean) && reviewerFields.some((item) => !item))
+    throw new Error('trusted reviewer login, ID, policy version, and model must be set together');
+  let trustedReviewer: ReceiptPolicy['trustedReviewer'];
+  if (reviewerLogin && reviewerIdText && reviewerPolicyVersion && reviewerModel) {
+    const id = Number(reviewerIdText);
+    if (
+      !(
+        /^[A-Za-z0-9-]+\[bot\]$/.test(reviewerLogin) &&
+        /^[1-9][0-9]*$/.test(reviewerIdText) &&
+        Number.isSafeInteger(id) &&
+        /^[A-Za-z0-9._:-]{1,128}$/.test(reviewerPolicyVersion) &&
+        /^[A-Za-z0-9._-]{1,128}$/.test(reviewerModel)
+      )
+    )
+      throw new Error('invalid trusted reviewer App identity');
+    trustedReviewer = {
+      login: reviewerLogin,
+      id,
+      policyVersion: reviewerPolicyVersion,
+      model: reviewerModel,
+    };
+  }
+
+  const receiptRef = publishReceiptRef(env, mode, repositoryFullName);
+  return {
+    mode,
+    ...(publicationScope ? { publicationScope } : {}),
+    repositoryFullName,
+    keyId,
+    privateKey,
+    version,
+    maxLifetimeMs,
+    requiredChecks,
+    ...(trustedReviewer ? { trustedReviewer } : {}),
+    ...(receiptRef ? { receiptRef } : {}),
+  };
+}
+
+function publishReceiptRef(
+  env: NodeJS.ProcessEnv,
+  mode: ReceiptPolicy['mode'],
+  repositoryFullName: string,
+): string | undefined {
+  if (mode !== 'publish') return undefined;
+  const repo = env.REVIEW_RECEIPT_REPO?.trim() ?? '';
+  if (!repo) throw new Error('REVIEW_RECEIPT_REPO is required when receipt publication is enabled');
+  if (repo !== repositoryFullName)
+    throw new Error('REVIEW_RECEIPT_REPO must match the controller repository');
+  const ref = env.REVIEW_RECEIPT_REF?.trim() ?? '';
+  if (!ref) throw new Error('REVIEW_RECEIPT_REF is required when receipt publication is enabled');
+  if (!validGateReceiptRef(ref)) throw new Error('REVIEW_RECEIPT_REF is not a receipt ref');
+  return ref;
+}
+
+function required(env: NodeJS.ProcessEnv, name: string): string {
+  const value = env[name]?.trim() ?? '';
+  if (!value) throw new Error(`${name} is required when REVIEW_RECEIPT_MODE is enabled`);
+  return value;
+}
+
+/** Bound all publish-mode candidate work, including expiration and failure checks. */
+export function assertReceiptPublicationScope(
+  policy: ReceiptPolicy | undefined,
+  repositoryId: number,
+  pullRequest: number,
+): void {
+  if (policy?.mode !== 'publish') return;
+  const scope = policy.publicationScope;
+  if (
+    !scope ||
+    scope.repositoryId !== repositoryId ||
+    scope.repositoryFullName !== policy.repositoryFullName ||
+    !Number.isSafeInteger(pullRequest) ||
+    !scope.pullRequests.includes(pullRequest)
+  )
+    throw new Error('receipt_publication_out_of_scope');
+}

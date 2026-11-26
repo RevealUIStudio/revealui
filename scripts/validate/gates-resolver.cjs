@@ -13,7 +13,12 @@
 // tsup.gates-cjs.ts` (or full package build, which runs that config second).
 // Sparse CI must never run full package DTS (needs @revealui/security).
 //
-// Returns null (never throws) when nothing resolves.
+// Returns null (never throws) when nothing resolves. A require failure is
+// written to stderr first. Callers still fail closed.
+//
+// The local bundle must stay inside this file's checkout. A symlink that
+// resolves outside that checkout is ignored. CI runs this file from the
+// base commit so a pull request cannot point the gate at its own bundle.
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -30,11 +35,47 @@ const LOCAL_DIST_CJS = path.join(
 );
 
 /**
+ * True when `target` is `root` or a path inside it. Both arguments are
+ * absolute real paths.
+ * @param {string} root
+ * @param {string} target
+ * @returns {boolean}
+ */
+function isResolvedInside(root, target) {
+  const prefix = root.endsWith(path.sep) ? root : root + path.sep;
+  return target === root || target.startsWith(prefix);
+}
+
+/**
+ * @param {unknown} error
+ */
+function reportLoadFailure(error) {
+  const detail =
+    error && typeof error === 'object' && 'stack' in error && typeof error.stack === 'string'
+      ? error.stack
+      : String(error);
+  process.stderr.write(`gates-resolver: failed to load the gates bundle\n${detail}\n`);
+}
+
+/**
  * @returns {unknown | null}
  */
 function resolveGatesModule() {
   if (fs.existsSync(LOCAL_DIST_CJS)) {
-    return require(LOCAL_DIST_CJS);
+    try {
+      const root = fs.realpathSync(path.join(__dirname, '..', '..'));
+      const real = fs.realpathSync(LOCAL_DIST_CJS);
+      if (isResolvedInside(root, real)) {
+        try {
+          return require(real);
+        } catch (error) {
+          reportLoadFailure(error);
+        }
+      }
+    } catch (error) {
+      // Missing or unreadable bundle. Try the install-dir fallback below.
+      reportLoadFailure(error);
+    }
   }
 
   const installDir = process.env.REVEALUI_HARNESSES_DIR;
@@ -42,7 +83,8 @@ function resolveGatesModule() {
     try {
       const resolved = require.resolve('@revealui/harnesses/gates', { paths: [installDir] });
       return require(resolved);
-    } catch {
+    } catch (error) {
+      reportLoadFailure(error);
       return null;
     }
   }
@@ -52,6 +94,7 @@ function resolveGatesModule() {
 
 module.exports = {
   resolveGatesModule,
+  isResolvedInside,
   /** Absolute path of the local CJS gates bundle (for diagnostics). */
   LOCAL_DIST_CJS,
 };

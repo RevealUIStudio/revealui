@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
@@ -163,11 +164,76 @@ describe('repository identity policy enforcement', () => {
     expect(run({ PR_AUTHOR_LOGIN: 'spoofed[bot]' }).status).toBe(1));
   it('denies fork source even with the acknowledgment label', () =>
     expect(run({ PR_HEAD_REPOSITORY: 'fork/revealui' }).status).toBe(1));
-  it('leaves ordinary feature PRs unchanged when policy is absent', () =>
+  it('passes ordinary feature PRs into test when App policy is absent', () =>
     expect(
       run({ PR_HEAD_REF: 'feat/ordinary', PR_TITLE: 'Feature', REVEALFLEET_BACKFLOW_APP_LOGIN: '' })
         .status,
     ).toBe(0));
+});
+
+describe('feature PRs into test use merge commits only', () => {
+  const script = fileURLToPath(new URL('../backflow-merge-method-guard.cjs', import.meta.url));
+  const run = (overrides: Record<string, string>) =>
+    spawnSync(process.execPath, [script, '--mode=pr'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PR_BASE_REF: 'test',
+        PR_HEAD_REF: 'feat/ordinary',
+        PR_TITLE: 'Feature',
+        PR_AUTHOR_LOGIN: 'human',
+        PR_HEAD_REPOSITORY: 'RevealUIStudio/revealui',
+        GITHUB_REPOSITORY: 'RevealUIStudio/revealui',
+        GITHUB_TOKEN: '',
+        PR_LABELS: '',
+        REVEALFLEET_BACKFLOW_APP_LOGIN: '',
+        ...overrides,
+      },
+    });
+
+  it('prints merge-commit-only instructions and passes', () => {
+    const result = run({});
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('merge commits only');
+    expect(result.stdout).toContain('gh pr merge <N> --repo RevealUIStudio/revealui --merge');
+    expect(result.stdout).toContain('Never pass --squash, --rebase, --admin, or --auto.');
+    expect(result.stdout).not.toContain('policy N/A');
+    expect(result.stdout).not.toContain('may still squash');
+  });
+
+  it('does not apply the feature merge-commit instruction outside test', () => {
+    const result = run({ PR_BASE_REF: 'main' });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('policy N/A');
+    expect(result.stdout).not.toContain('merge commits only');
+  });
+});
+
+describe('policy sources', () => {
+  it('keeps the required check name and drops the squash allowance', () => {
+    const script = readFileSync(
+      fileURLToPath(new URL('../backflow-merge-method-guard.cjs', import.meta.url)),
+      'utf8',
+    );
+    const workflow = readFileSync(
+      fileURLToPath(
+        new URL('../../../.github/workflows/backflow-merge-method-guard.yml', import.meta.url),
+      ),
+      'utf8',
+    );
+    expect(script).not.toContain('may still squash');
+    expect(script).not.toContain('squash remains allowed');
+    expect(script).toContain('merge commits only');
+    expect(workflow).not.toContain('may still squash');
+    expect(workflow).toContain('merge commits only');
+    const nameLines = workflow
+      .split('\n')
+      .filter((line) => line.trim() === 'name: Backflow merge-commit policy');
+    expect(nameLines).toEqual([
+      'name: Backflow merge-commit policy',
+      '    name: Backflow merge-commit policy',
+    ]);
+  });
 });
 
 describe('manual backflow acknowledgment without App policy', () => {
@@ -187,5 +253,10 @@ describe('manual backflow acknowledgment without App policy', () => {
       },
     });
   it('accepts the existing human acknowledgment', () => expect(run(ACK_LABEL).status).toBe(0));
-  it('requires the human acknowledgment', () => expect(run('').status).toBe(1));
+  it('requires the human acknowledgment and merge commits only', () => {
+    const result = run('');
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('gh pr merge <N> --repo RevealUIStudio/revealui --merge');
+    expect(result.stderr).toContain('Never pass --squash, --rebase, --admin, or --auto.');
+  });
 });
