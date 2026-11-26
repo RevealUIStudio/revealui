@@ -478,6 +478,23 @@ export async function createBackup(
             `SELECT ${stored.map((column) => `${escapeIdentifier(column.name)}::text AS ${escapeIdentifier(column.name)}`).join(', ')} FROM ONLY ${tableName(table)}`,
           );
           await validateInput(client, stored, result.rows, 'postgres-text');
+          for (const field of stored.filter(isIdentityColumn)) {
+            const sequence = await supportedIdentitySequence(client, table, field.name, 'backup');
+            const increasing = BigInt(sequence.step) > 0n;
+            let edge: bigint | null = null;
+            for (const row of result.rows) {
+              const value = BigInt(String(row[field.name]));
+              if (edge === null || (increasing ? value > edge : value < edge)) edge = value;
+            }
+            identityRestart(
+              sequence,
+              BigInt(sequence.start),
+              edge?.toString() ?? null,
+              table,
+              field.name,
+              'Backup',
+            );
+          }
           data[table] = result.rows;
           rowCounts[table] = result.rows.length;
         }
@@ -706,6 +723,59 @@ async function validateInput(
     }
   }
 }
+type IdentitySequence = {
+  schema: string;
+  name: string;
+  start: string;
+  step: string;
+  minimum: string;
+  maximum: string;
+  supported: boolean;
+};
+
+async function supportedIdentitySequence(
+  client: PoolClient,
+  table: string,
+  column: string,
+  operation: 'backup' | 'restore',
+): Promise<IdentitySequence> {
+  const {
+    rows: [sequence],
+  } = await client.query<IdentitySequence>(
+    `SELECT n.nspname AS schema, c.relname AS name, s.seqstart::text AS start,
+            s.seqincrement::text AS step, s.seqmin::text AS minimum,
+            s.seqmax::text AS maximum, NOT s.seqcycle AND s.seqcache = 1 AS supported
+     FROM pg_catalog.pg_sequence s
+     JOIN pg_catalog.pg_class c ON c.oid = s.seqrelid
+     JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+     WHERE s.seqrelid = pg_catalog.pg_get_serial_sequence($1, $2)::regclass`,
+    [tableName(table), column],
+  );
+  if (!sequence?.supported)
+    throw new Error(`Missing or unsupported ${operation} identity sequence: ${table}.${column}`);
+  return sequence;
+}
+
+function identityRestart(
+  sequence: IdentitySequence,
+  next: bigint,
+  edge: string | null,
+  table: string,
+  column: string,
+  operation: 'Backup' | 'Restore',
+): bigint {
+  const step = BigInt(sequence.step);
+  if (edge !== null) {
+    const value = BigInt(edge);
+    const distance = step > 0n ? value - next : next - value;
+    const stride = step > 0n ? step : -step;
+    if (distance >= 0n) next += (distance / stride + 1n) * step;
+  }
+  if (next < BigInt(sequence.minimum) || next > BigInt(sequence.maximum))
+    throw new Error(`${operation} identity sequence is exhausted: ${table}.${column}`);
+  return next;
+}
+
 async function syncIdentitySequences(
   client: PoolClient,
   table: string,
@@ -715,28 +785,7 @@ async function syncIdentitySequences(
   const relation = tableName(table);
   for (const field of fields.filter(isIdentityColumn)) {
     const column = escapeIdentifier(field.name);
-    const {
-      rows: [sequence],
-    } = await client.query<{
-      schema: string;
-      name: string;
-      start: string;
-      step: string;
-      minimum: string;
-      maximum: string;
-      supported: boolean;
-    }>(
-      `SELECT n.nspname AS schema, c.relname AS name, s.seqstart::text AS start,
-              s.seqincrement::text AS step, s.seqmin::text AS minimum,
-              s.seqmax::text AS maximum, NOT s.seqcycle AND s.seqcache = 1 AS supported
-       FROM pg_catalog.pg_sequence s
-       JOIN pg_catalog.pg_class c ON c.oid = s.seqrelid
-       JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-       WHERE s.seqrelid = pg_catalog.pg_get_serial_sequence($1, $2)::regclass`,
-      [relation, field.name],
-    );
-    if (!sequence?.supported)
-      throw new Error(`Missing or unsupported restore identity sequence: ${table}.${field.name}`);
+    const sequence = await supportedIdentitySequence(client, table, field.name, 'restore');
     const step = BigInt(sequence.step);
     const increasing = step > 0n;
     let next = BigInt(sequence.start);
@@ -757,14 +806,7 @@ async function syncIdentitySequences(
     );
     if (!extent) throw new Error(`Missing restore identity extent: ${table}.${field.name}`);
     if (!clearTables && extent.edge === null) continue;
-    if (extent.edge !== null) {
-      const edge = BigInt(extent.edge);
-      const distance = increasing ? edge - next : next - edge;
-      const stride = increasing ? step : -step;
-      if (distance >= 0n) next += (distance / stride + 1n) * step;
-    }
-    if (next < BigInt(sequence.minimum) || next > BigInt(sequence.maximum))
-      throw new Error(`Restore identity sequence is exhausted: ${table}.${field.name}`);
+    next = identityRestart(sequence, next, extent.edge, table, field.name, 'Restore');
     // RESTART is transactional, unlike setval. Identity data is always explicit,
     // so INSERT cannot allocate from these sequences ahead of the restart.
     await client.query(`ALTER TABLE ${relation} ALTER COLUMN ${column} RESTART WITH ${next}`);

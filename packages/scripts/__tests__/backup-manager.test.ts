@@ -187,6 +187,44 @@ describe('backup and restore data integrity', () => {
     expect(await readFile(prior, 'utf8')).toBe('{"first":[]}');
   });
 
+  it.each(
+    (['json', 'sql'] as const).flatMap((format) =>
+      [
+        ['CACHE 10', '1', 'Missing or unsupported backup identity sequence'],
+        ['CYCLE', '1', 'Missing or unsupported backup identity sequence'],
+        [
+          'MINVALUE 1 MAXVALUE 4 INCREMENT BY 2 START WITH 1',
+          '3',
+          'Backup identity sequence is exhausted',
+        ],
+        [
+          'MINVALUE 1 MAXVALUE 4 INCREMENT BY -2 START WITH 4',
+          '2',
+          'Backup identity sequence is exhausted',
+        ],
+      ].map(([sequence, value, error]) => ({ format, sequence, value, error })),
+    ),
+  )(
+    'preserves the last good backup for $format when identity uses $sequence',
+    async ({ format, sequence, value, error }) => {
+      const prior = join(directory, `backup-2000-01-01.${format}`);
+      const priorContents = format === 'json' ? '{"first":[]}' : '-- prior backup\n';
+      await writeFile(prior, priorContents);
+      await database.exec(`CREATE TABLE unsupported_identity (
+      id integer GENERATED ALWAYS AS IDENTITY (${sequence}) PRIMARY KEY
+    ); INSERT INTO unsupported_identity (id) OVERRIDING SYSTEM VALUE VALUES (${value});`);
+      const result = await createBackup(connection, import.meta.url, {
+        backupDir: directory,
+        format,
+        tables: ['unsupported_identity'],
+        retainCount: 1,
+      });
+      expect(result).toMatchObject({ success: false, error: `${error}: unsupported_identity.id` });
+      expect(await readdir(directory)).toEqual([`backup-2000-01-01.${format}`]);
+      expect(await readFile(prior, 'utf8')).toBe(priorContents);
+    },
+  );
+
   it.each(['json', 'sql'] as const)(
     'preserves PostgreSQL values without precision loss in %s',
     async (format) => {
