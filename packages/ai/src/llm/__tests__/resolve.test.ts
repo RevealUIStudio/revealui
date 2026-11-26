@@ -158,6 +158,26 @@ describe('resolveLLMClientForRequest — resolution order (§5.2)', () => {
     ).rejects.toBeInstanceOf(LLMNotConfiguredError);
   });
 
+  it('HOSTED_BYOK_DISPATCH=false still uses BYOK on hosted and never the env client', async () => {
+    process.env.HOSTED_BYOK_DISPATCH = 'false';
+    const byok = new FakeLLMClient({ source: 'byok' });
+    mockCreateForUser.mockResolvedValue(byok);
+
+    const result = await resolveLLMClientForRequest('user-1', makeDb([]), { isHosted: true });
+
+    expect(result).toBe(byok);
+    expect(mockCreateFromEnv).not.toHaveBeenCalled();
+  });
+
+  it('HOSTED_BYOK_DISPATCH=false on hosted with no key throws and never calls env', async () => {
+    process.env.HOSTED_BYOK_DISPATCH = 'false';
+
+    await expect(
+      resolveLLMClientForRequest('user-1', makeDb([]), { isHosted: true }),
+    ).rejects.toBeInstanceOf(LLMNotConfiguredError);
+    expect(mockCreateFromEnv).not.toHaveBeenCalled();
+  });
+
   it('flag OFF (self-hosted default) returns env directly — byte-unchanged', async () => {
     const byok = new FakeLLMClient({ source: 'byok' });
     mockCreateForUser.mockResolvedValue(byok);

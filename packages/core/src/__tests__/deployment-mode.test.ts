@@ -3,6 +3,9 @@ import {
   deploymentModeKeyConsistencyError,
   detectDeploymentMode,
   getExplicitDeploymentMode,
+  HOSTED_BANNED_INFERENCE_ENV_KEYS,
+  hostedPlatformInferenceError,
+  hostedPlatformInferenceViolations,
   isHostedDeployment,
   requireExplicitDeploymentMode,
 } from '../deployment-mode.js';
@@ -95,5 +98,45 @@ describe('explicit authorization deployment mode', () => {
   it('normalizes explicit modes without requiring a signer', () => {
     expect(getExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: ' HOSTED ' })).toBe('hosted');
     expect(getExplicitDeploymentMode({ REVEALUI_DEPLOYMENT_MODE: 'forge' })).toBe('forge');
+  });
+});
+
+describe('hostedPlatformInferenceViolations', () => {
+  it('names each banned var on hosted and ignores them on forge', () => {
+    for (const key of HOSTED_BANNED_INFERENCE_ENV_KEYS) {
+      expect(
+        hostedPlatformInferenceViolations({
+          REVEALUI_DEPLOYMENT_MODE: 'hosted',
+          [key]: 'present',
+        }),
+      ).toEqual([key]);
+      expect(
+        hostedPlatformInferenceViolations({
+          REVEALUI_DEPLOYMENT_MODE: 'forge',
+          [key]: 'present',
+        }),
+      ).toEqual([]);
+    }
+  });
+
+  it('treats HOSTED_BYOK_DISPATCH as banned at any value, including false', () => {
+    for (const value of ['false', 'true', '0', 'off']) {
+      expect(
+        hostedPlatformInferenceError({
+          REVEALUI_DEPLOYMENT_MODE: 'hosted',
+          HOSTED_BYOK_DISPATCH: value,
+        }),
+      ).toContain('HOSTED_BYOK_DISPATCH');
+    }
+  });
+
+  it('counts an empty sensitive pull as set only in lenient mode', () => {
+    const env = { REVEALUI_DEPLOYMENT_MODE: 'hosted', OPENAI_API_KEY: '' };
+    expect(hostedPlatformInferenceViolations(env)).toEqual([]);
+    expect(hostedPlatformInferenceViolations(env, { lenient: true })).toEqual(['OPENAI_API_KEY']);
+  });
+
+  it('returns null on hosted when no banned name is set', () => {
+    expect(hostedPlatformInferenceError({ REVEALUI_DEPLOYMENT_MODE: 'hosted' })).toBeNull();
   });
 });
