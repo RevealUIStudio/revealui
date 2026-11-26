@@ -153,6 +153,12 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   rateLimit: vi.fn(() => async () => null), // Return null = no rate limit response
 }));
 
+const mockResolveMemoryReadScope = vi.fn();
+
+vi.mock('@/lib/memory/memory-read-scope', () => ({
+  resolveMemoryReadScope: (...args: unknown[]) => mockResolveMemoryReadScope(...args),
+}));
+
 describe('Chat API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -403,6 +409,83 @@ describe('Chat API', () => {
 
       // Should stop at max iterations (5)
       expect(mockChat).toHaveBeenCalledTimes(5);
+    });
+
+    it('injects only the caller site memories', async () => {
+      process.env.ENABLE_VECTOR_MEMORY = 'true';
+      mockResolveMemoryReadScope.mockResolvedValue({ siteIds: ['tenant-a'] });
+
+      const searchSimilar = vi
+        .fn()
+        .mockResolvedValue([{ memory: { content: 'tenant-a secret' }, similarity: 0.91 }]);
+      const { VectorMemoryService } = await import('@revealui/ai/memory/vector');
+      vi.mocked(VectorMemoryService).mockImplementation(
+        class {
+          searchSimilar = searchSimilar;
+        } as unknown as typeof VectorMemoryService,
+      );
+
+      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
+      const mockChat = vi.fn().mockResolvedValue({ content: 'ok', toolCalls: [] });
+      vi.mocked(createLLMClientFromEnv).mockReturnValue({
+        chat: mockChat,
+        getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+        getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>);
+
+      const request = {
+        json: async () => ({
+          messages: [{ role: 'user', content: 'What do you remember?' }],
+        }),
+        headers: new Headers(),
+      } as unknown as NextRequest;
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+      expect(searchSimilar).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.objectContaining({ siteIds: ['tenant-a'], limit: 5, threshold: 0.7 }),
+      );
+      const system = mockChat.mock.calls[0]?.[0]?.[0] as { content?: string } | undefined;
+      expect(system?.content).toContain('tenant-a secret');
+      expect(system?.content).not.toContain('tenant-b');
+    });
+
+    it('injects nothing when site scope cannot be resolved', async () => {
+      process.env.ENABLE_VECTOR_MEMORY = 'true';
+      mockResolveMemoryReadScope.mockResolvedValue(null);
+
+      const searchSimilar = vi
+        .fn()
+        .mockResolvedValue([{ memory: { content: 'tenant-b secret' }, similarity: 0.99 }]);
+      const { VectorMemoryService } = await import('@revealui/ai/memory/vector');
+      vi.mocked(VectorMemoryService).mockImplementation(
+        class {
+          searchSimilar = searchSimilar;
+        } as unknown as typeof VectorMemoryService,
+      );
+
+      const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
+      const mockChat = vi.fn().mockResolvedValue({ content: 'ok', toolCalls: [] });
+      vi.mocked(createLLMClientFromEnv).mockReturnValue({
+        chat: mockChat,
+        getResponseCacheStats: vi.fn().mockReturnValue(undefined),
+        getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
+      } as unknown as ReturnType<typeof createLLMClientFromEnv>);
+
+      const request = {
+        json: async () => ({
+          messages: [{ role: 'user', content: 'What do you remember?' }],
+        }),
+        headers: new Headers(),
+      } as unknown as NextRequest;
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+      expect(searchSimilar).not.toHaveBeenCalled();
+      const system = mockChat.mock.calls[0]?.[0]?.[0] as { content?: string } | undefined;
+      expect(system?.content).not.toContain('tenant-b secret');
+      expect(system?.content).not.toContain('Context from Previous Conversations');
     });
   });
 });

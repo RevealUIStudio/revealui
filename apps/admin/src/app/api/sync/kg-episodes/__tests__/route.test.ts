@@ -38,6 +38,11 @@ vi.mock('@revealui/db/pool', () => ({
 }));
 
 const mockIngestEpisode = vi.fn();
+const mockResolveMemoryReadScope = vi.fn();
+
+vi.mock('@/lib/memory/memory-read-scope', () => ({
+  resolveMemoryReadScope: (...args: unknown[]) => mockResolveMemoryReadScope(...args),
+}));
 
 vi.mock('@revealui/knowledge-graph', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@revealui/knowledge-graph')>();
@@ -102,6 +107,7 @@ describe('POST /api/sync/kg-episodes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockResolveMemoryReadScope.mockResolvedValue({ siteIds: ['tenant-a'] });
     mockIngestEpisode.mockResolvedValue({ episodeId: 'ep-1', nodeCount: 1, edgeCount: 0 });
   });
 
@@ -217,8 +223,26 @@ describe('POST /api/sync/kg-episodes', () => {
     expect(mockIngestEpisode).toHaveBeenCalledTimes(1);
     const [, input] = mockIngestEpisode.mock.calls[0] ?? [];
     expect(input.episode.episodeType).toBe('manual');
+    expect(input.episode.siteId).toBe('tenant-a');
     expect(input.episode.source).toBe('kg-curation:my-view');
     expect(input.episode.contentRef.viewSlug).toBe('my-view');
     expect(input.nodes).toHaveLength(1);
+  });
+
+  it('does not ingest when site scope cannot be resolved', async () => {
+    mockGetSession.mockResolvedValue(mockSession);
+    mockResolveMemoryReadScope.mockResolvedValue(null);
+
+    const response = await POST(
+      postRequest({
+        viewSlug: 'my-view',
+        source: 'kg-curation:my-view',
+        nodes: [{ kind: 'file', name: 'x.ts', naturalKey: 'revealui/x.ts' }],
+        edges: [],
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(mockIngestEpisode).not.toHaveBeenCalled();
   });
 });
