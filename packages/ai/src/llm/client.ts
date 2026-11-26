@@ -676,7 +676,7 @@ export class LLMClient {
  * Provider defaults:
  *   inference-snaps → gemma3   (base URL defaults to http://localhost:9090/v1)
  *   groq            → openai/gpt-oss-120b (Groq-accepted default; retired llama ids remap)
- *   ollama          → DEFAULT_DAILY_OLLAMA_MODEL (qwen2.5:3b; base URL http://localhost:11434)
+ *   ollama          → DEFAULT_DAILY_OLLAMA_MODEL (gemma4:e2b; base URL http://localhost:11434; exact library name before :, tag free, unlisted ids refused)
  *   anthropic       → claude-sonnet-4-6 (base URL defaults to https://api.anthropic.com/v1)
  *   openai          → gpt-4o            (base URL defaults to https://api.openai.com/v1)
  *   xai             → grok-4.5          (base URL defaults to https://api.x.ai/v1)

@@ -160,6 +160,11 @@
       "import": "./dist/llm/providers/openai-compat.js",
       "default": "./dist/llm/providers/openai-compat.js"
     },
+    "./llm/providers/us-origin-snaps": {
+      "types": "./dist/llm/providers/us-origin-snaps.d.ts",
+      "import": "./dist/llm/providers/us-origin-snaps.js",
+      "default": "./dist/llm/providers/us-origin-snaps.js"
+    },
     "./llm/response-cache": {
       "types": "./dist/llm/response-cache.d.ts",
       "import": "./dist/llm/response-cache.js",
