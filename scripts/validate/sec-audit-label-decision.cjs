@@ -19,10 +19,16 @@
 // applied over an outstanding REQUEST-CHANGES). This makes the label un-stickable
 // while a REQUEST-CHANGES is live, mirroring the audit-fail revoke.
 //
+// There is no repository-variable kill switch and no exemption label. A real
+// exception is an owner SSHSIG or a controller receipt plus independent review.
+// This decision does not honor either of those as a skip: while the audit is
+// failing, or a guardrail-2 REQUEST-CHANGES verdict is live, the clearance
+// label does not stand.
+//
 // Pure `decide()` / `checkState()` are unit-tested; the thin CLI reads a JSON
-// { checkRuns, labels, killSwitch, reviews, comments, prAuthor } from stdin and
-// prints "revoke <reason>" or "skip <reason>" for the workflow to act on. Zero
-// deps, zero authored regex.
+// { checkRuns, labels, reviews, comments, prAuthor } from stdin and prints
+// "revoke <reason>" or "skip <reason>" for the workflow to act on. Zero deps,
+// zero authored regex. A leftover `killSwitch` field is ignored.
 
 const { evaluateGuardrail2 } = require("./guardrail2-verdict.cjs");
 
@@ -33,7 +39,6 @@ const REQUIRED_AUDIT_CHECKS = [
   "Dependency Review",
 ];
 const CLEAR_LABEL = "sec-review:approved";
-const OVERRIDE_LABEL = "sec-audit-override";
 
 // Definitive failures only. CANCELLED / SKIPPED / null are NOT here — a
 // cancelled run is usually a superseded duplicate (fleet rule), and treating it
@@ -62,17 +67,9 @@ function decide(input) {
   const labels = ((input && input.labels) || []).map((l) =>
     typeof l === "string" ? l : (l && l.name) || ""
   );
-  const killSwitch = Boolean(input && input.killSwitch);
-
-  if (killSwitch) {
-    return { action: "skip", reason: "kill switch set (SEC_AUDIT_GATE_DISABLED)" };
-  }
   const labelSet = new Set(labels);
   if (!labelSet.has(CLEAR_LABEL)) {
     return { action: "skip", reason: "no clearance label present" };
-  }
-  if (labelSet.has(OVERRIDE_LABEL)) {
-    return { action: "skip", reason: `per-PR override label '${OVERRIDE_LABEL}' present` };
   }
 
   // A live guardrail-2 REQUEST-CHANGES verdict makes the clearance label invalid,
@@ -103,10 +100,9 @@ module.exports = {
   checkState,
   REQUIRED_AUDIT_CHECKS,
   CLEAR_LABEL,
-  OVERRIDE_LABEL,
 };
 
-// CLI: node sec-audit-label-decision.cjs  <  {"checkRuns":[...],"labels":[...],"killSwitch":false,"reviews":[...],"comments":[...],"prAuthor":"..."}
+// CLI: node sec-audit-label-decision.cjs  <  {"checkRuns":[...],"labels":[...],"reviews":[...],"comments":[...],"prAuthor":"..."}
 if (require.main === module) {
   let raw = "";
   process.stdin.setEncoding("utf8");
