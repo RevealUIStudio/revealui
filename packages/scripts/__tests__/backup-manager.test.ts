@@ -188,6 +188,44 @@ describe('backup and restore data integrity', () => {
     expect(await readFile(prior, 'utf8')).toBe('{"first":[]}');
   });
 
+  it.each(
+    (['json', 'sql'] as const).flatMap((format) =>
+      [
+        ['CACHE 10', '1', 'Missing or unsupported backup identity sequence'],
+        ['CYCLE', '1', 'Missing or unsupported backup identity sequence'],
+        [
+          'MINVALUE 1 MAXVALUE 4 INCREMENT BY 2 START WITH 1',
+          '3',
+          'Backup identity sequence is exhausted',
+        ],
+        [
+          'MINVALUE 1 MAXVALUE 4 INCREMENT BY -2 START WITH 4',
+          '2',
+          'Backup identity sequence is exhausted',
+        ],
+      ].map(([sequence, value, error]) => ({ format, sequence, value, error })),
+    ),
+  )(
+    'preserves the last good backup for $format when identity uses $sequence',
+    async ({ format, sequence, value, error }) => {
+      const prior = join(directory, `backup-2000-01-01.${format}`);
+      const priorContents = format === 'json' ? '{"first":[]}' : '-- prior backup\n';
+      await writeFile(prior, priorContents);
+      await database.exec(`CREATE TABLE unsupported_identity (
+      id integer GENERATED ALWAYS AS IDENTITY (${sequence}) PRIMARY KEY
+    ); INSERT INTO unsupported_identity (id) OVERRIDING SYSTEM VALUE VALUES (${value});`);
+      const result = await createBackup(connection, import.meta.url, {
+        backupDir: directory,
+        format,
+        tables: ['unsupported_identity'],
+        retainCount: 1,
+      });
+      expect(result).toMatchObject({ success: false, error: `${error}: unsupported_identity.id` });
+      expect(await readdir(directory)).toEqual([`backup-2000-01-01.${format}`]);
+      expect(await readFile(prior, 'utf8')).toBe(priorContents);
+    },
+  );
+
   it.each(['json', 'sql'] as const)(
     'preserves PostgreSQL values without precision loss in %s',
     async (format) => {
@@ -723,6 +761,225 @@ describe('backup and restore data integrity', () => {
     await writeFile(join(directory, 'backup-foreign.txt'), '{}');
     expect(await listBackups(import.meta.url, { backupDir: directory })).toEqual([
       'backup-complete.json',
+    ]);
+  });
+
+  it.each(['json', 'sql'] as const)(
+    'skips generated kg_edges.search and restores the recomputed vector in %s',
+    async (format) => {
+      await database.exec(`CREATE TABLE kg_nodes (id text PRIMARY KEY, name text NOT NULL);
+        CREATE TABLE kg_edges (
+          id text PRIMARY KEY,
+          source_id text NOT NULL REFERENCES kg_nodes(id) ON DELETE CASCADE,
+          target_id text NOT NULL REFERENCES kg_nodes(id) ON DELETE CASCADE,
+          relation text NOT NULL,
+          fact text NOT NULL,
+          search tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(fact, ''))) STORED
+        );
+        INSERT INTO kg_nodes VALUES ('n1', 'alpha'), ('n2', 'beta');
+        INSERT INTO kg_edges (id, source_id, target_id, relation, fact)
+        VALUES ('e1', 'n1', 'n2', 'relates_to', 'alpha relates to beta')`);
+      const expected = (
+        await database.query('SELECT id, fact, search::text AS search FROM kg_edges')
+      ).rows;
+      const backup = await createBackup(connection, import.meta.url, {
+        backupDir: directory,
+        format,
+        tables: ['kg_nodes', 'kg_edges'],
+      });
+      expect(backup.success, backup.error).toBe(true);
+      const artifact = await readFile(backup.path as string, 'utf8');
+      expect(artifact).not.toContain('"search"');
+      await database.exec('DELETE FROM kg_edges; DELETE FROM kg_nodes');
+      expect(await restoreBackup(connection, backup.path as string)).toEqual({ success: true });
+      expect(
+        (await database.query('SELECT id, fact, search::text AS search FROM kg_edges')).rows,
+      ).toEqual(expected);
+    },
+  );
+
+  it('ignores a stored generated column that is present in the backup file', async () => {
+    await database.exec(`CREATE TABLE kg_nodes (id text PRIMARY KEY, name text NOT NULL);
+      CREATE TABLE kg_edges (
+        id text PRIMARY KEY,
+        source_id text NOT NULL REFERENCES kg_nodes(id) ON DELETE CASCADE,
+        target_id text NOT NULL REFERENCES kg_nodes(id) ON DELETE CASCADE,
+        relation text NOT NULL,
+        fact text NOT NULL,
+        search tsvector GENERATED ALWAYS AS (to_tsvector('english', coalesce(fact, ''))) STORED
+      )`);
+    const file = join(directory, 'backup-kg-edges.json');
+    await writeFile(
+      file,
+      JSON.stringify({
+        version: 1,
+        encoding: 'postgres-text',
+        tables: {
+          kg_nodes: [
+            { id: 'n1', name: 'alpha' },
+            { id: 'n2', name: 'beta' },
+          ],
+          kg_edges: [
+            {
+              id: 'e1',
+              source_id: 'n1',
+              target_id: 'n2',
+              relation: 'relates_to',
+              fact: 'alpha relates to beta',
+              search: "'stale':99",
+            },
+          ],
+        },
+      }),
+    );
+    expect(await restoreBackup(connection, file)).toEqual({ success: true });
+    const expected = await database.query(
+      "SELECT 'alpha relates to beta' AS fact, to_tsvector('english', 'alpha relates to beta')::text AS search",
+    );
+    expect(
+      (await database.query('SELECT fact, search::text AS search FROM kg_edges')).rows,
+    ).toEqual(expected.rows);
+  });
+
+  it.each(['json', 'sql'] as const)(
+    'keeps generated-always identity values and advances the sequence in %s',
+    async (format) => {
+      await database.exec(`CREATE TABLE numbered (
+        id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        label text NOT NULL
+      );
+      INSERT INTO numbered (label) VALUES ('kept'), ('second')`);
+      const expected = (await database.query('SELECT id, label FROM numbered ORDER BY id')).rows;
+      const backup = await createBackup(connection, import.meta.url, {
+        backupDir: directory,
+        format,
+        tables: ['numbered'],
+      });
+      expect(backup.success, backup.error).toBe(true);
+      if (format === 'sql') {
+        expect(await readFile(backup.path as string, 'utf8')).toContain('OVERRIDING SYSTEM VALUE');
+      }
+      await database.exec('DELETE FROM numbered');
+      expect(await restoreBackup(connection, backup.path as string)).toEqual({ success: true });
+      expect((await database.query('SELECT id, label FROM numbered ORDER BY id')).rows).toEqual(
+        expected,
+      );
+      await database.exec("INSERT INTO numbered (label) VALUES ('next')");
+      expect((await database.query('SELECT id FROM numbered ORDER BY id')).rows).toEqual([
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+      ]);
+    },
+  );
+
+  it('keeps generated-by-default identity values and does not rewind the sequence on append', async () => {
+    await database.exec(`CREATE TABLE numbered_default (
+      id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+      label text NOT NULL
+    );
+    INSERT INTO numbered_default (id, label) VALUES (5, 'kept')`);
+    const backup = await createBackup(connection, import.meta.url, {
+      backupDir: directory,
+      tables: ['numbered_default'],
+    });
+    expect(backup.success, backup.error).toBe(true);
+    await database.exec('DELETE FROM numbered_default');
+    expect(await restoreBackup(connection, backup.path as string)).toEqual({ success: true });
+    await database.exec("INSERT INTO numbered_default (label) VALUES ('next')");
+    expect(
+      (await database.query('SELECT id, label FROM numbered_default ORDER BY id')).rows,
+    ).toEqual([
+      { id: 5, label: 'kept' },
+      { id: 6, label: 'next' },
+    ]);
+
+    await database.exec('DELETE FROM numbered_default');
+    await database.exec("INSERT INTO numbered_default (id, label) VALUES (3, 'resident')");
+    await database.exec("SELECT pg_catalog.setval('numbered_default_id_seq', 10, true)");
+    const resident = join(directory, 'backup-identity-append.json');
+    await writeFile(resident, '{"numbered_default":[{"id":"4","label":"added"}]}');
+    expect(await restoreBackup(connection, resident, { clearTables: false })).toEqual({
+      success: true,
+    });
+    await database.exec("INSERT INTO numbered_default (label) VALUES ('after')");
+    expect((await database.query('SELECT id FROM numbered_default ORDER BY id')).rows).toEqual([
+      { id: 3 },
+      { id: 4 },
+      { id: 11 },
+    ]);
+  });
+
+  it('preserves rows and the next identity when a later table rejects a restore', async () => {
+    await database.exec(`CREATE TABLE a_identity (
+      id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+    );
+    CREATE TABLE z_later (n integer CHECK (n > 0));
+    INSERT INTO a_identity DEFAULT VALUES;
+    INSERT INTO z_later VALUES (1)`);
+    const file = join(directory, 'identity-rollback.json');
+    await writeFile(file, '{"a_identity":[{"id":"100"}],"z_later":[{"n":"-1"}]}');
+    expect((await restoreBackup(connection, file)).success).toBe(false);
+    expect((await database.query('SELECT id FROM a_identity')).rows).toEqual([{ id: 1 }]);
+    expect((await database.query('SELECT n FROM z_later')).rows).toEqual([{ n: 1 }]);
+    const next = await database.query('INSERT INTO a_identity DEFAULT VALUES RETURNING id');
+    expect(next.rows).toEqual([{ id: 2 }]);
+  });
+
+  it('advances a descending identity past restored rows in replace and append mode', async () => {
+    await database.exec(`CREATE TABLE descending (
+      id integer GENERATED BY DEFAULT AS IDENTITY (MAXVALUE 100 START WITH 100 INCREMENT BY -3)
+        PRIMARY KEY
+    )`);
+    const file = join(directory, 'identity-descending.json');
+    await writeFile(file, '{"descending":[{"id":"100"},{"id":"97"}]}');
+    expect(await restoreBackup(connection, file)).toEqual({ success: true });
+    expect(
+      (await database.query('INSERT INTO descending DEFAULT VALUES RETURNING id')).rows,
+    ).toEqual([{ id: 94 }]);
+    await writeFile(file, '{"descending":[{"id":"98"},{"id":"88"}]}');
+    expect(await restoreBackup(connection, file, { clearTables: false })).toEqual({
+      success: true,
+    });
+    expect(
+      (await database.query('INSERT INTO descending DEFAULT VALUES RETURNING id')).rows,
+    ).toEqual([{ id: 85 }]);
+  });
+
+  it('rejects omitted identity values before any sequence allocation', async () => {
+    await database.exec(`CREATE TABLE numbered (
+      id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      label text NOT NULL
+    ); INSERT INTO numbered (label) VALUES ('resident')`);
+    const file = join(directory, 'identity-missing.json');
+    await writeFile(file, '{"numbered":[{"label":"missing"}]}');
+    const result = await restoreBackup(connection, file);
+    expect(result).toMatchObject({
+      success: false,
+      error: 'Missing explicit restore identity: numbered.id',
+    });
+    expect(
+      (await database.query("INSERT INTO numbered (label) VALUES ('after') RETURNING id")).rows,
+    ).toEqual([{ id: 2 }]);
+  });
+
+  it('restarts an identity sequence when a replacement restore is empty', async () => {
+    await database.exec(`CREATE TABLE numbered (
+      id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      label text NOT NULL
+    );
+    INSERT INTO numbered (label) VALUES ('gone')`);
+    await database.exec('DELETE FROM numbered');
+    const backup = await createBackup(connection, import.meta.url, {
+      backupDir: directory,
+      tables: ['numbered'],
+    });
+    expect(backup.success, backup.error).toBe(true);
+    await database.exec("INSERT INTO numbered (label) VALUES ('later')");
+    expect(await restoreBackup(connection, backup.path as string)).toEqual({ success: true });
+    await database.exec("INSERT INTO numbered (label) VALUES ('fresh')");
+    expect((await database.query('SELECT id, label FROM numbered')).rows).toEqual([
+      { id: 1, label: 'fresh' },
     ]);
   });
 });
