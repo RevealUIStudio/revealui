@@ -20,6 +20,7 @@ COPY packages/contracts/package.json  ./packages/contracts/
 COPY packages/core/package.json       ./packages/core/
 COPY packages/db/package.json         ./packages/db/
 COPY packages/dev/package.json        ./packages/dev/
+COPY packages/harnesses/package.json  ./packages/harnesses/
 COPY packages/knowledge-graph/package.json ./packages/knowledge-graph/
 COPY packages/mcp/package.json        ./packages/mcp/
 COPY packages/openapi/package.json    ./packages/openapi/
