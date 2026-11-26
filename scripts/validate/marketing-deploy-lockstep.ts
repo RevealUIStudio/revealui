@@ -405,12 +405,72 @@ interface FetchResult {
   error: string | null;
 }
 
-export async function fetchLatestGreenMainDeploy(token: string): Promise<FetchResult> {
-  const url =
-    'https://api.github.com/repos/RevealUIStudio/revealui/actions/workflows/deploy.yml/runs?branch=main&status=success&per_page=1';
+/** Former and current GitHub org logins for the production repository. */
+export const KNOWN_PRODUCTION_OWNERS = ['RevealUIStudio', 'revealui-studio'] as const;
+const PRODUCTION_REPOSITORY_NAME = 'revealui';
+
+function isRepositorySlug(value: string): boolean {
+  if (value.length === 0) return false;
+  for (const ch of value) {
+    const code = ch.codePointAt(0) ?? 0;
+    const ok =
+      (code >= 48 && code <= 57) ||
+      (code >= 65 && code <= 90) ||
+      (code >= 97 && code <= 122) ||
+      code === 45 ||
+      code === 95 ||
+      code === 46;
+    if (!ok) return false;
+  }
+  return true;
+}
+
+/** One repository when GITHUB_REPOSITORY is set, otherwise both known orgs. */
+export function productionRepositoryCandidates(repositoryEnv: string): readonly string[] {
+  const slash = repositoryEnv.indexOf('/');
+  if (slash > 0 && repositoryEnv.indexOf('/', slash + 1) === -1) {
+    const owner = repositoryEnv.slice(0, slash);
+    const name = repositoryEnv.slice(slash + 1);
+    if (isRepositorySlug(owner) && isRepositorySlug(name)) return [repositoryEnv];
+  }
+  return KNOWN_PRODUCTION_OWNERS.map((owner) => `${owner}/${PRODUCTION_REPOSITORY_NAME}`);
+}
+
+function productionDeployRunsUrl(repository: string): string {
+  return `https://api.github.com/repos/${repository}/actions/workflows/deploy.yml/runs?branch=main&status=success&per_page=1`;
+}
+
+export async function fetchLatestGreenMainDeploy(
+  token: string,
+  options: { repositoryEnv?: string; fetchImpl?: typeof fetch } = {},
+): Promise<FetchResult> {
+  const repositoryEnv = options.repositoryEnv ?? readEnv('GITHUB_REPOSITORY');
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const candidates = productionRepositoryCandidates(repositoryEnv);
+  let lastError: string | null = null;
+  for (let index = 0; index < candidates.length; index += 1) {
+    const repository = candidates[index];
+    if (repository === undefined) continue;
+    const lookedUp = await fetchDeployRun(token, repository, fetchImpl);
+    const tryNext = lookedUp.error?.includes('HTTP 404') === true && index + 1 < candidates.length;
+    if (tryNext) {
+      lastError = lookedUp.error;
+      continue;
+    }
+    return lookedUp;
+  }
+  return { receipt: null, error: lastError ?? 'main Deploy lookup failed' };
+}
+
+async function fetchDeployRun(
+  token: string,
+  repository: string,
+  fetchImpl: typeof fetch,
+): Promise<FetchResult> {
+  const url = productionDeployRunsUrl(repository);
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetchImpl(url, {
       headers: {
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${token}`,

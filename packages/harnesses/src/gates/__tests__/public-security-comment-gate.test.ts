@@ -118,6 +118,32 @@ describe('checkPublicSecurityComment', () => {
     );
   });
 
+  it('allows the essay on the renamed org planning repo', () => {
+    expect(checkPublicSecurityComment(commentCmd('revealui-studio/revealui-jv', ESSAY)).block).toBe(
+      false,
+    );
+  });
+
+  it('blocks the essay on the renamed org public repo', () => {
+    expect(checkPublicSecurityComment(commentCmd('revealui-studio/revealui', ESSAY)).block).toBe(
+      true,
+    );
+  });
+
+  it('derives the planning repo owner from GITHUB_REPOSITORY', () => {
+    const previous = process.env.GITHUB_REPOSITORY;
+    process.env.GITHUB_REPOSITORY = 'moved-org/revealui';
+    try {
+      expect(checkPublicSecurityComment(commentCmd('moved-org/revealui-jv', ESSAY)).block).toBe(
+        false,
+      );
+      expect(checkPublicSecurityComment(commentCmd('moved-org/revealui', ESSAY)).block).toBe(true);
+    } finally {
+      if (previous === undefined) delete process.env.GITHUB_REPOSITORY;
+      else process.env.GITHUB_REPOSITORY = previous;
+    }
+  });
+
   it('fail-closes when the repo is omitted and the body is an essay', () => {
     expect(
       checkPublicSecurityComment(`gh pr comment 1 --body ${JSON.stringify(ESSAY)}`).block,
