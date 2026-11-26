@@ -291,6 +291,12 @@ jobs:
           node "$script"
       # trusted-judge:end
 
+      - name: Dependabot catalog autofix workflow contract (hard fail)
+        run: pnpm exec vitest run scripts/ci/__tests__/dependabot-catalog-autofix.test.ts
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
