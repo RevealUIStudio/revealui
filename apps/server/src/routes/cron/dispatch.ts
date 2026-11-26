@@ -28,6 +28,7 @@ import {
   jobMonitorSlug,
   MONITORED_JOB_NAMES,
   resolveDispatchMonitorSlug,
+  SENTRY_CRON_FLUSH_TIMEOUT_MS,
   sentryCronEnabled,
 } from '../../lib/cron-sentry-monitors.js';
 import billingApp from '../billing.js';
@@ -269,11 +270,31 @@ app.on(['GET', 'POST'], '/dispatch', async (c) => {
     });
   };
 
-  if (!sentryCronEnabled()) {
-    return runDispatch();
+  const cronMonitorEnabled = sentryCronEnabled();
+  try {
+    if (!cronMonitorEnabled) {
+      return await runDispatch();
+    }
+    return await Sentry.withMonitor(
+      resolveDispatchMonitorSlug(),
+      runDispatch,
+      dispatchMonitorConfig,
+    );
+  } finally {
+    if (cronMonitorEnabled) {
+      try {
+        await Sentry.flush(SENTRY_CRON_FLUSH_TIMEOUT_MS);
+      } catch (err) {
+        try {
+          logger.warn('Sentry cron flush failed', {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        } catch {
+          // Keep the dispatch response if logging the flush failure throws.
+        }
+      }
+    }
   }
-
-  return Sentry.withMonitor(resolveDispatchMonitorSlug(), runDispatch, dispatchMonitorConfig);
 });
 
 export default app;

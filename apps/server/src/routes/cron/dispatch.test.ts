@@ -21,6 +21,7 @@ const hoisted = vi.hoisted(() => {
       void slug;
       return callback();
     }),
+    flush: vi.fn(async (_timeout?: number) => true),
     captureCheckIn: vi.fn(),
   };
 
@@ -96,6 +97,11 @@ const FAKE_SENTRY_DSN = 'https://example@o0.ingest.sentry.io/0';
 beforeEach(() => {
   hoisted.forwarded.length = 0;
   vi.clearAllMocks();
+  hoisted.sentry.withMonitor.mockImplementation((slug: string, callback: () => unknown) => {
+    void slug;
+    return callback();
+  });
+  hoisted.sentry.flush.mockResolvedValue(true);
   setEnv();
   delete process.env.SENTRY_DSN;
   delete process.env.SENTRY_CRON_DISPATCH_SLUG;
@@ -240,6 +246,7 @@ describe('dispatch Sentry cron monitors', () => {
     });
     expect(res.status).toBe(200);
     expect(hoisted.sentry.withMonitor).not.toHaveBeenCalled();
+    expect(hoisted.sentry.flush).not.toHaveBeenCalled();
   });
 
   it('checks in the dispatch monitor and each monitored job when SENTRY_DSN is set', async () => {
@@ -301,5 +308,67 @@ describe('dispatch Sentry cron monitors', () => {
     const res = await invokeDispatch({ method: 'GET' });
     expect(res.status).toBe(401);
     expect(hoisted.sentry.withMonitor).not.toHaveBeenCalled();
+    expect(hoisted.sentry.flush).not.toHaveBeenCalled();
+  });
+
+  it('flushes Sentry after withMonitor resolves when a DSN is configured', async () => {
+    setEnv({ SENTRY_DSN: FAKE_SENTRY_DSN });
+    let releaseMonitor: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      releaseMonitor = resolve;
+    });
+    const events: string[] = [];
+    hoisted.sentry.withMonitor.mockImplementation(
+      async (slug: string, callback: () => Promise<unknown>) => {
+        events.push(`start:${slug}`);
+        const result = await callback();
+        await gate;
+        events.push(`end:${slug}`);
+        return result;
+      },
+    );
+    hoisted.sentry.flush.mockImplementation(async (timeout?: number) => {
+      events.push(`flush:${String(timeout)}`);
+      return true;
+    });
+
+    const pending = invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+
+    await vi.waitFor(() => {
+      expect(events).toContain('start:vercel-cron-dispatch');
+    });
+    expect(events.some((event) => event.startsWith('flush:'))).toBe(false);
+
+    releaseMonitor?.();
+    const res = await pending;
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string };
+    expect(body.status).toBe('ok');
+
+    const flushAt = events.indexOf('flush:2000');
+    const dispatchEnd = events.indexOf('end:vercel-cron-dispatch');
+    expect(flushAt).toBeGreaterThan(dispatchEnd);
+    expect(events.filter((event) => event.startsWith('flush:'))).toEqual(['flush:2000']);
+  });
+
+  it('keeps the dispatch response when Sentry.flush rejects', async () => {
+    setEnv({ SENTRY_DSN: FAKE_SENTRY_DSN });
+    hoisted.sentry.flush.mockRejectedValue(new Error('flush failed'));
+
+    const res = await invokeDispatch({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${CRON_SECRET}` },
+    });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { status: string };
+    expect(body.status).toBe('ok');
+    expect(hoisted.logger.warn).toHaveBeenCalledWith(
+      'Sentry cron flush failed',
+      expect.objectContaining({ error: 'flush failed' }),
+    );
   });
 });
