@@ -130,9 +130,12 @@ export function ShowcasePage() {
       <div className="mx-auto max-w-4xl px-8 py-10">
         <h1 className="text-xl font-bold text-ink">Not Found</h1>
         <p className="mt-2 text-sm text-text-secondary">
-          No showcase found for "<code className="font-mono text-accent">{path}</code>".
+          No showcase found for "<code className="font-mono text-primary-text">{path}</code>".
         </p>
-        <Link to="/showcase" className="mt-4 inline-block text-sm text-accent hover:underline">
+        <Link
+          to="/showcase"
+          className="mt-4 inline-block text-sm text-primary-text hover:underline"
+        >
           Back to overview
         </Link>
       </div>

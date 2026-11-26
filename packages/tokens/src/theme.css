@@ -67,6 +67,9 @@
   --color-primary-soft: var(--rvui-brand-soft);
   --color-primary-subtle: var(--rvui-brand-subtle);
   --color-primary-text: var(--rvui-brand-text);
+  /* Text links. Amber accent is about 2:1 on paper and fails WCAG AA.
+   * The primary text step clears 4.5:1 on light and dark surfaces. */
+  --color-link: var(--rvui-brand-text);
 
   /* ── Accent ── */
   --color-accent: var(--rvui-accent);

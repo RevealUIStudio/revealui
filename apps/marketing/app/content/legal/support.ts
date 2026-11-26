@@ -22,22 +22,22 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
     heading: '1. Choose your channel',
     listPreamble: 'Different questions land best in different places. In rough order of speed:',
     listItems: [
-      `**Documentation** at https://docs.revealui.com: covers setup, configuration, the API surface, and most "how do I do X with RevealUI" questions. Always check here first; if the answer is there, you have it now instead of waiting on an email reply.`,
-      `**GitHub Discussions** at https://github.com/RevealUIStudio/revealui/discussions: community-friendly format for design questions, "is there a better way to do X", and ideas. Other users and the maintainer both watch this. Best for questions where a public answer benefits more than just you.`,
-      `**GitHub Issues** at https://github.com/RevealUIStudio/revealui/issues: for confirmed bugs and feature requests. Include reproduction steps. See §5 below for "bug vs support" guidance.`,
-      `**Email** at ${SITE.emails.support}: for account-specific issues (billing, license keys, your data), security concerns, and questions you cannot ask in public.`,
+      '**[Documentation](https://docs.revealui.com)**: covers setup, configuration, the API surface, and most "how do I do X with RevealUI" questions. Always check here first; if the answer is there, you have it now instead of waiting on an email reply.',
+      '**[GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions)**: community-friendly format for design questions, "is there a better way to do X", and ideas. Other users and the maintainer both watch this. Best for questions where a public answer benefits more than just you.',
+      '**[GitHub Issues](https://github.com/RevealUIStudio/revealui/issues)**: for confirmed bugs and feature requests. Include reproduction steps. See §5 below for "bug vs support" guidance.',
+      `**[Email](mailto:${SITE.emails.support})**: for account-specific issues (billing, license keys, your data), security concerns, and questions you cannot ask in public.`,
       '**Paid license buyers:** after purchase we may send a private invite for onboarding questions. That invite is manual and is not a public join link. Billing and license issues still go to email.',
-      '**Essays and product notes:** https://substack.com/@revealuistudio is the public broadcast list. It is not a support desk.',
+      '**[Essays and product notes](https://substack.com/@revealuistudio)**: the public broadcast list. It is not a support desk.',
     ],
   },
   {
     heading: '2. Response targets and earlier agreements',
     paragraphs: [
-      `Email ${SITE.emails.support}. ${PAID_SUPPORT_POLICY.standardResponse} ${PAID_SUPPORT_POLICY.criticalResponse} Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our SLA page at https://revealui.com/sla.`,
+      `Email ${SITE.emails.support}. ${PAID_SUPPORT_POLICY.standardResponse} ${PAID_SUPPORT_POLICY.criticalResponse} Complex issues may need multiple rounds of correspondence after that first response. Full detail is on our [SLA page](https://revealui.com/sla).`,
       PAID_SUPPORT_POLICY.coverage,
       PAID_SUPPORT_POLICY.applicability,
       'GitHub Issues and Discussions: best-effort. We read them, but we may not respond instantly. If something is urgent, email is the right channel.',
-      'Security reports: see the dedicated security policy at https://revealui.com/security. Those go to a separate address with a separate response commitment.',
+      'Security reports: see the dedicated [security policy](https://revealui.com/security). Those go to a separate address with a separate response commitment.',
     ],
   },
   {
@@ -59,10 +59,10 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
     ],
     listItems: [
       'We do not write your application code for you. RevealUI is a framework; you build with it.',
-      'Private codebase review is separately scoped work. Contact RevealUI Studio at https://revealuistudio.com/contact to discuss it; a product license does not include consulting.',
+      'Private codebase review is separately scoped work. Contact [RevealUI Studio](https://revealuistudio.com/contact) to discuss it; a product license does not include consulting.',
       'We do not debug deployments to specific hosting environments (Kubernetes clusters, exotic Docker setups, customer VPNs) beyond the documented Vercel / Fly / Hetzner / Docker paths.',
       'We cannot recover data from a self-hosted instance that has been lost. We do not have access to your database. Always maintain your own backups.',
-      'For architecture or implementation work beyond product support, discuss a scoped engagement with RevealUI Studio at https://revealuistudio.com/contact.',
+      'For architecture or implementation work beyond product support, discuss a scoped engagement with [RevealUI Studio](https://revealuistudio.com/contact).',
       'We do not provide live phone or video support at the Pro tier. Email-and-async only.',
     ],
   },
@@ -78,7 +78,7 @@ export const SUPPORT_SECTIONS: readonly LegalSection[] = [
   {
     heading: '6. Status and uptime',
     paragraphs: [
-      'Live status of revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com is published at https://revealui.com/status with a live probe of the API health endpoint and an honest disclosure of our monitoring posture (we are a solo-operator company; we do not run 24×7 manned monitoring).',
+      'Live status of revealui.com, admin.revealui.com, api.revealui.com, and docs.revealui.com is published on the [status page](https://revealui.com/status) with a live probe of the API health endpoint and an honest disclosure of our monitoring posture (we are a solo-operator company; we do not run 24×7 manned monitoring).',
       'If you are experiencing an outage that the status page does not yet reflect, email support and include the surface you are hitting and the time you first saw the issue.',
     ],
   },

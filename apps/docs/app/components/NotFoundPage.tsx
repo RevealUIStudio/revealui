@@ -20,7 +20,7 @@ export function NotFoundPage({
           ? `No documentation page exists for "${pathLabel}".`
           : 'This documentation page does not exist.'}
       </p>
-      <Link to={homeHref} className="mt-4 inline-block text-accent hover:underline">
+      <Link to={homeHref} className="mt-4 inline-block text-primary-text hover:underline">
         {homeLabel}
       </Link>
     </div>
